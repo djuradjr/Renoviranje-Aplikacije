@@ -8,16 +8,21 @@ import com.example.stayfree.data.repository.BlockingRepository
 import com.example.stayfree.data.repository.WebsiteBlockRepository
 import com.example.stayfree.domain.BlockRuleEvaluator
 import com.example.stayfree.domain.content.ContentSignatures
+import com.example.stayfree.util.StrictGate
 import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val STRICT_STATUS_TICK_MS = 20_000L
 
 /** One row in the "App block" list: a classic rule or any other switched-on block. */
 sealed class ActiveBlockItem {
@@ -52,7 +57,8 @@ sealed class ActiveBlockItem {
 class BlockingViewModel @Inject constructor(
     private val blockingRepository: BlockingRepository,
     websiteBlockRepository: WebsiteBlockRepository,
-    prefs: AppPreferences
+    prefs: AppPreferences,
+    private val strictGate: StrictGate
 ) : ViewModel() {
 
     private val allRules: StateFlow<List<BlockRuleEntity>> = blockingRepository.getAllRules()
@@ -110,6 +116,14 @@ class BlockingViewModel @Inject constructor(
     val contentTargetCount: StateFlow<Int> = prefs.contentBlockEnabledIds
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    /** Re-read on every change of the stored lock and on a slow tick, since time alone ends it. */
+    val strictRemainingMs: StateFlow<Long> = combine(
+        prefs.strictState,
+        prefs.premiumActive,
+        flow { while (true) { emit(Unit); delay(STRICT_STATUS_TICK_MS) } }
+    ) { _, _, _ -> strictGate.remainingMs() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
     /** Content blocks fired today — the same number the dashboard tile shows. */
     val blocksToday: StateFlow<Int> = prefs.contentBlockCount

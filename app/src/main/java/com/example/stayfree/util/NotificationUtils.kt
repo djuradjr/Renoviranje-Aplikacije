@@ -10,16 +10,19 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.example.stayfree.R
 import com.example.stayfree.ui.MainActivity
+import com.example.stayfree.ui.onboarding.OnboardingActivity
 
 object NotificationUtils {
 
     const val CHANNEL_FOREGROUND = "channel_foreground_service"
     const val CHANNEL_USAGE_ALERTS = "channel_usage_alerts"
     const val CHANNEL_DAILY_SUMMARY = "channel_daily_summary"
+    const val CHANNEL_STRICT = "channel_strict"
 
     const val NOTIFICATION_ID_FOREGROUND = 1
     const val NOTIFICATION_ID_USAGE_ALERT = 2
     const val NOTIFICATION_ID_DAILY_SUMMARY = 3
+    const val NOTIFICATION_ID_STRICT = 4
 
     fun createChannels(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -40,7 +43,12 @@ object NotificationUtils {
                         CHANNEL_DAILY_SUMMARY,
                         context.getString(R.string.notif_channel_summary_name),
                         NotificationManager.IMPORTANCE_LOW
-                    ).apply { description = context.getString(R.string.notif_channel_summary_desc) }
+                    ).apply { description = context.getString(R.string.notif_channel_summary_desc) },
+                    NotificationChannel(
+                        CHANNEL_STRICT,
+                        context.getString(R.string.notif_channel_strict_name),
+                        NotificationManager.IMPORTANCE_HIGH
+                    ).apply { description = context.getString(R.string.notif_channel_strict_desc) }
                 )
             )
         }
@@ -73,6 +81,33 @@ object NotificationUtils {
             .setAutoCancel(true)
             .build()
         nm.notify(packageName.hashCode(), notification)
+    }
+
+    /**
+     * Strict mode is running but the accessibility service is off, so nothing is blocked.
+     * Not tied to the in-app notification switches: it is part of what strict mode is.
+     */
+    fun showStrictProtectionOff(context: Context) {
+        if (!PermissionUtils.hasNotificationPermission(context)) return
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val pendingIntent = PendingIntent.getActivity(
+            context, NOTIFICATION_ID_STRICT, OnboardingActivity.protectionIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val notification = NotificationCompat.Builder(context, CHANNEL_STRICT)
+            .setContentTitle(context.getString(R.string.notif_strict_off_title))
+            .setContentText(context.getString(R.string.notif_strict_off_text))
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .build()
+        nm.notify(NOTIFICATION_ID_STRICT, notification)
+    }
+
+    fun clearStrictProtectionOff(context: Context) {
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.cancel(NOTIFICATION_ID_STRICT)
     }
 
     fun sendDailySummary(context: Context, totalScreenTime: String) {

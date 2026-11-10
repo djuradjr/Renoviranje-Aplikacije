@@ -103,6 +103,21 @@ object TimeUtils {
         }
     }
 
+    /**
+     * Time left on something that can run for days: "2d 4h", "4h 12m", "12m". Minutes round
+     * up, so a running countdown never reads "0m".
+     */
+    fun formatLongDuration(ms: Long): String {
+        val totalMinutes = (ms + 59_999L) / 60_000L
+        val days = totalMinutes / 1440
+        val hours = totalMinutes % 1440 / 60
+        return when {
+            days > 0 -> "${days}d ${hours}h"
+            hours > 0 -> "${hours}h ${totalMinutes % 60}m"
+            else -> "${totalMinutes}m"
+        }
+    }
+
     /** Returns minutes from midnight for the current time */
     fun currentTimeMinutes(): Int {
         val cal = Calendar.getInstance()

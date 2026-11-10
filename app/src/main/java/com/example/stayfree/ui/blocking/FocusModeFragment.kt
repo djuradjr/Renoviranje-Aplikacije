@@ -12,8 +12,11 @@ import androidx.core.content.ContextCompat
 import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.FragmentFocusModeBinding
+import com.example.stayfree.ui.common.LoosenGate
 import com.example.stayfree.ui.common.bindBackHeader
 import com.example.stayfree.ui.premium.requireBlocking
+import com.example.stayfree.util.PinGate
+import com.example.stayfree.util.StrictGate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -26,6 +29,9 @@ private const val ARC_STEP_MINUTES = 5
 class FocusModeFragment : Fragment() {
 
     @Inject lateinit var premium: PremiumRepository
+    @Inject lateinit var pinGate: PinGate
+    @Inject lateinit var strictGate: StrictGate
+    private val loosenGate by lazy { LoosenGate(this, strictGate, pinGate) }
 
     private var _binding: FragmentFocusModeBinding? = null
     private val binding get() = _binding!!
@@ -72,7 +78,7 @@ class FocusModeFragment : Fragment() {
         }
 
         binding.btnStopFocus.setOnClickListener {
-            viewModel.stopFocusMode()
+            loosenGate.run { viewModel.stopFocusMode() }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {

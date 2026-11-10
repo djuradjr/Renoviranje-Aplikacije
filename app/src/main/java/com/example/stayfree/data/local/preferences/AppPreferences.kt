@@ -5,6 +5,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.stayfree.domain.score.AppCategory
+import com.example.stayfree.domain.strict.StrictAnchor
+import com.example.stayfree.domain.strict.StrictState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -84,6 +86,15 @@ class AppPreferences @Inject constructor(
         // PremiumRepository; every successful Play query overwrites it.
         val PREMIUM_ACTIVE = booleanPreferencesKey("premium_active")
         val LANGUAGE_DEFAULT_APPLIED = booleanPreferencesKey("language_default_applied")
+        // Strict mode (see StrictLock). UNTIL missing = off; the anchor is the clock
+        // snapshot of the last check.
+        val STRICT_STARTED = longPreferencesKey("strict_started")
+        val STRICT_UNTIL = longPreferencesKey("strict_until")
+        val STRICT_ANCHOR_WALL = longPreferencesKey("strict_anchor_wall")
+        val STRICT_ANCHOR_ELAPSED = longPreferencesKey("strict_anchor_elapsed")
+        val STRICT_ANCHOR_BOOT = intPreferencesKey("strict_anchor_boot")
+        val STRICT_VIOLATIONS = intPreferencesKey("strict_violations")
+        val STRICT_CLOCK_SKEWED = booleanPreferencesKey("strict_clock_skewed")
     }
 
     val dailyResetTimeMinutes: Flow<Int> = dataStore.data.map { it[DAILY_RESET_TIME_MINUTES] ?: 0 }
@@ -363,6 +374,41 @@ class AppPreferences @Inject constructor(
             0L
         }
     }
+
+    val strictState: Flow<StrictState> = dataStore.data.map { it.toStrictState() }
+
+    /** Atomic read-modify-write: the service tick and the UI must not overwrite each other. */
+    suspend fun updateStrict(transform: (StrictState) -> StrictState) {
+        dataStore.edit { prefs ->
+            val next = transform(prefs.toStrictState())
+            if (!next.active) {
+                listOf(
+                    STRICT_STARTED, STRICT_UNTIL, STRICT_ANCHOR_WALL, STRICT_ANCHOR_ELAPSED,
+                    STRICT_ANCHOR_BOOT, STRICT_VIOLATIONS, STRICT_CLOCK_SKEWED
+                ).forEach { prefs.remove(it) }
+            } else {
+                prefs[STRICT_STARTED] = next.startedMs
+                prefs[STRICT_UNTIL] = next.untilMs
+                prefs[STRICT_ANCHOR_WALL] = next.anchor.wallMs
+                prefs[STRICT_ANCHOR_ELAPSED] = next.anchor.elapsedMs
+                prefs[STRICT_ANCHOR_BOOT] = next.anchor.bootCount
+                prefs[STRICT_VIOLATIONS] = next.violations
+                prefs[STRICT_CLOCK_SKEWED] = next.clockSkewed
+            }
+        }
+    }
+
+    private fun Preferences.toStrictState() = StrictState(
+        startedMs = this[STRICT_STARTED] ?: 0L,
+        untilMs = this[STRICT_UNTIL] ?: 0L,
+        anchor = StrictAnchor(
+            wallMs = this[STRICT_ANCHOR_WALL] ?: 0L,
+            elapsedMs = this[STRICT_ANCHOR_ELAPSED] ?: 0L,
+            bootCount = this[STRICT_ANCHOR_BOOT] ?: 0
+        ),
+        violations = this[STRICT_VIOLATIONS] ?: 0,
+        clockSkewed = this[STRICT_CLOCK_SKEWED] ?: false
+    )
 
     private fun parseLimits(json: String?): Map<String, Int> {
         if (json.isNullOrEmpty()) return emptyMap()

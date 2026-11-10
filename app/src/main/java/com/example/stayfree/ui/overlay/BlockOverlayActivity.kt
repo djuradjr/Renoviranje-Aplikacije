@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
@@ -11,6 +12,8 @@ import com.example.stayfree.databinding.ActivityBlockOverlayBinding
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.PinGate
 import com.example.stayfree.util.PinPrompt
+import com.example.stayfree.util.StrictGate
+import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -21,6 +24,7 @@ class BlockOverlayActivity : AppCompatActivity() {
 
     @Inject lateinit var prefs: AppPreferences
     @Inject lateinit var pinGate: PinGate
+    @Inject lateinit var strictGate: StrictGate
 
     private lateinit var binding: ActivityBlockOverlayBinding
     private var packageName_: String = ""
@@ -98,10 +102,14 @@ class BlockOverlayActivity : AppCompatActivity() {
             // Override is only offered when a PIN actually exists — otherwise the
             // dialog would accept any input (no stored hash to compare against).
             val hasPin = prefs.pinHash.first() != null
-            binding.btnOverride.visibility =
-                if (hasPin) android.view.View.VISIBLE else android.view.View.GONE
-            binding.tvPinHint.visibility =
-                if (hasPin) android.view.View.GONE else android.view.View.VISIBLE
+            // Strict mode has no way out, the PIN included.
+            val strictMs = strictGate.remainingMs()
+            val strict = strictMs > 0L
+            binding.btnOverride.isVisible = hasPin && !strict
+            binding.tvPinHint.isVisible = !hasPin && !strict
+            binding.tvStrict.isVisible = strict
+            binding.tvStrict.text =
+                getString(R.string.strict_block_screen_line, TimeUtils.formatLongDuration(strictMs))
         }
     }
 

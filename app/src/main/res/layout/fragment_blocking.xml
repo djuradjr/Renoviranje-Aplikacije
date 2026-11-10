@@ -266,6 +266,32 @@
 
                     <TextView android:id="@+id/status_sleep" style="@style/Skor.ToolStatusNew" />
                 </LinearLayout>
+
+                <View style="@style/Skor.Divider" />
+
+                <!-- 5 · Strict mode -->
+                <LinearLayout
+                    android:id="@+id/btn_strict_mode"
+                    style="@style/Skor.ToolRow">
+
+                    <ImageView
+                        style="@style/Skor.ToolIcon"
+                        android:src="@drawable/ic_lock"
+                        app:tint="@color/skor_focus"
+                        android:backgroundTint="@color/skor_focus_soft" />
+
+                    <LinearLayout style="@style/Skor.ToolText">
+
+                        <TextView style="@style/Skor.Body" android:text="@string/strict_title" />
+
+                        <TextView
+                            style="@style/Skor.Micro"
+                            android:layout_marginTop="1dp"
+                            android:text="@string/strict_desc" />
+                    </LinearLayout>
+
+                    <TextView android:id="@+id/status_strict" style="@style/Skor.ToolStatusNew" />
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout

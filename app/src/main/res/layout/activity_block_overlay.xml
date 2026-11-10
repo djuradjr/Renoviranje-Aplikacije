@@ -78,4 +78,14 @@
         android:text="@string/overlay_set_pin_hint"
         android:visibility="gone" />
 
+    <TextView
+        android:id="@+id/tv_strict"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="@color/primary_container"
+        android:textAlignment="center"
+        android:layout_marginTop="@dimen/spacing_sm"
+        android:visibility="gone" />
+
 </LinearLayout>

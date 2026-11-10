@@ -39,7 +39,7 @@ object PermissionUtils {
      * binding happens, so the setting string is the only source that matches what the
      * user sees on screen.
      */
-    private fun isAccessibilityServiceOnInSettings(context: Context): Boolean {
+    fun isAccessibilityServiceOnInSettings(context: Context): Boolean {
         val enabled = Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES

@@ -14,11 +14,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.FragmentBlockAppsBinding
+import com.example.stayfree.ui.common.LoosenGate
 import com.example.stayfree.ui.common.bindBackHeader
 import com.example.stayfree.ui.premium.requireBlocking
 import com.example.stayfree.ui.premium.requirePremium
 import com.example.stayfree.util.PinGate
-import com.example.stayfree.util.PinPrompt
+import com.example.stayfree.util.StrictGate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -35,8 +36,8 @@ class BlockAppsFragment : Fragment() {
     private lateinit var adapter: BlockAppsAdapter
 
     @Inject lateinit var pinGate: PinGate
-    // One successful PIN entry unlocks loosening changes until the screen is left.
-    private var pinUnlocked = false
+    @Inject lateinit var strictGate: StrictGate
+    private val loosenGate by lazy { LoosenGate(this, strictGate, pinGate) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentBlockAppsBinding.inflate(inflater, container, false)
@@ -48,32 +49,32 @@ class BlockAppsFragment : Fragment() {
 
         bindBackHeader(binding.backHeader)
 
-        // Loosening (turning protection off, raising a limit) is PIN-gated;
+        // Loosening (turning protection off, raising a limit) goes through the gate;
         // tightening is always free.
         adapter = BlockAppsAdapter(
             onToggle = { pkg, blocked ->
                 if (blocked) {
                     if (requireBlocking(premium)) viewModel.setBlocked(pkg, true)
                     else adapter.notifyDataSetChanged()
-                } else withPinGate(onDenied = { adapter.notifyDataSetChanged() }) {
+                } else loosenGate.run(onDenied = { adapter.notifyDataSetChanged() }) {
                     viewModel.setBlocked(pkg, false)
                 }
             },
             onLimitChange = { pkg, minutes, increase ->
                 if (!increase) viewModel.setLimit(pkg, minutes)
-                else withPinGate { viewModel.setLimit(pkg, minutes) }
+                else loosenGate.run { viewModel.setLimit(pkg, minutes) }
             },
             onContentToggle = { id, enabled ->
                 if (enabled) {
                     if (requireBlocking(premium)) viewModel.setContentEnabled(id, true)
                     else adapter.notifyDataSetChanged()
-                } else withPinGate(onDenied = { adapter.notifyDataSetChanged() }) {
+                } else loosenGate.run(onDenied = { adapter.notifyDataSetChanged() }) {
                     viewModel.setContentEnabled(id, false)
                 }
             },
             onContentLimitChange = { id, minutes, increase ->
                 if (!increase) viewModel.setContentLimit(id, minutes)
-                else withPinGate { viewModel.setContentLimit(id, minutes) }
+                else loosenGate.run { viewModel.setContentLimit(id, minutes) }
             }
         )
         binding.rvBlockApps.apply {
@@ -116,26 +117,6 @@ class BlockAppsFragment : Fragment() {
         } else {
             binding.etSearch.setText("")
             imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
-        }
-    }
-
-    private fun withPinGate(onDenied: () -> Unit = {}, action: () -> Unit) {
-        if (pinUnlocked) {
-            action()
-            return
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            if (!pinGate.isPinSet()) {
-                action()
-                return@launch
-            }
-            PinPrompt.show(
-                requireContext(), viewLifecycleOwner.lifecycleScope, pinGate,
-                onCancel = onDenied
-            ) {
-                pinUnlocked = true
-                action()
-            }
         }
     }
 

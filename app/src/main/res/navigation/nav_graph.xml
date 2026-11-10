@@ -36,6 +36,9 @@
             android:id="@+id/action_blocking_to_sleepMode"
             app:destination="@id/sleepModeFragment" />
         <action
+            android:id="@+id/action_blocking_to_strictMode"
+            app:destination="@id/strictModeFragment" />
+        <action
             android:id="@+id/action_blocking_to_website"
             app:destination="@id/websiteBlockFragment" />
         <action
@@ -52,6 +55,11 @@
             app:argType="long"
             android:defaultValue="-1L" />
     </fragment>
+
+    <fragment
+        android:id="@+id/strictModeFragment"
+        android:name="com.example.stayfree.ui.blocking.StrictModeFragment"
+        android:label="Strict Mode" />
 
     <fragment
         android:id="@+id/focusModeFragment"

@@ -15,6 +15,9 @@ class SleepModeViewModel @Inject constructor(
     private val blockingRepository: BlockingRepository
 ) : ViewModel() {
 
+    suspend fun hasSchedule(): Boolean =
+        blockingRepository.getActiveRulesForPackage("__sleep_mode__").isNotEmpty()
+
     fun saveSleepMode(daysOfWeek: String, startMinutes: Int, endMinutes: Int) {
         viewModelScope.launch {
             // Deactivate previous sleep rules
