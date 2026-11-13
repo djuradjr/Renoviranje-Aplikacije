@@ -10,12 +10,14 @@ import com.example.stayfree.domain.BlockRuleEvaluator
 import com.example.stayfree.domain.content.ContentSignatures
 import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -88,19 +90,24 @@ class BlockingViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Live tool-card statuses
-    val focusActive: StateFlow<Boolean> = prefs.focusActive
+    // Live tool-card statuses. The stored flag stays true when the Focus screen was left
+    // before the session ended (its countdown dies with it), so the end time decides.
+    // distinctUntilChanged: every DataStore write re-emits, which would restart the timer.
+    val focusActive: StateFlow<Boolean> = combine(prefs.focusActive, prefs.focusEndTime, ::Pair)
+        .distinctUntilChanged()
+        .transformLatest { (active, endTime) ->
+            val left = endTime - System.currentTimeMillis()
+            if (active && left > 0) {
+                emit(true)
+                delay(left)
+            }
+            emit(false)
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     /** End of the active sleep window in minutes from midnight, or null when off. */
-    val sleepEndMinutes: StateFlow<Int?> = allRules
-        .map { rules ->
-            rules.firstOrNull {
-                it.packageName == BlockRuleEvaluator.SLEEP_MODE_PACKAGE && it.isActive
-            }?.id
-        }
-        .distinctUntilChanged()
-        .map { id -> id?.let { blockingRepository.getSchedulesForRule(it).firstOrNull()?.endTimeMinutes } }
+    val sleepEndMinutes: StateFlow<Int?> = blockingRepository
+        .observeActiveScheduleEnd(BlockRuleEvaluator.SLEEP_MODE_PACKAGE)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val activeWebsiteCount: StateFlow<Int> = websiteBlockRepository.getAll()
