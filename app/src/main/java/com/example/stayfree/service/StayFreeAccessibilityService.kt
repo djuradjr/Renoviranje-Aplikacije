@@ -5,9 +5,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.os.PowerManager
+import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.inputmethod.InputMethodManager
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.data.repository.BlockingRepository
 import com.example.stayfree.data.repository.InAppBlockRepository
@@ -48,6 +50,9 @@ class StayFreeAccessibilityService : AccessibilityService() {
     @Volatile private var blockedPackagesCache = emptySet<String>()
     // Packages never blocked by global modes (focus/sleep): self, launcher, systemui, dialer, settings
     @Volatile private var exemptPackages = emptySet<String>()
+    // Keyboards. Their window events would read as an app switch — Focus blocking the
+    // keyboard itself, session timers reset mid-typing — so they are ignored like our own.
+    @Volatile private var imePackages = emptySet<String>()
     // Current continuous foreground session (for SESSION rules and DAILY_LIMIT delta).
     // Volatile: also read by the periodic limit check on the IO refresh loop.
     @Volatile private var currentForegroundPackage: String? = null
@@ -131,6 +136,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         exemptPackages = computeExemptPackages()
+        imePackages = computeImePackages()
         startCacheRefresh()
         collectFocusModeState()
         collectContentBlockState()
@@ -179,7 +185,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val pkg = event.packageName?.toString() ?: return
-        if (pkg == packageName) return // ignore self
+        if (pkg == packageName || pkg in imePackages) return
 
         val eventType = event.eventType
         val now = System.currentTimeMillis()
@@ -625,6 +631,15 @@ class StayFreeAccessibilityService : AccessibilityService() {
         return set
     }
 
+    private fun computeImePackages(): Set<String> {
+        val set = mutableSetOf<String>()
+        getSystemService(InputMethodManager::class.java)?.enabledInputMethodList
+            ?.mapTo(set) { it.packageName }
+        Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
+            ?.substringBefore('/')?.takeIf { it.isNotEmpty() }?.let { set.add(it) }
+        return set
+    }
+
     private fun startCacheRefresh() {
         // With only the 30s loop, a rule saved seconds ago missed the next open of its app.
         serviceScope.launch {
@@ -638,6 +653,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
                     val rules = blockingRepository.getActiveRulesOnce()
                     blockedPackagesCache = rules.map { it.packageName }.toSet()
                     exemptPackages = computeExemptPackages()
+                    imePackages = computeImePackages()
                 } catch (e: Exception) { /* continue */ }
                 // A time limit must also fire while the user idles inside the app
                 // (video playback emits few accessibility events) — re-check the

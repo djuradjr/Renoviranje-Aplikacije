@@ -24,6 +24,7 @@ class BlockingRepositoryImpl @Inject constructor(
     override suspend fun getActiveRulesOnce(): List<BlockRuleEntity> = blockRuleDao.getActiveRulesOnce()
     override suspend fun getActiveRulesForPackage(pkg: String): List<BlockRuleEntity> = blockRuleDao.getActiveRulesForPackage(pkg)
     override suspend fun getSchedulesForRule(ruleId: Long): List<ScheduleEntity> = scheduleDao.getSchedulesForRuleOnce(ruleId)
+    override fun observeActiveScheduleEnd(pkg: String): Flow<Int?> = scheduleDao.observeActiveScheduleEnd(pkg)
     override suspend fun insertRule(rule: BlockRuleEntity): Long = blockRuleDao.insert(rule)
     override suspend fun insertSchedule(schedule: ScheduleEntity) = scheduleDao.insert(schedule).let { }
     override suspend fun updateRule(rule: BlockRuleEntity) = blockRuleDao.update(rule)

@@ -10,6 +10,8 @@ interface BlockingRepository {
     suspend fun getActiveRulesOnce(): List<BlockRuleEntity>
     suspend fun getActiveRulesForPackage(pkg: String): List<BlockRuleEntity>
     suspend fun getSchedulesForRule(ruleId: Long): List<ScheduleEntity>
+    /** End (minutes from midnight) of the newest active schedule for [pkg], or null. */
+    fun observeActiveScheduleEnd(pkg: String): Flow<Int?>
     suspend fun insertRule(rule: BlockRuleEntity): Long
     suspend fun insertSchedule(schedule: ScheduleEntity)
     suspend fun updateRule(rule: BlockRuleEntity)
