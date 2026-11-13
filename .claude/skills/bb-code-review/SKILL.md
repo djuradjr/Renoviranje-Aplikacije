@@ -1,6 +1,7 @@
 ---
 name: bb-code-review
 description: Code review infrastructure for Block Doomscroll. Use for every review of this repo's diffs or PRs, before merging any feature, and whenever asked to check code quality. Covers correctness, future crash-risk analysis, token economy and the mandatory verification bar.
+model: sonnet
 ---
 
 # Block Doomscroll — code review
