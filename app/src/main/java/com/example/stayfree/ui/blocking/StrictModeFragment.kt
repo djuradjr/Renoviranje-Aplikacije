@@ -4,7 +4,7 @@ import android.Manifest
 import android.content.pm.ApplicationInfo
 import android.os.Build
 import android.os.Bundle
-import android.text.format.DateUtils
+import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,11 +23,14 @@ import com.example.stayfree.ui.premium.ensureProtection
 import com.example.stayfree.ui.premium.requirePremium
 import com.example.stayfree.util.PermissionUtils
 import com.example.stayfree.util.StrictGate
+import com.example.stayfree.util.TimeUtils
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
@@ -169,12 +172,12 @@ class StrictModeFragment : Fragment() {
         else String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, s % 60)
     }
 
-    private fun formatEnd(remainingMs: Long): String = DateUtils.formatDateTime(
-        requireContext(),
-        System.currentTimeMillis() + remainingMs,
-        DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_SHOW_WEEKDAY or
-            DateUtils.FORMAT_ABBREV_MONTH or DateUtils.FORMAT_ABBREV_WEEKDAY
-    )
+    private fun formatEnd(remainingMs: Long): String {
+        val locale = TimeUtils.displayLocale()
+        val skeleton = if (DateFormat.is24HourFormat(requireContext())) "EEEdMMMHm" else "EEEdMMMhma"
+        return SimpleDateFormat(DateFormat.getBestDateTimePattern(locale, skeleton), locale)
+            .format(Date(System.currentTimeMillis() + remainingMs))
+    }
 
     private fun toast(message: Int) = Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
 

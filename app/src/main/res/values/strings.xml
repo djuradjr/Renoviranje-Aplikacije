@@ -355,7 +355,7 @@
     <string name="paywall_feature_strict">Strict mode: lock your own rules</string>
 
     <!-- Strict mode -->
-    <string name="strict_title">Strict mode</string>
+    <string name="strict_title">Strict Mode</string>
     <string name="strict_desc">Lock your rules until a set time</string>
     <string name="strict_status_left">%1$s left</string>
     <string name="strict_locked_toast">Strict mode: locked for %1$s more</string>
@@ -392,8 +392,8 @@
     <string name="strict_max_reached">The lock is already at its 60-day maximum</string>
     <string name="notif_channel_strict_name">Strict mode</string>
     <string name="notif_channel_strict_desc">Tells you when strict mode is running without protection</string>
-    <string name="notif_strict_off_title">Strict mode is on, protection is off</string>
-    <string name="notif_strict_off_text">Nothing is being blocked. Tap to turn protection back on.</string>
+    <string name="notif_strict_off_title">Strict mode: protection is off</string>
+    <string name="notif_strict_off_text">Nothing is being blocked. Tap to turn it back on.</string>
     <plurals name="paywall_plan_months">
         <item quantity="one">%d month</item>
         <item quantity="other">%d months</item>

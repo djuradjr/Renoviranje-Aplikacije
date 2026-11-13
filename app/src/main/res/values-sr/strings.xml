@@ -362,8 +362,8 @@
     <string name="strict_max_reached">Zaključavanje je već na maksimumu od 60 dana</string>
     <string name="notif_channel_strict_name">Strogi režim</string>
     <string name="notif_channel_strict_desc">Javlja kada strogi režim radi bez zaštite</string>
-    <string name="notif_strict_off_title">Strogi režim je uključen, zaštita je isključena</string>
-    <string name="notif_strict_off_text">Ništa se ne blokira. Dodirni da ponovo uključiš zaštitu.</string>
+    <string name="notif_strict_off_title">Strogi režim: zaštita je isključena</string>
+    <string name="notif_strict_off_text">Ništa se ne blokira. Dodirni da je ponovo uključiš.</string>
     <plurals name="paywall_plan_months">
         <item quantity="one">%d mesec</item>
         <item quantity="few">%d meseca</item>

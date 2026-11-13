@@ -11,7 +11,9 @@
     android:orientation="vertical"
     android:background="@color/skor_ground">
 
-    <ScrollView
+    <!-- NestedScrollView, not ScrollView: inside a plain one the wrap_content list below
+         only lays out the rows that fit the viewport and the rest are unreachable. -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -341,5 +343,5 @@
                     android:text="@string/blocking_rules_empty_desc" />
             </LinearLayout>
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 </LinearLayout>

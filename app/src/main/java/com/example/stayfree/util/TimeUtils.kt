@@ -72,10 +72,13 @@ object TimeUtils {
     /** Hero-label date in the device language, e.g. "sreda 16. jul". Returns the input if unparsable. */
     fun formatHeroDate(date: String): String {
         val startMs = getDayStartMs(date) ?: return date
-        // Serbian system locale defaults to Cyrillic dates; the app UI is Latin-script.
+        return SimpleDateFormat("EEEE d. MMM", displayLocale()).format(Date(startMs))
+    }
+
+    /** Serbian system locale defaults to Cyrillic dates; the app UI is Latin-script. */
+    fun displayLocale(): Locale {
         val base = Locale.getDefault()
-        val locale = if (base.language == "sr") Locale.forLanguageTag("sr-Latn") else base
-        return SimpleDateFormat("EEEE d. MMM", locale).format(Date(startMs))
+        return if (base.language == "sr") Locale.forLanguageTag("sr-Latn") else base
     }
 
     /** Narrow weekday initial (e.g. "M", "T") for a "yyyy-MM-dd" string. */

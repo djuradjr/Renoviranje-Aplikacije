@@ -139,6 +139,8 @@
             <TextView
                 android:id="@+id/tv_strict"
                 style="@style/Skor.Caption"
+                android:alpha="0.85"
+                android:textColor="@color/skor_text"
                 android:layout_marginTop="12dp"
                 android:gravity="center"
                 android:visibility="gone"

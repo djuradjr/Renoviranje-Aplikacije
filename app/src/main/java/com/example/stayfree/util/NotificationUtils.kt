@@ -94,11 +94,16 @@ object NotificationUtils {
             context, NOTIFICATION_ID_STRICT, OnboardingActivity.protectionIntent(context),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        val text = context.getString(R.string.notif_strict_off_text)
         val notification = NotificationCompat.Builder(context, CHANNEL_STRICT)
             .setContentTitle(context.getString(R.string.notif_strict_off_title))
-            .setContentText(context.getString(R.string.notif_strict_off_text))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setSmallIcon(R.drawable.ic_notification)
             .setContentIntent(pendingIntent)
+            // Own group: the system would otherwise bundle it with our other notifications,
+            // and a tap on that bundle opens the launcher activity instead of this intent.
+            .setGroup(CHANNEL_STRICT)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .build()
