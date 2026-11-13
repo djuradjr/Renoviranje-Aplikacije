@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityContentBlockBinding
+import com.example.stayfree.util.StrictGate
 import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -31,6 +32,7 @@ import javax.inject.Inject
 class ContentBlockActivity : AppCompatActivity() {
 
     @Inject lateinit var prefs: AppPreferences
+    @Inject lateinit var strictGate: StrictGate
 
     companion object {
         const val EXTRA_DISPLAY_NAME = "extra_display_name"
@@ -109,6 +111,15 @@ class ContentBlockActivity : AppCompatActivity() {
                 binding.tvBlockCount.text = getString(R.string.content_block_count, count)
                 binding.tvBlockCountCaption.text = getString(R.string.content_block_count_caption)
                 binding.cardCount.visibility = View.VISIBLE
+            }
+        }
+
+        lifecycleScope.launch {
+            val strictMs = strictGate.remainingMs()
+            if (strictMs > 0L) {
+                binding.tvStrict.text =
+                    getString(R.string.strict_block_screen_line, TimeUtils.formatLongDuration(strictMs))
+                binding.tvStrict.visibility = View.VISIBLE
             }
         }
 

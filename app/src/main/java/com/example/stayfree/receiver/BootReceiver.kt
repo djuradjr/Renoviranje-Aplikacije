@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.service.TrackingScheduler
+import com.example.stayfree.util.StrictGate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +17,7 @@ import javax.inject.Inject
 class BootReceiver : BroadcastReceiver() {
 
     @Inject lateinit var prefs: AppPreferences
+    @Inject lateinit var strictGate: StrictGate
 
     override fun onReceive(context: Context, intent: Intent) {
         // No super.onReceive: BroadcastReceiver.onReceive is abstract; the Hilt
@@ -29,6 +31,9 @@ class BootReceiver : BroadcastReceiver() {
                 val resetTime = prefs.dailyResetTimeMinutes.first()
                 TrackingScheduler.ensureWorkScheduled(context, resetTime)
                 TrackingScheduler.ensureStarted(context)
+                // The monotonic clock restarted: anchor a running strict lock to this boot
+                // before the system clock can be changed.
+                strictGate.tick()
             } finally {
                 pendingResult.finish()
             }

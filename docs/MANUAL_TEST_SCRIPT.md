@@ -50,6 +50,22 @@ Recommended devices: API 34/35 emulator + at least one API 31-33 device.
       overlay closes
 - [ ] Empty PIN input → rejected
 
+## 4a. Strict mode
+
+- [ ] Protect → Strict mode → pick a length → Lock → dialog shows the exact end time;
+      after confirming, the ring counts down and there is no stop button
+- [ ] While locked, each of these is refused with the "locked for …" toast and the
+      switch snaps back: app block off, limit up, content target off, rule off / delete,
+      website off / delete, End Focus Early, saving over a Sleep schedule, saving a new
+      daily reset time. Block screen shows no PIN override
+- [ ] While locked, tightening still works: new block on, limit down, Extend
+- [ ] Turn the accessibility service off in system settings → "protection is off"
+      notification; strict screen shows 1 violation; turning it back on clears the
+      notification; the lock is still running
+- [ ] Move the system clock forward by days → lock does not end, a violation is added
+- [ ] Reboot → time left is still correct
+- [ ] Lock runs out → everything above can be changed again
+
 ## 5. Daily reset boundary
 
 - [ ] Set reset time to a couple of minutes from now → after it passes, today's

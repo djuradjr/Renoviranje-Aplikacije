@@ -15,10 +15,14 @@ import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.FragmentBlockingBinding
 import com.example.stayfree.ui.common.CountUp
+import com.example.stayfree.ui.common.LoosenGate
 import com.example.stayfree.ui.onboarding.OnboardingActivity
 import com.example.stayfree.ui.premium.requireBlocking
 import com.example.stayfree.ui.premium.requirePremium
 import com.example.stayfree.util.PermissionUtils
+import com.example.stayfree.util.PinGate
+import com.example.stayfree.util.StrictGate
+import com.example.stayfree.util.TimeUtils
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -30,6 +34,9 @@ import javax.inject.Inject
 class BlockingFragment : Fragment() {
 
     @Inject lateinit var premium: PremiumRepository
+    @Inject lateinit var pinGate: PinGate
+    @Inject lateinit var strictGate: StrictGate
+    private val loosenGate by lazy { LoosenGate(this, strictGate, pinGate) }
 
     private var _binding: FragmentBlockingBinding? = null
     private val binding get() = _binding!!
@@ -53,10 +60,14 @@ class BlockingFragment : Fragment() {
 
         adapter = BlockRulesAdapter(
             onToggle = { id, active ->
-                if (!active || requireBlocking(premium)) viewModel.toggleRule(id, active)
+                if (!active) {
+                    loosenGate.run(onDenied = { adapter.notifyDataSetChanged() }) {
+                        viewModel.toggleRule(id, false)
+                    }
+                } else if (requireBlocking(premium)) viewModel.toggleRule(id, true)
                 else adapter.notifyDataSetChanged()
             },
-            onDelete = { id -> viewModel.deleteRule(id) },
+            onDelete = { id -> loosenGate.run { viewModel.deleteRule(id) } },
             onOpenApps = { findNavController().navigate(R.id.action_blocking_to_blockApps) },
             onOpenSites = { findNavController().navigate(R.id.action_blocking_to_website) }
         )
@@ -71,6 +82,10 @@ class BlockingFragment : Fragment() {
 
         binding.btnSleepMode.setOnClickListener {
             findNavController().navigate(R.id.action_blocking_to_sleepMode)
+        }
+
+        binding.btnStrictMode.setOnClickListener {
+            findNavController().navigate(R.id.action_blocking_to_strictMode)
         }
 
         binding.btnWebsiteBlocking.setOnClickListener {
@@ -114,7 +129,10 @@ class BlockingFragment : Fragment() {
                     binding.cardPremium.visibility = if (active) View.GONE else View.VISIBLE
                     bindSetupCard(active)
                     val lock = if (active) null else lockIcon()
-                    listOf(binding.statusBlockApps, binding.statusWebsites, binding.statusFocus, binding.statusSleep)
+                    listOf(
+                        binding.statusBlockApps, binding.statusWebsites, binding.statusFocus,
+                        binding.statusSleep, binding.statusStrict
+                    )
                         .forEach {
                             it.setCompoundDrawablesRelative(null, null, lock, null)
                             it.compoundDrawablePadding = resources.getDimensionPixelSize(R.dimen.premium_lock_gap)
@@ -158,6 +176,15 @@ class BlockingFragment : Fragment() {
                             val time = String.format(Locale.US, "%02d:%02d", end / 60, end % 60)
                             getString(R.string.blocking_status_until, time)
                         } else getString(R.string.blocking_status_off)
+                    )
+                }
+            }
+            launch {
+                viewModel.strictRemainingMs.collectLatest { ms ->
+                    bindStatus(
+                        binding.statusStrict, ms > 0L,
+                        if (ms > 0L) getString(R.string.strict_status_left, TimeUtils.formatLongDuration(ms))
+                        else getString(R.string.blocking_status_off)
                     )
                 }
             }

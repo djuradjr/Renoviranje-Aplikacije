@@ -6,16 +6,21 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.core.content.ContextCompat
 import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.FragmentSleepModeBinding
+import com.example.stayfree.ui.common.LoosenGate
 import com.example.stayfree.ui.premium.requireBlocking
+import com.example.stayfree.util.PinGate
+import com.example.stayfree.util.StrictGate
 import com.example.stayfree.util.TimeUtils
 import java.util.Locale
 import com.example.stayfree.ui.common.bindBackHeader
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val MINUTES_PER_DAY = 1440
@@ -28,6 +33,9 @@ private const val DEFAULT_END_MINUTES = 7 * 60
 class SleepModeFragment : Fragment() {
 
     @Inject lateinit var premium: PremiumRepository
+    @Inject lateinit var pinGate: PinGate
+    @Inject lateinit var strictGate: StrictGate
+    private val loosenGate by lazy { LoosenGate(this, strictGate, pinGate) }
 
     private var _binding: FragmentSleepModeBinding? = null
     private val binding get() = _binding!!
@@ -59,8 +67,14 @@ class SleepModeFragment : Fragment() {
             val daysSelected = buildSelectedDays()
             val startMinutes = binding.arcNight.startValue
             val endMinutes = binding.arcNight.endValue ?: DEFAULT_END_MINUTES
-            viewModel.saveSleepMode(daysSelected, startMinutes, endMinutes)
-            findNavController().popBackStack()
+            val save: () -> Unit = {
+                viewModel.saveSleepMode(daysSelected, startMinutes, endMinutes)
+                findNavController().popBackStack()
+            }
+            // A first schedule only adds protection; replacing one can shrink it.
+            viewLifecycleOwner.lifecycleScope.launch {
+                if (viewModel.hasSchedule()) loosenGate.run(action = save) else save()
+            }
         }
 
         binding.btnCancel.setOnClickListener { findNavController().popBackStack() }

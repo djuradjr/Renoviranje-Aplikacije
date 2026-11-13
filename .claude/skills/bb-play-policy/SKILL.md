@@ -52,6 +52,12 @@ bug. Check every item before submit.
 - Ban-risk — never do: fighting force-stop, auto-re-enabling the a11y service,
   blocking access to Settings, hiding from recents to resist disabling.
   Force-stop killing the service is an accepted, documented limitation.
+- **Strict mode stays on the allowed side** (decided 2026-11-10; the AppBlock-style
+  Settings lock was considered and rejected). It locks only our own UI, records a
+  violation in `onUnbind` and posts a "protection is off" notification. The service reads
+  nothing new, so the a11y declaration and disclosure are unchanged. Store and in-app copy
+  must say "lock your rules", never "impossible to bypass" — force-stop, uninstall and
+  Safe mode still work, and the strict screen says so.
 
 ## 7. Permissions asked, and when (decided 2026-10-17)
 - First launch asks ONLY for usage access. Accessibility comes after a purchase or

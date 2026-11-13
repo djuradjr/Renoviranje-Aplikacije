@@ -12,10 +12,13 @@ import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.DialogAddWebsiteBinding
 import com.example.stayfree.databinding.FragmentWebsiteBlockBinding
+import com.example.stayfree.ui.common.LoosenGate
 import com.example.stayfree.ui.common.bindBackHeader
 import com.example.stayfree.ui.premium.ensureProtection
 import com.example.stayfree.ui.premium.requireBlocking
 import com.example.stayfree.ui.premium.requirePremium
+import com.example.stayfree.util.PinGate
+import com.example.stayfree.util.StrictGate
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -26,6 +29,9 @@ import javax.inject.Inject
 class WebsiteBlockFragment : Fragment() {
 
     @Inject lateinit var premium: PremiumRepository
+    @Inject lateinit var pinGate: PinGate
+    @Inject lateinit var strictGate: StrictGate
+    private val loosenGate by lazy { LoosenGate(this, strictGate, pinGate) }
 
     private var _binding: FragmentWebsiteBlockBinding? = null
     private val binding get() = _binding!!
@@ -44,10 +50,14 @@ class WebsiteBlockFragment : Fragment() {
 
         adapter = WebsiteBlockAdapter(
             onToggle = { entity ->
-                if (entity.isActive || requireBlocking(premium)) viewModel.toggleWebsite(entity)
+                if (entity.isActive) {
+                    loosenGate.run(onDenied = { adapter.notifyDataSetChanged() }) {
+                        viewModel.toggleWebsite(entity)
+                    }
+                } else if (requireBlocking(premium)) viewModel.toggleWebsite(entity)
                 else adapter.notifyDataSetChanged()
             },
-            onDelete = { id -> viewModel.deleteWebsite(id) }
+            onDelete = { id -> loosenGate.run { viewModel.deleteWebsite(id) } }
         )
         binding.rvWebsites.apply {
             layoutManager = LinearLayoutManager(requireContext())

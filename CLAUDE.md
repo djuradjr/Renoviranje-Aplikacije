@@ -40,6 +40,13 @@ font Archivo, tamna tema podrazumevana. Pravila i komponente: `bb-ui` skill.
   for usage access: usage → report → paywall (skipped with premium) → a11y step for
   premium only; it enables no blocks. No overlay, battery or notification step — see
   `bb-play-policy` §7. Details, debug flags and tests: `bb-billing`.
+- **Strict mode** (2026-11-10, `util/StrictGate` + `domain/strict/StrictLock`): a
+  self-chosen lock with no early exit. Every UI path that LOOSENS protection (block off,
+  limit up, rule deleted, Focus ended early, Sleep schedule replaced, reset time moved)
+  goes through `ui/common/LoosenGate` — the counterpart of `requireBlocking()`. It refuses
+  while locked and otherwise asks the PIN. The lock holds only with premium. It does NOT
+  resist the system: switching accessibility off is recorded as a violation and nudged by
+  notification, never prevented (`bb-play-policy` §6).
 - Before release, the `bb-security` payments section is MANDATORY (paywall-bypass +
   data-leak tests, 3/3 each).
 

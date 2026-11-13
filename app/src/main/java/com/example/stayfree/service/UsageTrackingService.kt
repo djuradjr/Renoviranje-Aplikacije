@@ -2,6 +2,7 @@ package com.example.stayfree.service
 
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
@@ -10,6 +11,8 @@ import com.example.stayfree.data.repository.UsageRepository
 import com.example.stayfree.receiver.ScreenStateReceiver
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.NotificationUtils
+import com.example.stayfree.util.PermissionUtils
+import com.example.stayfree.util.StrictGate
 import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
@@ -21,6 +24,7 @@ class UsageTrackingService : LifecycleService() {
 
     @Inject lateinit var usageRepository: UsageRepository
     @Inject lateinit var prefs: AppPreferences
+    @Inject lateinit var strictGate: StrictGate
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var screenStateReceiver: ScreenStateReceiver
@@ -29,6 +33,7 @@ class UsageTrackingService : LifecycleService() {
     // One warning per app per day ("pkg|date"). In-memory on purpose: a service
     // restart may repeat a warning once, which beats persisting churn every 60s.
     private val warnedLimitKeys = mutableSetOf<String>()
+    private var strictNudgeAt = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -82,8 +87,34 @@ class UsageTrackingService : LifecycleService() {
                 } catch (e: Exception) {
                     // continue on error
                 }
+                try {
+                    checkStrictProtection()
+                } catch (e: Exception) {
+                    // continue on error
+                }
                 delay(60_000L)
             }
+        }
+    }
+
+    /**
+     * Keeps the strict lock anchored to the clocks and, while it runs without the
+     * accessibility service, keeps the "not protected" notification up. Re-alerting is
+     * paced: a dismissed notification must not come back every minute.
+     */
+    private suspend fun checkStrictProtection() {
+        strictGate.tick()
+        val unprotected = strictGate.isLocked() &&
+            !PermissionUtils.hasAccessibilityServiceEnabled(this)
+        if (!unprotected) {
+            NotificationUtils.clearStrictProtectionOff(this)
+            strictNudgeAt = 0L
+            return
+        }
+        val now = SystemClock.elapsedRealtime()
+        if (strictNudgeAt == 0L || now - strictNudgeAt >= STRICT_NUDGE_INTERVAL_MS) {
+            NotificationUtils.showStrictProtectionOff(this)
+            strictNudgeAt = now
         }
     }
 
@@ -115,5 +146,6 @@ class UsageTrackingService : LifecycleService() {
     private companion object {
         const val TAG = "UsageTracking"
         const val WARN_BEFORE_MS = 5 * 60_000L
+        const val STRICT_NUDGE_INTERVAL_MS = 30 * 60_000L
     }
 }

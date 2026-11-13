@@ -72,10 +72,13 @@ object TimeUtils {
     /** Hero-label date in the device language, e.g. "sreda 16. jul". Returns the input if unparsable. */
     fun formatHeroDate(date: String): String {
         val startMs = getDayStartMs(date) ?: return date
-        // Serbian system locale defaults to Cyrillic dates; the app UI is Latin-script.
+        return SimpleDateFormat("EEEE d. MMM", displayLocale()).format(Date(startMs))
+    }
+
+    /** Serbian system locale defaults to Cyrillic dates; the app UI is Latin-script. */
+    fun displayLocale(): Locale {
         val base = Locale.getDefault()
-        val locale = if (base.language == "sr") Locale.forLanguageTag("sr-Latn") else base
-        return SimpleDateFormat("EEEE d. MMM", locale).format(Date(startMs))
+        return if (base.language == "sr") Locale.forLanguageTag("sr-Latn") else base
     }
 
     /** Narrow weekday initial (e.g. "M", "T") for a "yyyy-MM-dd" string. */
@@ -100,6 +103,21 @@ object TimeUtils {
             hours > 0 -> "${hours}h ${minutes}m"
             minutes > 0 -> "${minutes}m ${seconds}s"
             else -> "${seconds}s"
+        }
+    }
+
+    /**
+     * Time left on something that can run for days: "2d 4h", "4h 12m", "12m". Minutes round
+     * up, so a running countdown never reads "0m".
+     */
+    fun formatLongDuration(ms: Long): String {
+        val totalMinutes = (ms + 59_999L) / 60_000L
+        val days = totalMinutes / 1440
+        val hours = totalMinutes % 1440 / 60
+        return when {
+            days > 0 -> "${days}d ${hours}h"
+            hours > 0 -> "${hours}h ${totalMinutes % 60}m"
+            else -> "${totalMinutes}m"
         }
     }
 

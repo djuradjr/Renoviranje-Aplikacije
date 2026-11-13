@@ -21,6 +21,9 @@ import com.example.stayfree.ui.blocking.FocusModeState
 import com.example.stayfree.ui.content.ContentBlockActivity
 import com.example.stayfree.ui.overlay.BlockOverlayActivity
 import com.example.stayfree.util.DomainUtils
+import com.example.stayfree.util.NotificationUtils
+import com.example.stayfree.util.PermissionUtils
+import com.example.stayfree.util.StrictGate
 import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
@@ -37,6 +40,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
     @Inject lateinit var inAppBlockRepository: InAppBlockRepository
     @Inject lateinit var usageRepository: UsageRepository
     @Inject lateinit var prefs: AppPreferences
+    @Inject lateinit var strictGate: StrictGate
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -132,6 +136,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
         collectContentBlockState()
         serviceScope.launch { prefs.premiumActive.collect { premiumActive = it } }
         serviceScope.launch { prefs.setAccessibilityState(AppPreferences.A11Y_RUNNING) }
+        NotificationUtils.clearStrictProtectionOff(this)
     }
 
     /**
@@ -143,6 +148,15 @@ class StayFreeAccessibilityService : AccessibilityService() {
         runBlocking {
             withTimeoutOrNull(UNBIND_WRITE_TIMEOUT_MS) {
                 prefs.setAccessibilityState(AppPreferences.A11Y_UNBOUND)
+                // Switched off by hand during a strict lock. Play forbids resisting that,
+                // so it is only recorded and the user is told protection is gone. The
+                // system also unbinds us while still enabled (UiAutomation suppresses
+                // every service) — that is not the user's doing.
+                val self = this@StayFreeAccessibilityService
+                if (!PermissionUtils.isAccessibilityServiceOnInSettings(self) && strictGate.isLocked()) {
+                    strictGate.recordViolation()
+                    NotificationUtils.showStrictProtectionOff(self)
+                }
             }
         }
         return super.onUnbind(intent)

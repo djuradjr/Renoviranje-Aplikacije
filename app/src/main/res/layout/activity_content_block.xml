@@ -135,6 +135,17 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="26dp"
                 android:text="@string/content_block_exit" />
+
+            <TextView
+                android:id="@+id/tv_strict"
+                style="@style/Skor.Caption"
+                android:alpha="0.85"
+                android:textColor="@color/skor_text"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:visibility="gone"
+                tools:text="Strict mode · 2d 4h left"
+                tools:visibility="visible" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 

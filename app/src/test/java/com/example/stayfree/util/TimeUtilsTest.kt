@@ -85,4 +85,12 @@ class TimeUtilsTest {
         assertEquals("5m 30s", TimeUtils.formatDuration(5 * 60_000L + 30_000L))
         assertEquals("45s", TimeUtils.formatDuration(45_000L))
     }
+
+    @Test
+    fun `formatLongDuration drops seconds and rounds minutes up`() {
+        assertEquals("2d 4h", TimeUtils.formatLongDuration(2 * 86_400_000L + 4 * 3_600_000L + 59_000L))
+        assertEquals("4h 12m", TimeUtils.formatLongDuration(4 * 3_600_000L + 11 * 60_000L + 1_000L))
+        assertEquals("1m", TimeUtils.formatLongDuration(1_000L))
+        assertEquals("1h 0m", TimeUtils.formatLongDuration(59 * 60_000L + 30_000L))
+    }
 }
