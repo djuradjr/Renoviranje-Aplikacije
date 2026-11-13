@@ -10,7 +10,7 @@ scrutinized capabilities on Play. Rejection is a bigger business risk than any
 bug. Check every item before submit.
 
 ## 1. Listing & audience
-- Category: **Tools** (or Health & Fitness — Digital Wellbeing adjacent).
+- Category: **Productivity** (the live listing; confirmed by the user 2026-11-13).
   **NEVER Parenting/Families** — that triggers the far stricter Families review
   pipeline. This is a self-blocking tool for the device owner, not child
   monitoring; confirm in Play Console → Target audience that children are NOT
