@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.os.PowerManager
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
@@ -19,14 +20,18 @@ import com.example.stayfree.domain.BlockRuleEvaluator
 import com.example.stayfree.domain.content.ContentBlockTarget
 import com.example.stayfree.domain.content.ContentSignatures
 import com.example.stayfree.domain.model.BlockType
+import com.example.stayfree.domain.unlock.ShortUnlock
+import com.example.stayfree.domain.unlock.UnlockGrant
 import com.example.stayfree.ui.blocking.FocusModeState
 import com.example.stayfree.ui.content.ContentBlockActivity
 import com.example.stayfree.ui.overlay.BlockOverlayActivity
+import com.example.stayfree.ui.unlock.ShortUnlockActivity
 import com.example.stayfree.util.DomainUtils
 import com.example.stayfree.util.NotificationUtils
 import com.example.stayfree.util.PermissionUtils
 import com.example.stayfree.util.StrictGate
 import com.example.stayfree.util.TimeUtils
+import com.example.stayfree.util.UnlockGate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.catch
@@ -43,6 +48,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
     @Inject lateinit var usageRepository: UsageRepository
     @Inject lateinit var prefs: AppPreferences
     @Inject lateinit var strictGate: StrictGate
+    @Inject lateinit var unlockGate: UnlockGate
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -92,6 +98,11 @@ class StayFreeAccessibilityService : AccessibilityService() {
     // Blocking is the paid feature: without an active subscription nothing fires, but every
     // configured block stays stored and resumes as soon as premium is back.
     @Volatile private var premiumActive = false
+    // Short unlocks from the block screens; an unlocked key fires nothing until it runs out.
+    @Volatile private var unlocks: List<UnlockGrant> = emptyList()
+    private var bootCount = 0
+    // Main thread only: per key, the grant being counted down and its notification job.
+    private val unlockJobs = mutableMapOf<String, Pair<UnlockGrant, Job>>()
 
     companion object {
         private const val TAG = "MoreMoneyA11y"
@@ -137,6 +148,8 @@ class StayFreeAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         exemptPackages = computeExemptPackages()
         imePackages = computeImePackages()
+        bootCount = unlockGate.bootCount
+        serviceScope.launch(Dispatchers.Main) { prefs.shortUnlocks.collect { onUnlocksChanged(it) } }
         startCacheRefresh()
         collectFocusModeState()
         collectContentBlockState()
@@ -206,50 +219,107 @@ class StayFreeAccessibilityService : AccessibilityService() {
             lastContentCheckTime[pkg] = now
         }
 
-        serviceScope.launch(Dispatchers.Main) {
-            if (!premiumActive) return@launch
+        serviceScope.launch(Dispatchers.Main) { evaluateForeground(pkg, now) }
+    }
 
-            // 0) Whole-app block (Block Apps screen) — explicit per-app choice with
-            // a daily time allowance (0 min = block on open). Under the allowance
-            // we fall through so the other rules still apply.
-            val appBlockReason = wholeAppBlockReason(pkg, now)
-            if (appBlockReason != null) {
-                showBlockOverlay(pkg, appBlockReason)
-                return@launch
-            }
+    private suspend fun evaluateForeground(pkg: String, now: Long) {
+        if (!premiumActive) return
+        if (isUnlocked(ShortUnlock.appKey(pkg))) return
 
-            // 1) Focus mode — global, with exemptions
-            if (focusModeActive && now < focusModeEndTime && pkg !in exemptPackages) {
-                val shouldBlock = if (focusModeIsWhitelist) {
-                    pkg !in focusModeWhitelist
-                } else {
-                    pkg in focusModeWhitelist
-                }
-                if (shouldBlock) {
-                    showBlockOverlay(pkg, BlockType.FOCUS.name)
-                    return@launch
-                }
-            }
-
-            // 2) Block rules — per-package, plus global sleep-mode sentinel
-            val decision = evaluateRules(pkg, now)
-            if (decision != null) {
-                showBlockOverlay(pkg, decision.reason)
-                return@launch
-            }
-
-            // 3) Website blocking runs on its own poll (updateBrowserPoll).
-
-            // 4) In-app blocking (back-kick) — Snapchat/TikTok/Twitter etc.
-            val lastInAppCheck = lastInAppCheckTime[pkg] ?: 0L
-            if (now - lastInAppCheck > INAPP_CHECK_DEBOUNCE_MS) {
-                lastInAppCheckTime[pkg] = now
-                handleInAppBlock(pkg)
-            }
-
-            // 5) Per-content overlay blocking (Reels/Shorts)
-            handleContentBlock(pkg)
+        // 0) Whole-app block (Block Apps screen) — explicit per-app choice with
+        // a daily time allowance (0 min = block on open). Under the allowance
+        // we fall through so the other rules still apply.
+        val appBlockReason = wholeAppBlockReason(pkg, now)
+        if (appBlockReason != null) {
+            showBlockOverlay(pkg, appBlockReason)
+            return
         }
+
+        // 1) Focus mode — global, with exemptions
+        if (focusModeActive && now < focusModeEndTime && pkg !in exemptPackages) {
+            val shouldBlock = if (focusModeIsWhitelist) {
+                pkg !in focusModeWhitelist
+            } else {
+                pkg in focusModeWhitelist
+            }
+            if (shouldBlock) {
+                showBlockOverlay(pkg, BlockType.FOCUS.name)
+                return
+            }
+        }
+
+        // 2) Block rules — per-package, plus global sleep-mode sentinel
+        val decision = evaluateRules(pkg, now)
+        if (decision != null) {
+            showBlockOverlay(pkg, decision.reason)
+            return
+        }
+
+        // 3) Website blocking runs on its own poll (updateBrowserPoll).
+
+        // 4) In-app blocking (back-kick) — Snapchat/TikTok/Twitter etc.
+        val lastInAppCheck = lastInAppCheckTime[pkg] ?: 0L
+        if (now - lastInAppCheck > INAPP_CHECK_DEBOUNCE_MS) {
+            lastInAppCheckTime[pkg] = now
+            handleInAppBlock(pkg)
+        }
+
+        // 5) Per-content overlay blocking (Reels/Shorts)
+        handleContentBlock(pkg)
+    }
+
+    private fun isUnlocked(key: String): Boolean =
+        ShortUnlock.isActive(unlocks, key, SystemClock.elapsedRealtime(), bootCount)
+
+    /**
+     * Keeps one countdown per running unlock: the notification, its one-minute warning,
+     * and at the end a re-check of the foreground app. Static surfaces emit no events,
+     * so without it the block would only return on the user's next interaction.
+     */
+    private fun onUnlocksChanged(grants: List<UnlockGrant>) {
+        unlocks = grants
+        val live = grants.filter { unlockGate.remainingMs(it) > 0L }.associateBy { it.key }
+        unlockJobs.entries.removeAll { (key, entry) ->
+            val stale = live[key] != entry.first
+            if (stale) {
+                entry.second.cancel()
+                NotificationUtils.cancelShortUnlock(this, key)
+            }
+            stale
+        }
+        for ((key, grant) in live) {
+            if (key in unlockJobs) continue
+            unlockJobs[key] = grant to serviceScope.launch(Dispatchers.Main) { countDown(grant) }
+        }
+    }
+
+    private suspend fun countDown(grant: UnlockGrant) {
+        val label = unlockLabel(grant.key)
+        val warnLater = unlockGate.remainingMs(grant) > ShortUnlock.WARNING_BEFORE_END_MS
+        NotificationUtils.showShortUnlock(this, grant.key, label, grant.untilWallMs, unlockGate.remainingMs(grant), false)
+        if (warnLater) {
+            delay(unlockGate.remainingMs(grant) - ShortUnlock.WARNING_BEFORE_END_MS)
+            val left = unlockGate.remainingMs(grant)
+            if (left > 0L) NotificationUtils.showShortUnlock(this, grant.key, label, grant.untilWallMs, left, true)
+        }
+        // delay() runs on uptime, which stops in deep sleep: re-read the monotonic clock
+        // until the unlock is really over.
+        while (true) {
+            val left = unlockGate.remainingMs(grant)
+            if (left <= 0L) break
+            delay(left)
+        }
+        NotificationUtils.cancelShortUnlock(this, grant.key)
+        if (unlockJobs[grant.key]?.first == grant) unlockJobs.remove(grant.key)
+        Log.d(TAG, "Short unlock ended: ${grant.key}")
+        currentForegroundPackage?.let { evaluateForeground(it, System.currentTimeMillis()) }
+    }
+
+    private fun unlockLabel(key: String): String {
+        ShortUnlock.contentTargetIdOf(key)?.let { id ->
+            ContentSignatures.byId(id)?.let { return ShortUnlockActivity.label(this, it.packageName, id) }
+        }
+        return ShortUnlockActivity.label(this, ShortUnlock.packageOf(key).orEmpty(), null)
     }
 
     /**
@@ -261,7 +331,8 @@ class StayFreeAccessibilityService : AccessibilityService() {
      * spent one) the hard-block fires right away.
      */
     private suspend fun handleContentBlock(pkg: String) {
-        val targets = ContentSignatures.allByPackage(pkg).filter { it.id in enabledContentIds }
+        val targets = ContentSignatures.allByPackage(pkg)
+            .filter { it.id in enabledContentIds && !isUnlocked(ShortUnlock.contentKey(it.id)) }
         if (targets.isEmpty()) return
 
         // Cooldown so a burst of CONTENT_CHANGED events can't relaunch the block
@@ -345,6 +416,8 @@ class StayFreeAccessibilityService : AccessibilityService() {
                 val stillOn = currentForegroundPackage == pkg &&
                     powerManager.isInteractive &&
                     target.id in enabledContentIds &&
+                    !isUnlocked(ShortUnlock.contentKey(target.id)) &&
+                    !isUnlocked(ShortUnlock.appKey(pkg)) &&
                     findMatchedTarget(listOf(target)) != null
                 if (!stillOn) break
                 val now = System.currentTimeMillis()
@@ -372,6 +445,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
      */
     private fun launchContentBlock(target: ContentBlockTarget) {
         if (!premiumActive) return
+        if (isUnlocked(ShortUnlock.contentKey(target.id)) || isUnlocked(ShortUnlock.appKey(target.packageName))) return
         lastContentBlockAt = System.currentTimeMillis()
         Log.d(TAG, "Content surface: ${target.displayName} in ${target.packageName}")
 
@@ -384,9 +458,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
             }
             try {
                 startActivity(
-                    ContentBlockActivity.newIntent(
-                        this@StayFreeAccessibilityService, target.displayName
-                    )
+                    ContentBlockActivity.newIntent(this@StayFreeAccessibilityService, target)
                 )
             } catch (e: Exception) {
                 Log.w(TAG, "Block screen launch rejected: ${e.message}")
@@ -451,7 +523,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
     }
 
     private fun showBlockOverlay(pkg: String, reason: String) {
-        if (!premiumActive) return
+        if (!premiumActive || isUnlocked(ShortUnlock.appKey(pkg))) return
         val intent = Intent(this, BlockOverlayActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or

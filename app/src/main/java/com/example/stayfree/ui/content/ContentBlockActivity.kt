@@ -10,11 +10,15 @@ import androidx.activity.OnBackPressedCallback
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityContentBlockBinding
+import com.example.stayfree.domain.content.ContentBlockTarget
+import com.example.stayfree.ui.unlock.ShortUnlockActivity
 import com.example.stayfree.util.StrictGate
+import com.example.stayfree.util.UnlockGate
 import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -25,17 +29,19 @@ import javax.inject.Inject
  * Hard-block screen shown the moment a blocked content surface (Reels, Stories,
  * Shorts, TikTok) is detected. The accessibility service optionally presses Back
  * first (so the host saves a non-blocked last state), then starts this activity
- * over it. There is no unlock path — Exit and Back both go home, so the user can
- * never bounce back into the blocked surface.
+ * over it. Exit and Back both go home; the only way back in is a short unlock.
  */
 @AndroidEntryPoint
 class ContentBlockActivity : AppCompatActivity() {
 
     @Inject lateinit var prefs: AppPreferences
     @Inject lateinit var strictGate: StrictGate
+    @Inject lateinit var unlockGate: UnlockGate
 
     companion object {
         const val EXTRA_DISPLAY_NAME = "extra_display_name"
+        private const val EXTRA_PACKAGE = "extra_package"
+        private const val EXTRA_TARGET_ID = "extra_target_id"
         private const val STATE_PICK = "state_pick"
 
         private class Backdrop(@DrawableRes val image: Int, @DrawableRes val scrim: Int)
@@ -70,12 +76,14 @@ class ContentBlockActivity : AppCompatActivity() {
             return i
         }
 
-        fun newIntent(context: Context, displayName: String): Intent =
+        fun newIntent(context: Context, target: ContentBlockTarget): Intent =
             Intent(context, ContentBlockActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                         Intent.FLAG_ACTIVITY_CLEAR_TASK or
                         Intent.FLAG_ACTIVITY_NO_ANIMATION
-                putExtra(EXTRA_DISPLAY_NAME, displayName)
+                putExtra(EXTRA_DISPLAY_NAME, target.displayName)
+                putExtra(EXTRA_PACKAGE, target.packageName)
+                putExtra(EXTRA_TARGET_ID, target.id)
             }
     }
 
@@ -124,6 +132,7 @@ class ContentBlockActivity : AppCompatActivity() {
         }
 
         binding.btnExit.setOnClickListener { goHome() }
+        binding.btnUnlock.setOnClickListener { openUnlock() }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() = goHome()
         })
@@ -133,7 +142,24 @@ class ContentBlockActivity : AppCompatActivity() {
     // Exit) arrives here instead of onCreate.
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         lifecycleScope.launch { prefs.incrementBlocksShown() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch {
+            val day = unlockGate.today()
+            binding.tvUnlockTally.isVisible = day.count > 0
+            binding.tvUnlockTally.text = getString(R.string.unlock_today_tally, day.count, day.minutes)
+        }
+    }
+
+    private fun openUnlock() {
+        val pkg = intent.getStringExtra(EXTRA_PACKAGE) ?: return
+        startActivity(ShortUnlockActivity.newIntent(this, pkg, intent.getStringExtra(EXTRA_TARGET_ID)))
+        finish()
+        overridePendingTransition(0, 0)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

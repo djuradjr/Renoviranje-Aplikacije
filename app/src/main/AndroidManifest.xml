@@ -82,6 +82,14 @@
             android:taskAffinity=""
             android:theme="@style/Theme.StayFree.ContentBlock" />
 
+        <!-- Short unlock, opened from either block screen. -->
+        <activity
+            android:name=".ui.unlock.ShortUnlockActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.StayFree" />
+
         <activity
             android:name=".ui.premium.PaywallActivity"
             android:exported="false"

@@ -452,4 +452,22 @@
     <string name="battery_dialog_title">Keep blocking running</string>
     <string name="battery_dialog_message">In the list that opens, show all apps, find Block Doomscroll and choose Don\'t optimize (Unrestricted on some phones).</string>
     <string name="battery_dialog_open">Open settings</string>
+
+    <!-- Short unlock (block screens + unlock screen) -->
+    <string name="unlock_briefly">Unlock briefly</string>
+    <string name="unlock_today_tally">Unlocked today: %1$d× · %2$d min</string>
+    <string name="unlock_title">%1$s is blocked</string>
+    <string name="unlock_breathe">Breathe in…</string>
+    <string name="unlock_breathe_count" translatable="false">%1$d</string>
+    <string name="unlock_ask">How long do you need?</string>
+    <string name="unlock_minutes_unit" translatable="false">min</string>
+    <string name="unlock_slider_desc">Unlock length in minutes</string>
+    <string name="unlock_confirm">Unlock %1$d min</string>
+    <string name="unlock_cancel">Not now</string>
+    <string name="unlock_footnote">The block comes back on its own when the time is up.</string>
+    <string name="notif_channel_unlock_name">Short unlock</string>
+    <string name="notif_channel_unlock_desc">Countdown while a blocked app is briefly unlocked</string>
+    <string name="notif_unlock_title">%1$s unlocked</string>
+    <string name="notif_unlock_text">Blocked again when the countdown ends.</string>
+    <string name="notif_unlock_warning_title">%1$s: 1 minute left</string>
 </resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Hard-block screen over the host app: branded, immersive, no timer, no
-     unlock path — the single action is Exit → home. Orange appears only on the
+<!-- Block screen over the host app: branded, immersive, no timer. Exit → home
+     is the primary action; "Unlock briefly" is the quieter way through. Orange appears only on the
      block mark itself; the rest sits on a calm photo under a dark scrim. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -129,11 +129,29 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_unlock"
+                style="@style/Skor.Button.Quiet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="26dp"
+                android:text="@string/unlock_briefly" />
+
+            <TextView
+                android:id="@+id/tv_unlock_tally"
+                style="@style/Skor.Caption"
+                android:layout_marginTop="8dp"
+                android:fontFeatureSettings="tnum"
+                android:gravity="center"
+                android:visibility="gone"
+                tools:text="Unlocked today: 3× · 27 min"
+                tools:visibility="visible" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_exit"
                 style="@style/Skor.Button.Neutral"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="26dp"
+                android:layout_marginTop="16dp"
                 android:text="@string/content_block_exit" />
 
             <TextView

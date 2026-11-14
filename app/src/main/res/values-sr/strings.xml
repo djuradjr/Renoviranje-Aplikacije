@@ -422,4 +422,20 @@
     <string name="battery_dialog_title">Neka blokiranje radi bez prekida</string>
     <string name="battery_dialog_message">Na listi koja se otvori prikaži sve aplikacije, nađi Block Doomscroll i izaberi Ne optimizuj (na nekim telefonima: Bez ograničenja).</string>
     <string name="battery_dialog_open">Otvori podešavanja</string>
+
+    <!-- Kratko otključavanje -->
+    <string name="unlock_briefly">Otključaj na kratko</string>
+    <string name="unlock_today_tally">Danas otključano: %1$d× · %2$d min</string>
+    <string name="unlock_title">%1$s je blokiran</string>
+    <string name="unlock_breathe">Udahni…</string>
+    <string name="unlock_ask">Koliko ti treba?</string>
+    <string name="unlock_slider_desc">Trajanje otključavanja u minutima</string>
+    <string name="unlock_confirm">Otključaj %1$d min</string>
+    <string name="unlock_cancel">Ipak ne</string>
+    <string name="unlock_footnote">Blokada se sama vraća kad istekne vreme.</string>
+    <string name="notif_channel_unlock_name">Kratko otključavanje</string>
+    <string name="notif_channel_unlock_desc">Odbrojavanje dok je blokirana aplikacija kratko otključana</string>
+    <string name="notif_unlock_title">%1$s otključan</string>
+    <string name="notif_unlock_text">Blokada se vraća kad odbrojavanje istekne.</string>
+    <string name="notif_unlock_warning_title">%1$s: još 1 minut</string>
 </resources>

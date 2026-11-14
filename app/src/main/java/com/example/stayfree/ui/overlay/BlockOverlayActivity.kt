@@ -12,7 +12,9 @@ import com.example.stayfree.databinding.ActivityBlockOverlayBinding
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.PinGate
 import com.example.stayfree.util.PinPrompt
+import com.example.stayfree.ui.unlock.ShortUnlockActivity
 import com.example.stayfree.util.StrictGate
+import com.example.stayfree.util.UnlockGate
 import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -25,6 +27,7 @@ class BlockOverlayActivity : AppCompatActivity() {
     @Inject lateinit var prefs: AppPreferences
     @Inject lateinit var pinGate: PinGate
     @Inject lateinit var strictGate: StrictGate
+    @Inject lateinit var unlockGate: UnlockGate
 
     private lateinit var binding: ActivityBlockOverlayBinding
     private var packageName_: String = ""
@@ -56,6 +59,12 @@ class BlockOverlayActivity : AppCompatActivity() {
             finish()
         }
 
+        binding.btnUnlock.setOnClickListener {
+            if (packageName_.isEmpty()) return@setOnClickListener
+            startActivity(ShortUnlockActivity.newIntent(this, packageName_, null))
+            finish()
+        }
+
         binding.btnOverride.setOnClickListener {
             showPinDialog()
         }
@@ -79,6 +88,15 @@ class BlockOverlayActivity : AppCompatActivity() {
         packageName_ = intent.getStringExtra(EXTRA_PACKAGE_NAME) ?: ""
         blockReason = intent.getStringExtra(EXTRA_BLOCK_REASON) ?: "BLOCK_NOW"
         setupUI()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch {
+            val day = unlockGate.today()
+            binding.tvUnlockTally.isVisible = day.count > 0
+            binding.tvUnlockTally.text = getString(R.string.unlock_today_tally, day.count, day.minutes)
+        }
     }
 
     private fun setupUI() {

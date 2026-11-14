@@ -7,10 +7,14 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.stayfree.domain.score.AppCategory
 import com.example.stayfree.domain.strict.StrictAnchor
 import com.example.stayfree.domain.strict.StrictState
+import com.example.stayfree.domain.unlock.ShortUnlock
+import com.example.stayfree.domain.unlock.UnlockDay
+import com.example.stayfree.domain.unlock.UnlockGrant
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import org.json.JSONArray
 import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -95,6 +99,10 @@ class AppPreferences @Inject constructor(
         val STRICT_ANCHOR_BOOT = intPreferencesKey("strict_anchor_boot")
         val STRICT_VIOLATIONS = intPreferencesKey("strict_violations")
         val STRICT_CLOCK_SKEWED = booleanPreferencesKey("strict_clock_skewed")
+        // Short unlocks (see ShortUnlock): JSON array of grants, and the tally of ONE
+        // effective day {"date","count","minutes"}.
+        val SHORT_UNLOCKS = stringPreferencesKey("short_unlocks_json")
+        val SHORT_UNLOCK_DAY = stringPreferencesKey("short_unlock_day_json")
     }
 
     val dailyResetTimeMinutes: Flow<Int> = dataStore.data.map { it[DAILY_RESET_TIME_MINUTES] ?: 0 }
@@ -409,6 +417,55 @@ class AppPreferences @Inject constructor(
         violations = this[STRICT_VIOLATIONS] ?: 0,
         clockSkewed = this[STRICT_CLOCK_SKEWED] ?: false
     )
+
+    val shortUnlocks: Flow<List<UnlockGrant>> = dataStore.data.map { parseUnlocks(it[SHORT_UNLOCKS]) }
+
+    val shortUnlockDay: Flow<UnlockDay> = dataStore.data.map { prefs ->
+        try {
+            val obj = JSONObject(prefs[SHORT_UNLOCK_DAY] ?: return@map UnlockDay.EMPTY)
+            UnlockDay(obj.optString("date"), obj.optInt("count"), obj.optInt("minutes"))
+        } catch (e: Exception) {
+            UnlockDay.EMPTY
+        }
+    }
+
+    /** Stores the grant and bumps the day's tally in one write. */
+    suspend fun addShortUnlock(grant: UnlockGrant, date: String, minutes: Int, elapsedMs: Long, bootCount: Int) {
+        dataStore.edit { prefs ->
+            val grants = ShortUnlock.withGrant(parseUnlocks(prefs[SHORT_UNLOCKS]), grant, elapsedMs, bootCount)
+            prefs[SHORT_UNLOCKS] = JSONArray().apply {
+                grants.forEach {
+                    put(
+                        JSONObject().put("k", it.key).put("s", it.startElapsedMs)
+                            .put("u", it.untilElapsedMs).put("b", it.bootCount).put("w", it.untilWallMs)
+                    )
+                }
+            }.toString()
+            val day = try {
+                JSONObject(prefs[SHORT_UNLOCK_DAY] ?: "{}").let {
+                    UnlockDay(it.optString("date"), it.optInt("count"), it.optInt("minutes"))
+                }
+            } catch (e: Exception) {
+                UnlockDay.EMPTY
+            }
+            val next = ShortUnlock.recorded(day, date, minutes)
+            prefs[SHORT_UNLOCK_DAY] = JSONObject().put("date", next.date)
+                .put("count", next.count).put("minutes", next.minutes).toString()
+        }
+    }
+
+    private fun parseUnlocks(json: String?): List<UnlockGrant> {
+        if (json.isNullOrEmpty()) return emptyList()
+        return try {
+            val arr = JSONArray(json)
+            (0 until arr.length()).map { i ->
+                val o = arr.getJSONObject(i)
+                UnlockGrant(o.getString("k"), o.getLong("s"), o.getLong("u"), o.getInt("b"), o.getLong("w"))
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
 
     private fun parseLimits(json: String?): Map<String, Int> {
         if (json.isNullOrEmpty()) return emptyMap()

@@ -18,6 +18,7 @@ object NotificationUtils {
     const val CHANNEL_USAGE_ALERTS = "channel_usage_alerts"
     const val CHANNEL_DAILY_SUMMARY = "channel_daily_summary"
     const val CHANNEL_STRICT = "channel_strict"
+    const val CHANNEL_UNLOCK = "channel_short_unlock"
 
     const val NOTIFICATION_ID_FOREGROUND = 1
     const val NOTIFICATION_ID_USAGE_ALERT = 2
@@ -48,7 +49,12 @@ object NotificationUtils {
                         CHANNEL_STRICT,
                         context.getString(R.string.notif_channel_strict_name),
                         NotificationManager.IMPORTANCE_HIGH
-                    ).apply { description = context.getString(R.string.notif_channel_strict_desc) }
+                    ).apply { description = context.getString(R.string.notif_channel_strict_desc) },
+                    NotificationChannel(
+                        CHANNEL_UNLOCK,
+                        context.getString(R.string.notif_channel_unlock_name),
+                        NotificationManager.IMPORTANCE_DEFAULT
+                    ).apply { description = context.getString(R.string.notif_channel_unlock_desc) }
                 )
             )
         }
@@ -109,6 +115,38 @@ object NotificationUtils {
             .build()
         nm.notify(NOTIFICATION_ID_STRICT, notification)
     }
+
+    /**
+     * Countdown while a short unlock runs. The system chronometer counts down to
+     * [untilWallMs], and [remainingMs] drops the notification even if our process dies.
+     * [warning] re-posts it audibly once, a minute before the end.
+     */
+    fun showShortUnlock(context: Context, key: String, label: String, untilWallMs: Long, remainingMs: Long, warning: Boolean) {
+        if (!PermissionUtils.hasNotificationPermission(context)) return
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val title = if (warning) R.string.notif_unlock_warning_title else R.string.notif_unlock_title
+        val notification = NotificationCompat.Builder(context, CHANNEL_UNLOCK)
+            .setContentTitle(context.getString(title, label))
+            .setContentText(context.getString(R.string.notif_unlock_text))
+            .setSmallIcon(R.drawable.ic_notification)
+            .setWhen(untilWallMs)
+            .setShowWhen(true)
+            .setUsesChronometer(true)
+            .setChronometerCountDown(true)
+            .setTimeoutAfter(remainingMs)
+            .setGroup(CHANNEL_UNLOCK)
+            .setOngoing(true)
+            .setSilent(!warning)
+            .build()
+        nm.notify(unlockNotificationId(key), notification)
+    }
+
+    fun cancelShortUnlock(context: Context, key: String) {
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.cancel(unlockNotificationId(key))
+    }
+
+    private fun unlockNotificationId(key: String) = CHANNEL_UNLOCK.hashCode() xor key.hashCode()
 
     fun clearStrictProtectionOff(context: Context) {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
