@@ -35,6 +35,7 @@ class ShortUnlockActivity : AppCompatActivity() {
         private const val STATE_BREATH_START = "state_breath_start"
         private const val BREATHE_MS = 5_000L
         private const val BREATH_FRAME_MS = 32L
+        private const val DIMMED_ALPHA = 0.35f
 
         /** [targetId] set = unlock that content surface only; null = the whole app. */
         fun newIntent(context: Context, packageName: String, targetId: String?): Intent =
@@ -81,6 +82,9 @@ class ShortUnlockActivity : AppCompatActivity() {
         breathStart = savedInstanceState?.getLong(STATE_BREATH_START)
             ?.takeIf { it in 1..SystemClock.elapsedRealtime() }
             ?: SystemClock.elapsedRealtime()
+        // Explicit Skor colours ignore the disabled state, so inert controls are dimmed by hand.
+        binding.slider.alpha = DIMMED_ALPHA
+        binding.btnUnlock.alpha = DIMMED_ALPHA
         startBreath()
     }
 
@@ -116,6 +120,8 @@ class ShortUnlockActivity : AppCompatActivity() {
         binding.groupMinutes.visibility = View.VISIBLE
         binding.slider.isEnabled = true
         binding.btnUnlock.isEnabled = true
+        binding.slider.animate().alpha(1f)
+        binding.btnUnlock.animate().alpha(1f)
     }
 
     private fun showMinutes(minutes: Int) {

@@ -131,6 +131,8 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_unlock"
                 style="@style/Skor.Button.Quiet"
+                android:textColor="@color/skor_text"
+                android:alpha="0.85"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="26dp"
