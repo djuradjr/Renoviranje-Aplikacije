@@ -1,12 +1,10 @@
 package com.example.stayfree.ui.unlock
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.View
-import android.view.animation.LinearInterpolator
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -17,6 +15,7 @@ import com.example.stayfree.domain.unlock.ShortUnlock
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.UnlockGate
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,6 +34,7 @@ class ShortUnlockActivity : AppCompatActivity() {
         private const val EXTRA_TARGET_ID = "extra_target_id"
         private const val STATE_BREATH_START = "state_breath_start"
         private const val BREATHE_MS = 5_000L
+        private const val BREATH_FRAME_MS = 32L
 
         /** [targetId] set = unlock that content surface only; null = the whole app. */
         fun newIntent(context: Context, packageName: String, targetId: String?): Intent =
@@ -54,7 +54,6 @@ class ShortUnlockActivity : AppCompatActivity() {
     private lateinit var pkg: String
     private var targetId: String? = null
     private var breathStart = 0L
-    private var breathAnimator: ValueAnimator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,29 +89,24 @@ class ShortUnlockActivity : AppCompatActivity() {
         outState.putLong(STATE_BREATH_START, breathStart)
     }
 
-    override fun onDestroy() {
-        breathAnimator?.cancel()
-        super.onDestroy()
-    }
-
     private fun startBreath() {
         val done = (SystemClock.elapsedRealtime() - breathStart).coerceIn(0L, BREATHE_MS)
         if (done >= BREATHE_MS) {
             onBreathDone()
             return
         }
-        breathAnimator = ValueAnimator.ofFloat(done / BREATHE_MS.toFloat(), 1f).apply {
-            duration = BREATHE_MS - done
-            interpolator = LinearInterpolator()
-            addUpdateListener {
-                val p = it.animatedValue as Float
-                binding.ring.setProgress(p, animate = false)
-                val secondsLeft = ((1f - p) * BREATHE_MS / 1000f).toInt() + 1
-                binding.tvBreatheCount.text =
-                    getString(R.string.unlock_breathe_count, secondsLeft.coerceAtMost((BREATHE_MS / 1000).toInt()))
-                if (p >= 1f) onBreathDone()
+        // A timer, not a ValueAnimator: with animations switched off in developer options
+        // an animator jumps straight to its end and the pause would be skipped.
+        lifecycleScope.launch {
+            while (true) {
+                val elapsed = SystemClock.elapsedRealtime() - breathStart
+                if (elapsed >= BREATHE_MS) break
+                binding.ring.setProgress(elapsed / BREATHE_MS.toFloat(), animate = false)
+                val secondsLeft = ((BREATHE_MS - elapsed + 999) / 1000).toInt()
+                binding.tvBreatheCount.text = getString(R.string.unlock_breathe_count, secondsLeft)
+                delay(BREATH_FRAME_MS)
             }
-            start()
+            onBreathDone()
         }
     }
 

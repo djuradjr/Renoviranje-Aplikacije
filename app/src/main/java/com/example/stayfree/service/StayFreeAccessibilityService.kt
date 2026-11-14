@@ -35,6 +35,7 @@ import com.example.stayfree.util.UnlockGate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import org.json.JSONObject
 import javax.inject.Inject
@@ -149,7 +150,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
         exemptPackages = computeExemptPackages()
         imePackages = computeImePackages()
         bootCount = unlockGate.bootCount
-        serviceScope.launch(Dispatchers.Main) { prefs.shortUnlocks.collect { onUnlocksChanged(it) } }
+        serviceScope.launch(Dispatchers.Main) { prefs.shortUnlocks.distinctUntilChanged().collect { onUnlocksChanged(it) } }
         startCacheRefresh()
         collectFocusModeState()
         collectContentBlockState()
