@@ -18,13 +18,12 @@ import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.FragmentStrictModeBinding
 import com.example.stayfree.domain.strict.StrictLock
-import com.example.stayfree.ui.common.LoosenGate
+import com.example.stayfree.domain.strict.StrictSocialApps
 import com.example.stayfree.ui.common.bindBackHeader
 import com.example.stayfree.ui.premium.ensureProtection
 import com.example.stayfree.ui.premium.requirePremium
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.PermissionUtils
-import com.example.stayfree.util.PinGate
 import com.example.stayfree.util.StrictGate
 import com.example.stayfree.util.TimeUtils
 import com.google.android.material.chip.Chip
@@ -45,8 +44,6 @@ private const val DAY_MS = 24 * HOUR_MS
 class StrictModeFragment : Fragment() {
 
     @Inject lateinit var premium: PremiumRepository
-    @Inject lateinit var strictGate: StrictGate
-    @Inject lateinit var pinGate: PinGate
 
     private var _binding: FragmentStrictModeBinding? = null
     private val binding get() = _binding!!
@@ -74,31 +71,15 @@ class StrictModeFragment : Fragment() {
             requireContext().applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
         binding.chipGroup.setOnCheckedStateChangeListener { _, _ -> renderButton() }
         binding.btnLock.setOnClickListener { onLockClicked() }
-        bindTopApps()
+
+        val context = requireContext()
+        val social = StrictSocialApps.installed { context.packageManager.getLaunchIntentForPackage(it) != null }
+        binding.tvSocialApps.text =
+            if (social.isEmpty()) getString(R.string.strict_social_empty)
+            else social.joinToString(" · ") { AppInfoUtils.getAppName(context, it) }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.status.collectLatest { status -> if (status != null) render(status) }
-        }
-    }
-
-    private fun bindTopApps() {
-        val loosenGate = LoosenGate(this, strictGate, pinGate)
-        // A click, not a checked-change listener: the collector below sets the state too.
-        binding.switchTopApps.setOnClickListener {
-            if (binding.switchTopApps.isChecked) viewModel.setTopAppsOn(true)
-            else loosenGate.run(onDenied = { _binding?.switchTopApps?.isChecked = true }) {
-                viewModel.setTopAppsOn(false)
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.topAppsOn.collectLatest { on -> if (on != null) binding.switchTopApps.isChecked = on }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.topApps.collectLatest { apps ->
-                binding.tvTopApps.text =
-                    if (apps.isEmpty()) getString(R.string.strict_top_empty)
-                    else apps.joinToString(" · ") { AppInfoUtils.getAppName(requireContext(), it) }
-            }
         }
     }
 

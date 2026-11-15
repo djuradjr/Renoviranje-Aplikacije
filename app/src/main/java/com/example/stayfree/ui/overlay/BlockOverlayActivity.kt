@@ -122,7 +122,7 @@ class BlockOverlayActivity : AppCompatActivity() {
             "SLEEP" -> getString(R.string.overlay_sleep_mode)
             "WEBSITE_BLOCKED", "WEBSITE_CAP_REACHED" -> getString(R.string.overlay_website_blocked)
             "APP_BLOCKED" -> getString(R.string.overlay_app_blocked)
-            StayFreeAccessibilityService.REASON_STRICT_TOP_APP -> getString(R.string.overlay_strict_top_app)
+            StayFreeAccessibilityService.REASON_STRICT_SOCIAL -> getString(R.string.overlay_strict_social)
             else -> getString(R.string.overlay_title)
         }
 

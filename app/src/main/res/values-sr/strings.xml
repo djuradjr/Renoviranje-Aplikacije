@@ -213,7 +213,7 @@
     <string name="overlay_sleep_mode">Režim spavanja je aktivan</string>
     <string name="overlay_website_blocked">Ovaj sajt je blokiran</string>
     <string name="overlay_app_blocked">Ova aplikacija je blokirana</string>
-    <string name="overlay_strict_top_app">Strogi režim drži ovu aplikaciju zatvorenom</string>
+    <string name="overlay_strict_social">Strogi režim drži ovu aplikaciju zatvorenom</string>
     <string name="overlay_set_pin_hint">Želiš opciju zaobilaženja? Prvo postavi PIN u podešavanjima.</string>
 
     <!-- Settings -->
@@ -337,10 +337,9 @@
     <string name="strict_body_off">Dok vreme ne istekne, nijedan blok ne može da se isključi ni oslabi. Ne postoji način da se prekine ranije.</string>
     <string name="strict_body_on">Do tada ništa ne može da se isključi ni oslabi. I dalje možeš da dodaš blokove ili produžiš zaključavanje.</string>
     <string name="strict_locks_title">Šta se zaključava</string>
-    <string name="strict_top_title">Tvoje top aplikacije</string>
-    <string name="strict_top_switch">Uvek blokiraj top aplikacije</string>
-    <string name="strict_top_body">Aplikacije koje te najviše odvlače, iz poslednjih 7 dana. Kratko otključavanje i dalje radi.</string>
-    <string name="strict_top_empty">Lista se popunjava kad se skupi nedelja korišćenja.</string>
+    <string name="strict_social_title">Blokirane društvene mreže</string>
+    <string name="strict_social_body">Uvek zatvorene. Jedini ulaz je kratko otključavanje na 1–15 min.</string>
+    <string name="strict_social_empty">Nijedna društvena mreža nije instalirana.</string>
     <string name="strict_locks_blocks">Isključivanje i brisanje bilo kog bloka</string>
     <string name="strict_locks_limits">Podizanje dnevnog limita</string>
     <string name="strict_locks_modes">Prekid fokusa ranije, izmena sati spavanja</string>

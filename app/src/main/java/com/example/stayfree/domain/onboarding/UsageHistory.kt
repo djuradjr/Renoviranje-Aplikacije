@@ -39,9 +39,7 @@ class UsageHistory @Inject constructor(
         val topApps: List<AppTotal>,
         /** Days the log fully covers and that have usage — what the average divides by. */
         val measuredDays: Int,
-        val measuredMs: Long,
-        /** Every app's time over the whole window, not only the top few. */
-        val msByApp: Map<String, Long> = emptyMap()
+        val measuredMs: Long
     ) {
         val hasData: Boolean get() = totalMs > 0L
         val dailyAverageMs: Long
@@ -127,8 +125,7 @@ class UsageHistory @Inject constructor(
                 totalMs = total,
                 topApps = top,
                 measuredDays = averaged.size,
-                measuredMs = averaged.sumOf { dayTotals[it] },
-                msByApp = perApp
+                measuredMs = averaged.sumOf { dayTotals[it] }
             )
         }
     }

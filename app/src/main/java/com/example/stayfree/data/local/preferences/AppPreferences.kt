@@ -109,11 +109,6 @@ class AppPreferences @Inject constructor(
         // session {"posts","last","until"} — see ScrollBudget.
         val CLEAN_FEED_LIMIT = intPreferencesKey("clean_feed_limit_posts")
         val CLEAN_FEED_SESSION = stringPreferencesKey("clean_feed_session_json")
-        // Strict top apps (free tier): switch, the picked packages in rank order
-        // (comma-separated), and when they were last picked.
-        val STRICT_TOP_APPS_ON = booleanPreferencesKey("strict_top_apps_on")
-        val STRICT_TOP_APPS = stringPreferencesKey("strict_top_apps")
-        val STRICT_TOP_APPS_AT = longPreferencesKey("strict_top_apps_at")
     }
 
     val dailyResetTimeMinutes: Flow<Int> = dataStore.data.map { it[DAILY_RESET_TIME_MINUTES] ?: 0 }
@@ -169,12 +164,6 @@ class AppPreferences @Inject constructor(
         dataStore.data.map { it[CLEAN_FEED_LIMIT] ?: ScrollBudget.DEFAULT_LIMIT }
     val cleanFeedSession: Flow<ScrollSession> =
         dataStore.data.map { parseCleanFeedSession(it[CLEAN_FEED_SESSION]) }
-
-    val strictTopAppsOn: Flow<Boolean> = dataStore.data.map { it[STRICT_TOP_APPS_ON] ?: true }
-    /** Most used distracting apps, in rank order — see StrictTopApps. */
-    val strictTopApps: Flow<List<String>> =
-        dataStore.data.map { prefs -> prefs[STRICT_TOP_APPS]?.split(',')?.filter { it.isNotEmpty() } ?: emptyList() }
-    val strictTopAppsAt: Flow<Long> = dataStore.data.map { it[STRICT_TOP_APPS_AT] ?: 0L }
 
     val dailyGoalMinutes: Flow<Int> =
         dataStore.data.map { it[DAILY_GOAL_MINUTES] ?: DEFAULT_DAILY_GOAL_MINUTES }
@@ -371,17 +360,6 @@ class AppPreferences @Inject constructor(
             prefs[CONTENT_TARGET_USAGE] = JSONObject().put("date", date).put("usage", usage).toString()
         }
         return newTotal
-    }
-
-    suspend fun setStrictTopAppsOn(on: Boolean) {
-        dataStore.edit { it[STRICT_TOP_APPS_ON] = on }
-    }
-
-    suspend fun setStrictTopApps(packages: List<String>, atMs: Long) {
-        dataStore.edit {
-            it[STRICT_TOP_APPS] = packages.joinToString(",")
-            it[STRICT_TOP_APPS_AT] = atMs
-        }
     }
 
     suspend fun setCleanFeedLimit(posts: Int) {

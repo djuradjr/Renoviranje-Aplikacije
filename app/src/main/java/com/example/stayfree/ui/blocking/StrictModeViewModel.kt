@@ -6,7 +6,6 @@ import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.data.repository.BlockingRepository
 import com.example.stayfree.data.repository.WebsiteBlockRepository
 import com.example.stayfree.util.StrictGate
-import com.example.stayfree.util.StrictTopAppsSource
 import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -26,7 +25,6 @@ private const val DAY_MS = 86_400_000L
 class StrictModeViewModel @Inject constructor(
     private val strictGate: StrictGate,
     private val prefs: AppPreferences,
-    private val topAppsSource: StrictTopAppsSource,
     blockingRepository: BlockingRepository,
     websiteBlockRepository: WebsiteBlockRepository
 ) : ViewModel() {
@@ -45,17 +43,7 @@ class StrictModeViewModel @Inject constructor(
         apps.isNotEmpty() || content.isNotEmpty() || rules.isNotEmpty() || sites.any { it.isActive }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val topAppsOn: StateFlow<Boolean?> = prefs.strictTopAppsOn
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    val topApps: StateFlow<List<String>> = prefs.strictTopApps
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    fun setTopAppsOn(on: Boolean) {
-        viewModelScope.launch { prefs.setStrictTopAppsOn(on) }
-    }
-
     init {
-        viewModelScope.launch { runCatching { topAppsSource.refresh() } }
         viewModelScope.launch {
             strictGate.tick()
             while (true) {
