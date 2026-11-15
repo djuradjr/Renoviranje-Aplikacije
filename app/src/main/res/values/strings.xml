@@ -290,6 +290,7 @@
     <string name="overlay_sleep_mode">Sleep mode is active</string>
     <string name="overlay_website_blocked">This website is blocked</string>
     <string name="overlay_app_blocked">This app is blocked</string>
+    <string name="overlay_strict_top_app">Strict mode keeps this app closed</string>
     <string name="overlay_set_pin_hint">Want an override option? Set a PIN in Settings first.</string>
 
     <!-- In-App Block features -->
@@ -367,6 +368,10 @@
     <string name="strict_body_off">Until the time runs out, no block can be switched off or weakened. There is no way to end it early.</string>
     <string name="strict_body_on">Nothing can be switched off or weakened until then. You can still add blocks or extend the lock.</string>
     <string name="strict_locks_title">What gets locked</string>
+    <string name="strict_top_title">Your top apps</string>
+    <string name="strict_top_switch">Always block top apps</string>
+    <string name="strict_top_body">Your most used distracting apps from the last 7 days. A short unlock still works.</string>
+    <string name="strict_top_empty">The list fills in once there is a week of usage.</string>
     <string name="strict_locks_blocks">Switching off or deleting any block</string>
     <string name="strict_locks_limits">Raising a daily limit</string>
     <string name="strict_locks_modes">Ending Focus early, changing Sleep hours</string>

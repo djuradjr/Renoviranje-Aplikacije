@@ -10,6 +10,7 @@ import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityBlockOverlayBinding
 import com.example.stayfree.domain.cleanfeed.CleanFeedRules
+import com.example.stayfree.service.StayFreeAccessibilityService
 import com.example.stayfree.ui.cleanfeed.CleanFeedEntry
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.PinGate
@@ -121,6 +122,7 @@ class BlockOverlayActivity : AppCompatActivity() {
             "SLEEP" -> getString(R.string.overlay_sleep_mode)
             "WEBSITE_BLOCKED", "WEBSITE_CAP_REACHED" -> getString(R.string.overlay_website_blocked)
             "APP_BLOCKED" -> getString(R.string.overlay_app_blocked)
+            StayFreeAccessibilityService.REASON_STRICT_TOP_APP -> getString(R.string.overlay_strict_top_app)
             else -> getString(R.string.overlay_title)
         }
 

@@ -2,15 +2,12 @@ package com.example.stayfree.service
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.os.PowerManager
 import android.os.SystemClock
-import android.provider.Settings
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import android.view.inputmethod.InputMethodManager
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.data.repository.BlockingRepository
 import com.example.stayfree.data.repository.InAppBlockRepository
@@ -30,6 +27,8 @@ import com.example.stayfree.util.DomainUtils
 import com.example.stayfree.util.NotificationUtils
 import com.example.stayfree.util.PermissionUtils
 import com.example.stayfree.util.StrictGate
+import com.example.stayfree.util.StrictTopAppsSource
+import com.example.stayfree.util.SystemPackages
 import com.example.stayfree.util.TimeUtils
 import com.example.stayfree.util.UnlockGate
 import dagger.hilt.android.AndroidEntryPoint
@@ -50,6 +49,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
     @Inject lateinit var prefs: AppPreferences
     @Inject lateinit var strictGate: StrictGate
     @Inject lateinit var unlockGate: UnlockGate
+    @Inject lateinit var strictTopAppsSource: StrictTopAppsSource
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -99,6 +99,9 @@ class StayFreeAccessibilityService : AccessibilityService() {
     // Blocking is the paid feature: without an active subscription nothing fires, but every
     // configured block stays stored and resumes as soon as premium is back.
     @Volatile private var premiumActive = false
+    // Strict top apps: the free tier's block, the one path that fires without premium.
+    @Volatile private var strictTopAppsOn = false
+    @Volatile private var strictTopApps: Set<String> = emptySet()
     // Short unlocks from the block screens; an unlocked key fires nothing until it runs out.
     @Volatile private var unlocks: List<UnlockGrant> = emptyList()
     private var bootCount = 0
@@ -107,6 +110,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
 
     companion object {
         private const val TAG = "MoreMoneyA11y"
+        const val REASON_STRICT_TOP_APP = "STRICT_TOP_APP"
         private const val CONTENT_DEBOUNCE_MS = 500L
         // onUnbind runs on the main thread; a stuck DataStore must not wedge the teardown.
         private const val UNBIND_WRITE_TIMEOUT_MS = 500L
@@ -136,13 +140,6 @@ class StayFreeAccessibilityService : AccessibilityService() {
             "com.brave.browser" to "com.brave.browser:id/url_bar",
             "com.opera.browser" to "com.opera.browser:id/url_field"
         )
-
-        private val STATIC_EXEMPT = setOf(
-            "com.android.systemui",
-            "com.android.settings",
-            "com.android.incallui",
-            "com.android.server.telecom"
-        )
     }
 
     override fun onServiceConnected() {
@@ -155,6 +152,8 @@ class StayFreeAccessibilityService : AccessibilityService() {
         collectFocusModeState()
         collectContentBlockState()
         serviceScope.launch { prefs.premiumActive.collect { premiumActive = it } }
+        serviceScope.launch { prefs.strictTopAppsOn.collect { strictTopAppsOn = it } }
+        serviceScope.launch { prefs.strictTopApps.collect { strictTopApps = it.toSet() } }
         serviceScope.launch { prefs.setAccessibilityState(AppPreferences.A11Y_RUNNING) }
         NotificationUtils.clearStrictProtectionOff(this)
     }
@@ -224,8 +223,13 @@ class StayFreeAccessibilityService : AccessibilityService() {
     }
 
     private suspend fun evaluateForeground(pkg: String, now: Long) {
-        if (!premiumActive) return
         if (isUnlocked(ShortUnlock.appKey(pkg))) return
+
+        if (strictTopAppsOn && pkg in strictTopApps && pkg !in exemptPackages && pkg !in imePackages) {
+            showBlockOverlay(pkg, REASON_STRICT_TOP_APP)
+            return
+        }
+        if (!premiumActive) return
 
         // 0) Whole-app block (Block Apps screen) — explicit per-app choice with
         // a daily time allowance (0 min = block on open). Under the allowance
@@ -539,7 +543,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
     }
 
     private fun showBlockOverlay(pkg: String, reason: String) {
-        if (!premiumActive || isUnlocked(ShortUnlock.appKey(pkg))) return
+        if ((!premiumActive && reason != REASON_STRICT_TOP_APP) || isUnlocked(ShortUnlock.appKey(pkg))) return
         val intent = Intent(this, BlockOverlayActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or
@@ -707,26 +711,9 @@ class StayFreeAccessibilityService : AccessibilityService() {
         return false
     }
 
-    private fun computeExemptPackages(): Set<String> {
-        val set = mutableSetOf(packageName)
-        set.addAll(STATIC_EXEMPT)
-        val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
-        packageManager.resolveActivity(home, PackageManager.MATCH_DEFAULT_ONLY)
-            ?.activityInfo?.packageName?.let { set.add(it) }
-        val dial = Intent(Intent.ACTION_DIAL)
-        packageManager.resolveActivity(dial, PackageManager.MATCH_DEFAULT_ONLY)
-            ?.activityInfo?.packageName?.let { set.add(it) }
-        return set
-    }
+    private fun computeExemptPackages(): Set<String> = SystemPackages.exempt(this)
 
-    private fun computeImePackages(): Set<String> {
-        val set = mutableSetOf<String>()
-        getSystemService(InputMethodManager::class.java)?.enabledInputMethodList
-            ?.mapTo(set) { it.packageName }
-        Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
-            ?.substringBefore('/')?.takeIf { it.isNotEmpty() }?.let { set.add(it) }
-        return set
-    }
+    private fun computeImePackages(): Set<String> = SystemPackages.keyboards(this)
 
     private fun startCacheRefresh() {
         // With only the 30s loop, a rule saved seconds ago missed the next open of its app.
@@ -742,6 +729,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
                     blockedPackagesCache = rules.map { it.packageName }.toSet()
                     exemptPackages = computeExemptPackages()
                     imePackages = computeImePackages()
+                    strictTopAppsSource.refresh()
                 } catch (e: Exception) { /* continue */ }
                 // A time limit must also fire while the user idles inside the app
                 // (video playback emits few accessibility events) — re-check the
