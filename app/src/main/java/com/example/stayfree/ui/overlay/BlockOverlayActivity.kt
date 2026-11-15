@@ -133,8 +133,10 @@ class BlockOverlayActivity : AppCompatActivity() {
             // Strict mode has no way out, the PIN included.
             val strictMs = strictGate.remainingMs()
             val strict = strictMs > 0L
-            binding.btnOverride.isVisible = hasPin && !strict
-            binding.tvPinHint.isVisible = !hasPin && !strict
+            // The social-app block has no off switch; the short unlock is its only way in.
+            val noOverride = strict || blockReason == StayFreeAccessibilityService.REASON_STRICT_SOCIAL
+            binding.btnOverride.isVisible = hasPin && !noOverride
+            binding.tvPinHint.isVisible = !hasPin && !noOverride
             binding.tvStrict.isVisible = strict
             binding.tvStrict.text =
                 getString(R.string.strict_block_screen_line, TimeUtils.formatLongDuration(strictMs))
