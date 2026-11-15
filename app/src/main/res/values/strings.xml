@@ -476,6 +476,8 @@
     <string name="clean_feed_note">Runs on instagram.com. You sign in once; the login stays on this phone only.</string>
     <string name="clean_feed_open">Open clean Instagram</string>
     <string name="clean_feed_limit_label">Posts per session</string>
+    <string name="cd_clean_limit_decrease">Fewer posts per session</string>
+    <string name="cd_clean_limit_increase">More posts per session</string>
     <string name="clean_feed_counter" translatable="false">%1$d / %2$d</string>
     <string name="clean_feed_counter_cd">%1$d of %2$d posts this session</string>
     <string name="clean_feed_close">Close</string>

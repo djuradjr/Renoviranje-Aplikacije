@@ -444,6 +444,8 @@
     <string name="clean_feed_note">Radi preko instagram.com. Prijaviš se jednom, a prijava ostaje samo na ovom telefonu.</string>
     <string name="clean_feed_open">Otvori čisti Instagram</string>
     <string name="clean_feed_limit_label">Objava po sesiji</string>
+    <string name="cd_clean_limit_decrease">Manje objava po sesiji</string>
+    <string name="cd_clean_limit_increase">Više objava po sesiji</string>
     <string name="clean_feed_counter_cd">%1$d od %2$d objava u ovoj sesiji</string>
     <string name="clean_feed_close">Zatvori</string>
     <string name="clean_feed_cover_title">To je bilo %1$d objava</string>
