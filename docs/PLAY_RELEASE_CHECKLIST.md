@@ -27,8 +27,8 @@
       (ranije je INTERNET bio uklonjen) i da li mora u Data Safety
 - [ ] Politika privatnosti (`docs/PRIVACY_POLICY.md` + GitHub Pages): opis WebView-a,
       instagram.com, kolačići na uređaju; ukloniti "no internet access"
-- [ ] In-app disclosure (`disclosure_message`) i Accessibility izjava više ne smeju
-      tvrditi "no internet access" za aplikaciju u celini — proveriti formulaciju
+- [x] In-app disclosure (`disclosure_message`), `onboarding_privacy_note` i Accessibility
+      izjava više ne tvrde "no internet access" — pominju samo vezu Čistog Instagrama
 - [ ] Store listing i ekran ne smeju sugerisati zvaničnu Instagram aplikaciju ni
       povezanost sa Meta (naziv "Čisti Instagram", ikonice, screenshotovi)
 - [ ] `aapt2 dump permissions` na release APK-u: INTERNET je očekivan, ništa drugo novo

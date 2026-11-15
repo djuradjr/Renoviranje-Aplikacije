@@ -81,6 +81,8 @@ class StayFreeAccessibilityService : AccessibilityService() {
     private var surfaceSessionJob: Job? = null
     @Volatile private var surfaceSessionTargetId: String? = null
     private var lastContentBlockAt: Long = 0L
+    // Main thread only: the social app whose strict block was already counted this open.
+    private var strictCountedPkg: String? = null
     // One-shot recheck scheduled when a match lands inside the on-open grace —
     // static surfaces (e.g. TikTok's login wall) emit no further events, so
     // without this the block would never fire after the grace expires.
@@ -220,9 +222,15 @@ class StayFreeAccessibilityService : AccessibilityService() {
         if (isUnlocked(ShortUnlock.appKey(pkg))) return
 
         if (StrictSocialApps.isSocial(pkg) && pkg !in exemptPackages && pkg !in imePackages) {
+            // The app behind the block keeps emitting events; count one block per open.
+            if (strictCountedPkg != pkg) {
+                strictCountedPkg = pkg
+                serviceScope.launch { prefs.incrementContentBlockCount(effectiveDate()) }
+            }
             showBlockOverlay(pkg, REASON_STRICT_SOCIAL)
             return
         }
+        strictCountedPkg = null
         if (!premiumActive) return
 
         // 0) Whole-app block (Block Apps screen) — explicit per-app choice with
