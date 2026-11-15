@@ -87,10 +87,13 @@ Flow: **`ContentSignatures.kt` → `StayFreeAccessibilityService.handleContentBl
 (`reel_viewer_*`), YouTube Shorts (`reel_watch_*`/`shorts`) — id-match; TikTok
 (`com.zhiliaoapp.musically`) — whole-app.
 
-## 5. Offline by design
-No `INTERNET` permission (Data Safety = "no data collected", a big review advantage).
-This stays true under SaaS: Google Play Billing talks through the Play Store app, so
-keep the app itself networkless unless a future explicit decision changes that.
+## 5. Network: only the clean-Instagram WebView
+Until `cisti-instagram` the app had no `INTERNET` (Data Safety = "no data collected").
+Now `INTERNET` exists ONLY for `CleanInstagramActivity`'s WebView, which talks to
+instagram.com directly — nothing goes to our servers. That also lets Play Billing's
+datatransport telemetry through (it used to be stripped). Before release, Data Safety,
+the privacy policy and every "no internet" claim (disclosure, a11y declaration) must be
+re-checked — open items in `docs/PLAY_RELEASE_CHECKLIST.md`. Add no other egress.
 
 ## 6. Play / release state
 - `keystore.properties` (repo root, gitignored) drives release signing; absent →

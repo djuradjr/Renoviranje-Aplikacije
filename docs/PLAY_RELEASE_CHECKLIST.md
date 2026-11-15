@@ -9,7 +9,9 @@
       (`versionCode 10` — kandidat za produkciju; 3–9 potrošeni ili napravljeni ranije)
 - [x] `compileSdk` / `targetSdk = 36` (Play requirement as of 31 Aug 2026; needs AGP 8.12.0)
 - [x] `allowBackup = false`, backup/data-extraction rules exclude everything
-- [x] No INTERNET permission (strong Data Safety argument)
+- [ ] INTERNET is back since `cisti-instagram` (only the clean-Instagram WebView →
+      instagram.com; nothing to our servers). Every "no INTERNET" claim below must be
+      re-checked before release — see "Čisti Instagram / INTERNET" section.
 - [x] Account username/email are LOCAL-ONLY (DataStore, backup-excluded, never
   transmitted) — Data Safety stays "no data collected"; re-answer the form if
   any egress path is ever added
@@ -17,10 +19,25 @@
 - [x] Accessibility prominent disclosure dialog before enabling the service
 - [x] Release minify + shrinkResources, signing config wired to `keystore.properties`
 
+## Čisti Instagram / INTERNET (pre prvog izdanja sa WebView-om)
+
+- [ ] Data Safety ponovo popunjen: šta WebView šalje instagram.com (prijava, kolačići —
+      to su podaci između korisnika i Instagrama) i da li to Play smatra "collected"
+- [ ] Play Billing datatransport telemetrija: proveriti da li sad zaista ide na mrežu
+      (ranije je INTERNET bio uklonjen) i da li mora u Data Safety
+- [ ] Politika privatnosti (`docs/PRIVACY_POLICY.md` + GitHub Pages): opis WebView-a,
+      instagram.com, kolačići na uređaju; ukloniti "no internet access"
+- [ ] In-app disclosure (`disclosure_message`) i Accessibility izjava više ne smeju
+      tvrditi "no internet access" za aplikaciju u celini — proveriti formulaciju
+- [ ] Store listing i ekran ne smeju sugerisati zvaničnu Instagram aplikaciju ni
+      povezanost sa Meta (naziv "Čisti Instagram", ikonice, screenshotovi)
+- [ ] `aapt2 dump permissions` na release APK-u: INTERNET je očekivan, ništa drugo novo
+
 ## Plaćanje (pre svakog izdanja sa billing-om)
 
 - [x] `aapt2 dump permissions` na release APK-u: `com.android.vending.BILLING` da,
       `android.permission.INTERNET` NE (Billing vuče Google telemetriju koja bi je dodala)
+      — od `cisti-instagram` INTERNET postoji namerno, vidi sekciju iznad
 - [x] Paywall i kupovina provereni na pravom Play nalogu (kupovina, otkazivanje,
       istek, chargeback, vraćanje kupovine) — vidi `bb-billing` §5
 - [x] U DataStore-u samo `premium_active`; u logovima nema tokena/mejla/order id-a
@@ -29,7 +46,7 @@
       (Monetize with Play → Promotional codes) — bez njega recenzent ne može
       da isproba blokiranje
 - [ ] Store listing kaže da je blokiranje deo pretplate + screenshot paywall-a
-- [ ] Data Safety ponovo potvrđen ("no data collected")
+- [ ] Data Safety ponovo potvrđen (od `cisti-instagram` više nije automatski "no data collected")
 - [ ] Minified release testiran na PRAVOM telefonu (emulator nije dovoljan)
 
 ## Manual steps (one-time)
@@ -93,6 +110,7 @@
 
 Verify before upload:
 
-- merged manifest contains `com.djuki.blockbrainrot`, `allowBackup="false"`, no `INTERNET`
+- merged manifest contains `com.djuki.blockbrainrot`, `allowBackup="false"`; `INTERNET`
+  only for the clean-Instagram WebView
 - install the minified APK (`assembleRelease`) on a device and re-run the core
   flow from `docs/MANUAL_TEST_SCRIPT.md` — R8 issues only appear in minified builds
