@@ -313,7 +313,22 @@ class StayFreeAccessibilityService : AccessibilityService() {
         NotificationUtils.cancelShortUnlock(this, grant.key)
         if (unlockJobs[grant.key]?.first == grant) unlockJobs.remove(grant.key)
         Log.d(TAG, "Short unlock ended: ${grant.key}")
-        currentForegroundPackage?.let { evaluateForeground(it, System.currentTimeMillis()) }
+        foregroundUnderUs()?.let { evaluateForeground(it, System.currentTimeMillis()) }
+    }
+
+    /**
+     * The app last seen in front, unless one of our own screens covers it: our events are
+     * ignored, so [currentForegroundPackage] still names the app under the block or unlock
+     * screen, and a timed re-check would otherwise cover the unlock screen with a block.
+     */
+    private fun foregroundUnderUs(): String? {
+        val fg = currentForegroundPackage ?: return null
+        val root = rootInActiveWindow ?: return fg
+        return try {
+            if (root.packageName?.toString() == packageName) null else fg
+        } finally {
+            root.recycle()
+        }
     }
 
     private fun unlockLabel(key: String): String {
@@ -732,7 +747,7 @@ class StayFreeAccessibilityService : AccessibilityService() {
                 // (video playback emits few accessibility events) — re-check the
                 // current foreground app on every tick.
                 try {
-                    val fg = currentForegroundPackage
+                    val fg = foregroundUnderUs()
                     if (fg != null) {
                         val reason = wholeAppBlockReason(fg, System.currentTimeMillis())
                         if (reason != null) {
