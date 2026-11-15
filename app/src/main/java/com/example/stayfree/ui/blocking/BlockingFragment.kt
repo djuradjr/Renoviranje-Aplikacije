@@ -4,44 +4,39 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.FragmentBlockingBinding
-import com.example.stayfree.ui.common.CountUp
-import com.example.stayfree.ui.common.LoosenGate
+import com.example.stayfree.ui.cleanfeed.CleanInstagramActivity
 import com.example.stayfree.ui.onboarding.OnboardingActivity
-import com.example.stayfree.ui.premium.requireBlocking
+import com.example.stayfree.ui.premium.PaywallActivity
 import com.example.stayfree.ui.premium.requirePremium
+import com.example.stayfree.ui.unlock.ShortUnlockActivity
 import com.example.stayfree.util.PermissionUtils
-import com.example.stayfree.util.PinGate
-import com.example.stayfree.util.StrictGate
 import com.example.stayfree.util.TimeUtils
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.util.Locale
 import javax.inject.Inject
 
+/** What is blocked right now, each with its way in; every tool lives behind the rules arrow. */
 @AndroidEntryPoint
 class BlockingFragment : Fragment() {
 
     @Inject lateinit var premium: PremiumRepository
-    @Inject lateinit var pinGate: PinGate
-    @Inject lateinit var strictGate: StrictGate
-    private val loosenGate by lazy { LoosenGate(this, strictGate, pinGate) }
 
     private var _binding: FragmentBlockingBinding? = null
     private val binding get() = _binding!!
     private val viewModel: BlockingViewModel by viewModels()
-    private lateinit var adapter: BlockRulesAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,165 +52,99 @@ class BlockingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val nav = findNavController()
 
-        adapter = BlockRulesAdapter(
-            onToggle = { id, active ->
-                if (!active) {
-                    loosenGate.run(onDenied = { adapter.notifyDataSetChanged() }) {
-                        viewModel.toggleRule(id, false)
-                    }
-                } else if (requireBlocking(premium)) viewModel.toggleRule(id, true)
-                else adapter.notifyDataSetChanged()
+        val appsAdapter = BlockedAppsAdapter(
+            onUnlock = { pkg -> startActivity(ShortUnlockActivity.newIntent(requireContext(), pkg, null)) },
+            onOpen = { pkg ->
+                requireContext().packageManager.getLaunchIntentForPackage(pkg)?.let { startActivity(it) }
             },
-            onDelete = { id -> loosenGate.run { viewModel.deleteRule(id) } },
-            onOpenApps = { findNavController().navigate(R.id.action_blocking_to_blockApps) },
-            onOpenSites = { findNavController().navigate(R.id.action_blocking_to_website) }
+            onCleanFeed = {
+                startActivity(
+                    if (premium.isPremium.value) CleanInstagramActivity.newIntent(requireContext())
+                    else PaywallActivity.newIntent(requireContext())
+                )
+            }
         )
-        binding.rvBlockRules.apply {
-            layoutManager = LinearLayoutManager(requireContext())
-            this.adapter = this@BlockingFragment.adapter
+        binding.rvApps.apply {
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            adapter = appsAdapter
+            itemAnimator = null
+        }
+        // Opening a site's screen loosens nothing by itself; its switches go through LoosenGate.
+        val sitesAdapter = BlockedSitesAdapter(onOpen = { nav.navigate(R.id.action_blocking_to_website) })
+        binding.rvSites.apply {
+            layoutManager = GridLayoutManager(requireContext(), 2)
+            adapter = sitesAdapter
         }
 
-        binding.btnFocusMode.setOnClickListener {
-            findNavController().navigate(R.id.action_blocking_to_focusMode)
-        }
-
-        binding.btnSleepMode.setOnClickListener {
-            findNavController().navigate(R.id.action_blocking_to_sleepMode)
-        }
-
-        binding.btnStrictMode.setOnClickListener {
-            findNavController().navigate(R.id.action_blocking_to_strictMode)
-        }
-
-        binding.btnWebsiteBlocking.setOnClickListener {
-            findNavController().navigate(R.id.action_blocking_to_website)
-        }
-
-        binding.btnInAppBlocking.setOnClickListener {
-            findNavController().navigate(R.id.action_blocking_to_blockApps)
-        }
-
+        binding.btnAddApp.setOnClickListener { nav.navigate(R.id.action_blocking_to_blockApps) }
+        binding.btnAddSite.setOnClickListener { nav.navigate(R.id.action_blocking_to_website) }
+        binding.btnRules.setOnClickListener { nav.navigate(R.id.action_blocking_to_rules) }
+        binding.cardFocus.setOnClickListener { nav.navigate(R.id.action_blocking_to_focusMode) }
+        // AddBlockRuleFragment asks for premium on save, as before.
+        binding.cardAddRule.setOnClickListener { nav.navigate(R.id.action_blocking_to_addRule) }
         binding.btnPremium.setOnClickListener { requirePremium(premium) }
-        binding.btnSetup.setOnClickListener {
-            startActivity(OnboardingActivity.protectionIntent(requireContext()))
-        }
+        binding.btnSetup.setOnClickListener { openProtection() }
 
-        observeData()
+        viewLifecycleOwner.lifecycleScope.launch {
+            launch {
+                premium.isPremium.collectLatest { active ->
+                    binding.cardPremium.isVisible = !active
+                    bindProtection(active)
+                }
+            }
+            launch {
+                viewModel.blockedApps.collectLatest { apps ->
+                    appsAdapter.submitList(apps)
+                    binding.rvApps.isVisible = apps.isNotEmpty()
+                    binding.tvAppsEmpty.isVisible = apps.isEmpty()
+                }
+            }
+            launch {
+                viewModel.blockedSites.collectLatest { sites ->
+                    sitesAdapter.submitList(sites)
+                    binding.rvSites.isVisible = sites.isNotEmpty()
+                    binding.tvSitesEmpty.isVisible = sites.isEmpty()
+                }
+            }
+            launch { viewModel.focusLeftMs.collectLatest(::bindFocusPill) }
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        // Permissions change in system settings while we are away.
-        bindSetupCard(premium.isPremium.value)
+        // Accessibility is switched in system settings while we are away.
+        bindProtection(premium.isPremium.value)
     }
 
-    /** A paying user without the blocking permissions gets nothing blocked — say so. */
-    private fun bindSetupCard(premiumActive: Boolean) {
-        val ready = PermissionUtils.hasAccessibilityServiceEnabled(requireContext())
-        binding.cardSetup.visibility = if (premiumActive && !ready) View.VISIBLE else View.GONE
-    }
+    private fun openProtection() = startActivity(OnboardingActivity.protectionIntent(requireContext()))
 
-    private fun lockIcon() = ContextCompat.getDrawable(requireContext(), R.drawable.ic_lock)?.mutate()?.apply {
-        val size = resources.getDimensionPixelSize(R.dimen.premium_lock_size)
-        setBounds(0, 0, size, size)
-        setTint(ContextCompat.getColor(requireContext(), R.color.skor_text_dim))
-    }
-
-    private fun observeData() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            launch {
-                premium.isPremium.collectLatest { active ->
-                    binding.cardPremium.visibility = if (active) View.GONE else View.VISIBLE
-                    bindSetupCard(active)
-                    val lock = if (active) null else lockIcon()
-                    listOf(
-                        binding.statusBlockApps, binding.statusWebsites, binding.statusFocus,
-                        binding.statusSleep, binding.statusStrict
-                    )
-                        .forEach {
-                            it.setCompoundDrawablesRelative(null, null, lock, null)
-                            it.compoundDrawablePadding = resources.getDimensionPixelSize(R.dimen.premium_lock_gap)
-                        }
-                }
-            }
-            launch {
-                viewModel.activeBlocks.collectLatest { items ->
-                    adapter.submitList(items)
-                    binding.tvRulesCount.text =
-                        resources.getString(R.string.blocking_rules_count, items.size)
-                    val empty = items.isEmpty()
-                    binding.emptyState.visibility = if (empty) View.VISIBLE else View.GONE
-                    binding.rvBlockRules.visibility = if (empty) View.GONE else View.VISIBLE
-                }
-            }
-            launch {
-                viewModel.blocksToday.collectLatest { count ->
-                    CountUp.animate(binding.tvBlocksToday, count.toLong()) { it.toString() }
-                }
-            }
-            launch {
-                viewModel.activeToolCount.collectLatest { count ->
-                    binding.tvActiveTools.text =
-                        resources.getQuantityString(R.plurals.blocking_active_tools, count, count)
-                }
-            }
-            launch {
-                viewModel.focusActive.collectLatest { active ->
-                    bindStatus(
-                        binding.statusFocus, active,
-                        getString(if (active) R.string.blocking_status_active else R.string.blocking_status_off)
-                    )
-                }
-            }
-            launch {
-                viewModel.sleepEndMinutes.collectLatest { end ->
-                    bindStatus(
-                        binding.statusSleep, end != null,
-                        if (end != null) {
-                            val time = String.format(Locale.US, "%02d:%02d", end / 60, end % 60)
-                            getString(R.string.blocking_status_until, time)
-                        } else getString(R.string.blocking_status_off)
-                    )
-                }
-            }
-            launch {
-                viewModel.strictRemainingMs.collectLatest { ms ->
-                    bindStatus(
-                        binding.statusStrict, ms > 0L,
-                        if (ms > 0L) getString(R.string.strict_status_left, TimeUtils.formatLongDuration(ms))
-                        else getString(R.string.blocking_status_off)
-                    )
-                }
-            }
-            launch {
-                viewModel.activeWebsiteCount.collectLatest { count ->
-                    bindStatus(
-                        binding.statusWebsites, count > 0,
-                        resources.getQuantityString(R.plurals.blocking_sites_status, count, count)
-                    )
-                }
-            }
-            launch {
-                viewModel.contentTargetCount.collectLatest { count ->
-                    bindStatus(
-                        binding.statusBlockApps, count > 0,
-                        resources.getQuantityString(R.plurals.blocking_targets_status, count, count)
-                    )
-                }
-            }
-        }
-    }
-
-    /** Active statuses take the action colour; off states stay dim. */
-    private fun bindStatus(view: TextView, active: Boolean, text: String) {
-        view.text = text
-        view.setTextColor(
-            ContextCompat.getColor(
-                requireContext(),
-                if (active) R.color.skor_focus else R.color.skor_text_dim
-            )
+    /** Status line under the title, plus the premium-only setup card when access is missing. */
+    private fun bindProtection(premiumActive: Boolean) {
+        val on = PermissionUtils.hasAccessibilityServiceEnabled(requireContext())
+        binding.cardSetup.isVisible = premiumActive && !on
+        binding.tvStatus.setText(if (on) R.string.blocking_status_strict_on else R.string.blocking_status_protection_off)
+        binding.tvStatus.setTextColor(
+            ContextCompat.getColor(requireContext(), if (on) R.color.skor_text_dim else R.color.skor_focus)
         )
+        binding.tvStatus.isClickable = !on
+        binding.tvStatus.setOnClickListener(if (on) null else View.OnClickListener { openProtection() })
+    }
+
+    private fun bindFocusPill(leftMs: Long) {
+        val pill = binding.tvFocusPill
+        if (leftMs > 0L) {
+            pill.text = getString(R.string.blocking_focus_left, TimeUtils.formatLongDuration(leftMs))
+            pill.setBackgroundResource(R.drawable.bg_skor_chip)
+            pill.backgroundTintList = ContextCompat.getColorStateList(requireContext(), R.color.skor_focus_soft)
+            pill.setTextColor(ContextCompat.getColor(requireContext(), R.color.skor_focus))
+        } else {
+            pill.setText(R.string.blocking_focus_start)
+            pill.setBackgroundResource(R.drawable.bg_skor_chip_outline)
+            pill.backgroundTintList = null
+            pill.setTextColor(ContextCompat.getColor(requireContext(), R.color.skor_text_dim))
+        }
     }
 
     override fun onDestroyView() {

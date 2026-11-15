@@ -274,12 +274,6 @@
     <string name="dashboard_goal_chip_over">%1$s preko cilja</string>
     <string name="dashboard_score_waiting">Skor stiže večeras</string>
     <string name="blocking_tools_section">Alati</string>
-    <string name="blocking_blocks_today">presretanja danas</string>
-    <plurals name="blocking_active_tools">
-        <item quantity="one">%1$d aktivan</item>
-        <item quantity="few">%1$d aktivna</item>
-        <item quantity="other">%1$d aktivnih</item>
-    </plurals>
     <string name="content_block_count">%1$d.</string>
     <string name="content_block_count_caption">put danas da te je Block Doomscroll zaustavio</string>
     <string name="focus_minutes_label">minuta</string>
@@ -459,4 +453,24 @@
     <string name="clean_feed_cover_title">To je bilo %1$d objava</string>
     <string name="clean_feed_cover_message">Feed se odmara do %1$s. Poruke su i dalje dostupne.</string>
     <string name="clean_feed_messages">Otvori poruke</string>
+    <!-- Blocking tab (what is blocked right now) -->
+    <string name="blocking_status_strict_on">Strogi režim je uključen · otključavanje 1–15 min</string>
+    <string name="blocking_status_protection_off">Zaštita je isključena. Dodirni da je uključiš</string>
+    <string name="blocking_section_apps">Blokirane aplikacije</string>
+    <string name="blocking_section_sites">Blokirani sajtovi</string>
+    <string name="blocking_rules_title">Pravila</string>
+    <string name="blocking_unlock">Otključaj</string>
+    <string name="blocking_unlock_left">još %d min</string>
+    <string name="blocking_clean_feed_chip">Čisti feed</string>
+    <string name="blocking_apps_empty">Ništa nije blokirano. Dodaj aplikaciju na +.</string>
+    <string name="blocking_sites_empty">Još nema blokiranih sajtova.</string>
+    <string name="blocking_add_app_cd">Blokiraj aplikaciju</string>
+    <string name="blocking_add_site_cd">Blokiraj sajt</string>
+    <string name="blocking_open_rules_cd">Sva pravila i alati</string>
+    <string name="blocking_focus_card_title">Fokus</string>
+    <string name="blocking_focus_start">Pokreni</string>
+    <string name="blocking_focus_left">još %s</string>
+    <string name="blocking_add_rule_title">Dodaj pravilo</string>
+    <string name="blocking_add_rule_pill">Raspored ili limit</string>
+    <string name="blocking_add_rule_desc">Npr. radno vreme, spavanje ili dnevni limit</string>
 </resources>

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Skor "Zaštita" hub. Tools are a list, not a 2×2 grid of identical cards:
-     order is the order people reach for them — apps and content first, sleep
-     last. The result (blocks fired today) leads, so the screen opens with what
-     the app did for you rather than with configuration. -->
+<!-- Skor "Zastita": what is blocked right now, each with its way in (short unlock),
+     then the rules. Every tool and the full block list live behind the rules arrow
+     (BlockingRulesFragment). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -11,8 +10,6 @@
     android:orientation="vertical"
     android:background="@color/skor_ground">
 
-    <!-- NestedScrollView, not ScrollView: inside a plain one the wrap_content list below
-         only lays out the rows that fit the viewport and the rest are unreachable. -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -22,27 +19,24 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clipToPadding="false"
             android:orientation="vertical"
             android:padding="@dimen/spacing_md">
 
-            <LinearLayout
+            <TextView
+                style="@style/Skor.Title"
+                android:text="@string/blocking_tools_title" />
+
+            <TextView
+                android:id="@+id/tv_status"
+                style="@style/Skor.Caption"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginTop="@dimen/spacing_xs"
+                android:layout_marginBottom="@dimen/spacing_sm"
+                android:background="?attr/selectableItemBackground"
+                android:drawablePadding="@dimen/spacing_sm"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="@dimen/spacing_md">
-
-                <TextView
-                    style="@style/Skor.Title"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:text="@string/blocking_tools_title" />
-
-                <TextView
-                    android:id="@+id/tv_active_tools"
-                    style="@style/Skor.Micro"
-                    tools:text="2 aktivna" />
-            </LinearLayout>
+                tools:text="@string/blocking_status_strict_on" />
 
             <!-- Only without premium: blocking is the paid feature, and the blocks the
                  user set up stay stored until it is back. -->
@@ -124,223 +118,248 @@
                     android:text="@string/blocking_setup_cta" />
             </LinearLayout>
 
-            <!-- What the protection actually did today — same number as the
-                 dashboard tile and the block screen, so the loop closes. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:layout_marginBottom="12dp"
                 android:gravity="center_vertical"
-                android:padding="@dimen/spacing_md"
-                android:background="@drawable/bg_skor_card"
-                android:layout_marginBottom="@dimen/spacing_md">
+                android:orientation="horizontal">
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tv_blocks_today"
-                        style="@style/Skor.Metric"
-                        android:textColor="@color/skor_focus"
-                        tools:text="23" />
-
-                    <TextView
-                        android:id="@+id/tv_blocks_caption"
-                        style="@style/Skor.Caption"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/blocking_blocks_today" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <TextView
-                style="@style/Skor.Label"
-                android:layout_marginBottom="@dimen/spacing_sm"
-                android:text="@string/blocking_tools_section" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/bg_skor_card"
-                android:layout_marginBottom="@dimen/spacing_md">
-
-                <!-- 1 · Apps and content -->
-                <LinearLayout
-                    android:id="@+id/btn_in_app_blocking"
-                    style="@style/Skor.ToolRow">
-
-                    <ImageView
-                        style="@style/Skor.ToolIcon"
-                        android:src="@drawable/ic_tool_shield"
-                        app:tint="@color/skor_distraction"
-                        android:backgroundTint="@color/skor_distraction_soft" />
-
-                    <LinearLayout style="@style/Skor.ToolText">
-
-                        <TextView style="@style/Skor.Body" android:text="@string/blocking_block_apps" />
-
-                        <TextView
-                            style="@style/Skor.Micro"
-                            android:layout_marginTop="1dp"
-                            android:text="@string/blocking_block_apps_desc" />
-                    </LinearLayout>
-
-                    <TextView android:id="@+id/status_block_apps" style="@style/Skor.ToolStatusNew" />
-                </LinearLayout>
-
-                <View style="@style/Skor.Divider" />
-
-                <!-- 2 · Websites -->
-                <LinearLayout
-                    android:id="@+id/btn_website_blocking"
-                    style="@style/Skor.ToolRow">
-
-                    <ImageView
-                        style="@style/Skor.ToolIcon"
-                        android:src="@drawable/ic_tool_globe"
-                        app:tint="@color/skor_text_dim"
-                        android:backgroundTint="@color/skor_card_raised" />
-
-                    <LinearLayout style="@style/Skor.ToolText">
-
-                        <TextView style="@style/Skor.Body" android:text="@string/blocking_websites" />
-
-                        <TextView
-                            style="@style/Skor.Micro"
-                            android:layout_marginTop="1dp"
-                            android:text="@string/blocking_websites_desc" />
-                    </LinearLayout>
-
-                    <TextView android:id="@+id/status_websites" style="@style/Skor.ToolStatusNew" />
-                </LinearLayout>
-
-                <View style="@style/Skor.Divider" />
-
-                <!-- 3 · Focus -->
-                <LinearLayout
-                    android:id="@+id/btn_focus_mode"
-                    style="@style/Skor.ToolRow">
-
-                    <ImageView
-                        style="@style/Skor.ToolIcon"
-                        android:src="@drawable/ic_tool_focus"
-                        app:tint="@color/skor_focus"
-                        android:backgroundTint="@color/skor_focus_soft" />
-
-                    <LinearLayout style="@style/Skor.ToolText">
-
-                        <TextView style="@style/Skor.Body" android:text="@string/blocking_focus_mode" />
-
-                        <TextView
-                            style="@style/Skor.Micro"
-                            android:layout_marginTop="1dp"
-                            android:text="@string/blocking_focus_desc" />
-                    </LinearLayout>
-
-                    <TextView android:id="@+id/status_focus" style="@style/Skor.ToolStatusNew" />
-                </LinearLayout>
-
-                <View style="@style/Skor.Divider" />
-
-                <!-- 4 · Sleep -->
-                <LinearLayout
-                    android:id="@+id/btn_sleep_mode"
-                    style="@style/Skor.ToolRow">
-
-                    <ImageView
-                        style="@style/Skor.ToolIcon"
-                        android:src="@drawable/ic_tool_moon"
-                        app:tint="@color/skor_night"
-                        android:backgroundTint="@color/skor_night_soft" />
-
-                    <LinearLayout style="@style/Skor.ToolText">
-
-                        <TextView style="@style/Skor.Body" android:text="@string/blocking_sleep_mode" />
-
-                        <TextView
-                            style="@style/Skor.Micro"
-                            android:layout_marginTop="1dp"
-                            android:text="@string/blocking_sleep_desc" />
-                    </LinearLayout>
-
-                    <TextView android:id="@+id/status_sleep" style="@style/Skor.ToolStatusNew" />
-                </LinearLayout>
-
-                <View style="@style/Skor.Divider" />
-
-                <!-- 5 · Strict mode -->
-                <LinearLayout
-                    android:id="@+id/btn_strict_mode"
-                    style="@style/Skor.ToolRow">
-
-                    <ImageView
-                        style="@style/Skor.ToolIcon"
-                        android:src="@drawable/ic_lock"
-                        app:tint="@color/skor_focus"
-                        android:backgroundTint="@color/skor_focus_soft" />
-
-                    <LinearLayout style="@style/Skor.ToolText">
-
-                        <TextView style="@style/Skor.Body" android:text="@string/strict_title" />
-
-                        <TextView
-                            style="@style/Skor.Micro"
-                            android:layout_marginTop="1dp"
-                            android:text="@string/strict_desc" />
-                    </LinearLayout>
-
-                    <TextView android:id="@+id/status_strict" style="@style/Skor.ToolStatusNew" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="@dimen/spacing_sm">
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_lock"
+                    app:tint="@color/skor_text_dim" />
 
                 <TextView
-                    style="@style/Skor.Label"
+                    style="@style/Skor.Title"
                     android:layout_width="0dp"
+                    android:layout_marginStart="@dimen/spacing_sm"
                     android:layout_weight="1"
-                    android:text="@string/blocking_app_rules" />
+                    android:textSize="16sp"
+                    android:text="@string/blocking_section_apps" />
 
-                <TextView
-                    android:id="@+id/tv_rules_count"
-                    style="@style/Skor.Micro"
-                    tools:text="3 aktivna" />
+                <ImageButton
+                    android:id="@+id/btn_add_app"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_round_focus_soft"
+                    android:contentDescription="@string/blocking_add_app_cd"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_add"
+                    app:tint="@color/skor_focus" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_block_rules"
-                android:layoutAnimation="@anim/layout_animation_slide_up"
+                android:id="@+id/rv_apps"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false" />
+                android:layout_marginEnd="-16dp"
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="false"
+                android:orientation="horizontal"
+                tools:itemCount="5"
+                tools:listitem="@layout/item_blocked_app" />
+
+            <TextView
+                android:id="@+id/tv_apps_empty"
+                style="@style/Skor.Caption"
+                android:text="@string/blocking_apps_empty"
+                android:visibility="gone" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:layout_marginBottom="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_tool_globe"
+                    app:tint="@color/skor_text_dim" />
+
+                <TextView
+                    style="@style/Skor.Title"
+                    android:layout_width="0dp"
+                    android:layout_marginStart="@dimen/spacing_sm"
+                    android:layout_weight="1"
+                    android:textSize="16sp"
+                    android:text="@string/blocking_section_sites" />
+
+                <ImageButton
+                    android:id="@+id/btn_add_site"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_round_focus_soft"
+                    android:contentDescription="@string/blocking_add_site_cd"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_add"
+                    app:tint="@color/skor_focus" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_sites"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="-4dp"
+                android:layout_marginEnd="-4dp"
+                android:nestedScrollingEnabled="false"
+                tools:itemCount="4"
+                tools:listitem="@layout/item_blocked_site" />
+
+            <TextView
+                android:id="@+id/tv_sites_empty"
+                style="@style/Skor.Caption"
+                android:text="@string/blocking_sites_empty"
+                android:visibility="gone" />
 
             <LinearLayout
-                android:id="@+id/empty_state"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center_horizontal"
-                android:padding="@dimen/spacing_lg"
-                android:background="@drawable/bg_skor_card"
-                android:visibility="gone">
+                android:layout_marginTop="@dimen/spacing_md"
+                android:layout_marginBottom="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <TextView
-                    style="@style/Skor.Body"
-                    android:text="@string/blocking_rules_empty" />
+                    style="@style/Skor.Title"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:textSize="16sp"
+                    android:text="@string/blocking_rules_title" />
 
-                <TextView
-                    style="@style/Skor.Micro"
-                    android:layout_marginTop="6dp"
-                    android:gravity="center"
-                    android:text="@string/blocking_rules_empty_desc" />
+                <ImageButton
+                    android:id="@+id/btn_rules"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_round_raised"
+                    android:contentDescription="@string/blocking_open_rules_cd"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"
+                    android:padding="7dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="@color/skor_text" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/card_focus"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_skor_card"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_md">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_tile_focus_soft"
+                            android:importantForAccessibility="no"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_timer"
+                            app:tint="@color/skor_focus" />
+
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_marginStart="6dp"
+                            android:layout_marginEnd="6dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="@color/skor_text_dim" />
+
+                        <ImageView
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_tile_focus_soft"
+                            android:importantForAccessibility="no"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_shield"
+                            app:tint="@color/skor_focus" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_focus_pill"
+                        style="@style/Skor.Chip"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:fontFeatureSettings="tnum"
+                        tools:text="14 min" />
+
+                    <TextView
+                        style="@style/Skor.Title"
+                        android:layout_marginTop="12dp"
+                        android:textSize="16sp"
+                        android:text="@string/blocking_focus_card_title" />
+
+                    <TextView
+                        style="@style/Skor.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:text="@string/blocking_focus_desc" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/card_add_rule"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_skor_card_dashed"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_md">
+
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_round_focus_soft"
+                        android:importantForAccessibility="no"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_add"
+                        app:tint="@color/skor_focus" />
+
+                    <TextView
+                        style="@style/Skor.Chip"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/bg_skor_chip_outline"
+                        android:text="@string/blocking_add_rule_pill"
+                        android:textColor="@color/skor_text_dim" />
+
+                    <TextView
+                        style="@style/Skor.Title"
+                        android:layout_marginTop="12dp"
+                        android:textSize="16sp"
+                        android:text="@string/blocking_add_rule_title" />
+
+                    <TextView
+                        style="@style/Skor.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:text="@string/blocking_add_rule_desc" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

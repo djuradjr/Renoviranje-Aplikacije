@@ -135,11 +135,6 @@
     <!-- Blocking screen detail -->
     <string name="blocking_tools_title">Protection</string>
     <string name="blocking_tools_section">Tools</string>
-    <string name="blocking_blocks_today">blocks fired today</string>
-    <plurals name="blocking_active_tools">
-        <item quantity="one">%1$d active</item>
-        <item quantity="other">%1$d active</item>
-    </plurals>
     <string name="blocking_focus_desc">Mute everything for a set time</string>
     <string name="blocking_sleep_desc">Quiet hours every night</string>
     <string name="blocking_websites_desc">Block sites in your browser</string>
@@ -492,4 +487,24 @@
     <string name="clean_feed_cover_title">That\'s %1$d posts</string>
     <string name="clean_feed_cover_message">Your feed rests until %1$s. Messages are still open.</string>
     <string name="clean_feed_messages">Open messages</string>
+    <!-- Blocking tab (what is blocked right now) -->
+    <string name="blocking_status_strict_on">Strict mode is on · unlock for 1–15 min</string>
+    <string name="blocking_status_protection_off">Protection is off. Tap to turn it on</string>
+    <string name="blocking_section_apps">Blocked apps</string>
+    <string name="blocking_section_sites">Blocked websites</string>
+    <string name="blocking_rules_title">Rules</string>
+    <string name="blocking_unlock">Unlock</string>
+    <string name="blocking_unlock_left">%d min left</string>
+    <string name="blocking_clean_feed_chip">Clean feed</string>
+    <string name="blocking_apps_empty">Nothing is blocked. Add an app with +.</string>
+    <string name="blocking_sites_empty">No blocked websites yet.</string>
+    <string name="blocking_add_app_cd">Block an app</string>
+    <string name="blocking_add_site_cd">Block a website</string>
+    <string name="blocking_open_rules_cd">All rules and tools</string>
+    <string name="blocking_focus_card_title">Focus</string>
+    <string name="blocking_focus_start">Start</string>
+    <string name="blocking_focus_left">%s left</string>
+    <string name="blocking_add_rule_title">Add rule</string>
+    <string name="blocking_add_rule_pill">Schedule or limit</string>
+    <string name="blocking_add_rule_desc">E.g. work hours, sleep or a daily limit</string>
 </resources>

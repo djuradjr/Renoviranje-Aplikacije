@@ -1,5 +1,6 @@
 package com.example.stayfree.ui.blocking
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.stayfree.data.local.entity.BlockRuleEntity
@@ -8,8 +9,11 @@ import com.example.stayfree.data.repository.BlockingRepository
 import com.example.stayfree.data.repository.WebsiteBlockRepository
 import com.example.stayfree.domain.BlockRuleEvaluator
 import com.example.stayfree.domain.content.ContentSignatures
+import com.example.stayfree.domain.strict.StrictSocialApps
+import com.example.stayfree.domain.unlock.ShortUnlock
+import com.example.stayfree.util.UnlockGate
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.example.stayfree.util.StrictGate
-import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,6 +28,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val STRICT_STATUS_TICK_MS = 20_000L
+private const val UNLOCK_TICK_MS = 1_000L
+private const val FOCUS_TICK_MS = 15_000L
+
+/** An app on the Blocking tab's row; [leftMs]/[totalMs] are set while a short unlock runs. */
+data class BlockedApp(val packageName: String, val leftMs: Long?, val totalMs: Long)
 
 /** One row in the "App block" list: a classic rule or any other switched-on block. */
 sealed class ActiveBlockItem {
@@ -56,11 +65,42 @@ sealed class ActiveBlockItem {
 
 @HiltViewModel
 class BlockingViewModel @Inject constructor(
+    @ApplicationContext context: Context,
     private val blockingRepository: BlockingRepository,
     websiteBlockRepository: WebsiteBlockRepository,
     prefs: AppPreferences,
-    private val strictGate: StrictGate
+    private val strictGate: StrictGate,
+    private val unlockGate: UnlockGate
 ) : ViewModel() {
+
+    private val installedSocial: List<String> =
+        StrictSocialApps.installed { context.packageManager.getLaunchIntentForPackage(it) != null }
+
+    private fun ticker(periodMs: Long) = flow { while (true) { emit(Unit); delay(periodMs) } }
+
+    /** Strict mode's social apps, then the Block Apps choices; short unlocks tick every second. */
+    val blockedApps: StateFlow<List<BlockedApp>> = combine(
+        prefs.blockAppsEnabledPkgs, prefs.shortUnlocks, ticker(UNLOCK_TICK_MS)
+    ) { enabled, grants, _ ->
+        (installedSocial + enabled.sorted()).distinct().map { pkg ->
+            val grant = grants.firstOrNull { it.key == ShortUnlock.appKey(pkg) }
+            val left = grant?.let { unlockGate.remainingMs(it) }?.takeIf { it > 0L }
+            BlockedApp(pkg, left, grant?.let { it.untilElapsedMs - it.startElapsedMs } ?: 0L)
+        }
+    }.distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Active website blocks as (id, domain). */
+    val blockedSites: StateFlow<List<Pair<Long, String>>> = websiteBlockRepository.getAll()
+        .map { sites -> sites.filter { it.isActive }.map { it.id to it.domain } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Time left in the running Focus session, 0 when none runs. */
+    val focusLeftMs: StateFlow<Long> = combine(
+        prefs.focusActive, prefs.focusEndTime, ticker(FOCUS_TICK_MS)
+    ) { active, end, _ -> if (active) (end - System.currentTimeMillis()).coerceAtLeast(0L) else 0L }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
     private val allRules: StateFlow<List<BlockRuleEntity>> = blockingRepository.getAllRules()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -130,18 +170,6 @@ class BlockingViewModel @Inject constructor(
         flow { while (true) { emit(Unit); delay(STRICT_STATUS_TICK_MS) } }
     ) { _, _, _ -> strictGate.remainingMs() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
-
-    /** Content blocks fired today — the same number the dashboard tile shows. */
-    val blocksToday: StateFlow<Int> = prefs.contentBlockCount
-        .map { (date, count) -> if (date == TimeUtils.getTodayString()) count else 0 }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
-
-    /** Tools currently doing something, for the header count. */
-    val activeToolCount: StateFlow<Int> = combine(
-        focusActive, sleepEndMinutes, activeWebsiteCount, contentTargetCount
-    ) { focus, sleepEnd, sites, targets ->
-        listOf(focus, sleepEnd != null, sites > 0, targets > 0).count { it }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     fun toggleRule(id: Long, active: Boolean) {
         viewModelScope.launch { blockingRepository.setRuleActive(id, active) }

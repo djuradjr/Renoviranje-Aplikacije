@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One blocked app on the Blocking tab: real icon in a ring, name, and the way in. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="80dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="@dimen/spacing_sm"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/spacing_xs"
+    android:paddingBottom="@dimen/spacing_xs">
+
+    <FrameLayout
+        android:layout_width="70dp"
+        android:layout_height="70dp">
+
+        <com.example.stayfree.ui.blocking.UnlockRingView
+            android:id="@+id/ring"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <ImageView
+            android:id="@+id/iv_icon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_icon_circle"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop" />
+
+        <FrameLayout
+            android:id="@+id/badge"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="bottom|end"
+            android:background="@drawable/bg_lock_badge">
+
+            <ImageView
+                android:layout_width="11dp"
+                android:layout_height="11dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_lock"
+                app:tint="@android:color/white" />
+        </FrameLayout>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_name"
+        style="@style/Skor.CardTitle"
+        android:layout_width="match_parent"
+        android:layout_marginTop="@dimen/spacing_sm"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        tools:text="Instagram" />
+
+    <TextView
+        android:id="@+id/tv_action"
+        style="@style/Skor.CardTitle"
+        android:layout_width="match_parent"
+        android:fontFeatureSettings="tnum"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="@color/skor_focus"
+        tools:text="Otključaj" />
+
+    <TextView
+        android:id="@+id/chip_clean_feed"
+        style="@style/Skor.Chip"
+        android:layout_marginTop="@dimen/spacing_xs"
+        android:backgroundTint="@color/skor_focus_soft"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        android:text="@string/blocking_clean_feed_chip"
+        android:textColor="@color/skor_focus"
+        android:visibility="gone"
+        tools:visibility="visible" />
+</LinearLayout>

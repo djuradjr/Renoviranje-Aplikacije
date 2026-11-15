@@ -44,7 +44,15 @@
         <action
             android:id="@+id/action_blocking_to_blockApps"
             app:destination="@id/blockAppsFragment" />
+        <action
+            android:id="@+id/action_blocking_to_rules"
+            app:destination="@id/blockingRulesFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/blockingRulesFragment"
+        android:name="com.example.stayfree.ui.blocking.BlockingRulesFragment"
+        android:label="@string/blocking_rules_title" />
 
     <fragment
         android:id="@+id/addBlockRuleFragment"
