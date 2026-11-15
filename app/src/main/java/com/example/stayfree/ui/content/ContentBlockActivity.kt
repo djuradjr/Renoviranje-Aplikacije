@@ -15,7 +15,9 @@ import androidx.lifecycle.lifecycleScope
 import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityContentBlockBinding
+import com.example.stayfree.domain.cleanfeed.CleanFeedRules
 import com.example.stayfree.domain.content.ContentBlockTarget
+import com.example.stayfree.ui.cleanfeed.CleanFeedEntry
 import com.example.stayfree.ui.unlock.ShortUnlockActivity
 import com.example.stayfree.util.StrictGate
 import com.example.stayfree.util.UnlockGate
@@ -129,6 +131,11 @@ class ContentBlockActivity : AppCompatActivity() {
                     getString(R.string.strict_block_screen_line, TimeUtils.formatLongDuration(strictMs))
                 binding.tvStrict.visibility = View.VISIBLE
             }
+        }
+
+        if (intent.getStringExtra(EXTRA_PACKAGE) == CleanFeedRules.INSTAGRAM_PACKAGE) {
+            binding.btnCleanInstagram.visibility = View.VISIBLE
+            CleanFeedEntry.bind(this, binding.btnCleanInstagram, lifecycleScope, prefs)
         }
 
         binding.btnExit.setOnClickListener { goHome() }

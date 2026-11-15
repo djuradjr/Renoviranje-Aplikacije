@@ -475,6 +475,7 @@
     <string name="clean_feed_subtitle">Only people you follow. No Reels, no Explore, a limit on scrolling.</string>
     <string name="clean_feed_note">Runs on instagram.com. You sign in once; the login stays on this phone only.</string>
     <string name="clean_feed_open">Open clean Instagram</string>
+    <string name="clean_feed_open_premium">Open clean Instagram · Premium</string>
     <string name="clean_feed_limit_label">Posts per session</string>
     <string name="cd_clean_limit_decrease">Fewer posts per session</string>
     <string name="cd_clean_limit_increase">More posts per session</string>

@@ -443,6 +443,7 @@
     <string name="clean_feed_subtitle">Samo profili koje pratiš. Bez Reels-a i Explore-a, uz limit skrolovanja.</string>
     <string name="clean_feed_note">Radi preko instagram.com. Prijaviš se jednom, a prijava ostaje samo na ovom telefonu.</string>
     <string name="clean_feed_open">Otvori čisti Instagram</string>
+    <string name="clean_feed_open_premium">Otvori čisti Instagram · Premium</string>
     <string name="clean_feed_limit_label">Objava po sesiji</string>
     <string name="cd_clean_limit_decrease">Manje objava po sesiji</string>
     <string name="cd_clean_limit_increase">Više objava po sesiji</string>

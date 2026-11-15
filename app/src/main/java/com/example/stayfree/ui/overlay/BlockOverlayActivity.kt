@@ -10,7 +10,7 @@ import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityBlockOverlayBinding
 import com.example.stayfree.domain.cleanfeed.CleanFeedRules
-import com.example.stayfree.ui.cleanfeed.CleanInstagramActivity
+import com.example.stayfree.ui.cleanfeed.CleanFeedEntry
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.PinGate
 import com.example.stayfree.util.PinPrompt
@@ -67,11 +67,6 @@ class BlockOverlayActivity : AppCompatActivity() {
             finish()
         }
 
-        binding.btnCleanInstagram.setOnClickListener {
-            startActivity(CleanInstagramActivity.newIntent(this))
-            finish()
-        }
-
         binding.btnOverride.setOnClickListener {
             showPinDialog()
         }
@@ -111,10 +106,12 @@ class BlockOverlayActivity : AppCompatActivity() {
         val appIcon = AppInfoUtils.getAppIcon(this, packageName_)
 
         binding.tvAppName.text = appName
-        // Only for the Block Apps block of Instagram itself. Focus, Sleep and schedules
-        // mean "no Instagram at all", so the clean feed is not offered there.
-        binding.btnCleanInstagram.isVisible = packageName_ == CleanFeedRules.INSTAGRAM_PACKAGE &&
-            blockReason in setOf("APP_BLOCKED", "APP_LIMIT_REACHED")
+        // Focus, Sleep and schedules mean "no Instagram at all", so the clean feed is not
+        // offered there; every other block of Instagram (strict mode included) offers it.
+        val cleanFeed = packageName_ == CleanFeedRules.INSTAGRAM_PACKAGE &&
+            blockReason !in setOf("FOCUS", "SLEEP", "SCHEDULED")
+        binding.btnCleanInstagram.isVisible = cleanFeed
+        if (cleanFeed) CleanFeedEntry.bind(this, binding.btnCleanInstagram, lifecycleScope, prefs)
         if (appIcon != null) binding.ivAppIcon.setImageDrawable(appIcon)
 
         binding.tvBlockReason.text = when (blockReason) {
