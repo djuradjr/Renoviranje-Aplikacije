@@ -72,6 +72,8 @@ class StrictModeFragment : Fragment() {
         binding.chipGroup.setOnCheckedStateChangeListener { _, _ -> renderButton() }
         binding.btnLock.setOnClickListener { onLockClicked() }
 
+        binding.btnProtection.setOnClickListener { ensureProtection() }
+
         val context = requireContext()
         val social = StrictSocialApps.installed { context.packageManager.getLaunchIntentForPackage(it) != null }
         binding.tvSocialApps.text =
@@ -81,6 +83,11 @@ class StrictModeFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.status.collectLatest { status -> if (status != null) render(status) }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.btnProtection.isVisible = !PermissionUtils.hasAccessibilityServiceEnabled(requireContext())
     }
 
     private fun render(status: StrictGate.Status) {

@@ -34,7 +34,10 @@ active window info).
 >
 > The service never reads, stores, or transmits general screen text, messages,
 > or content beyond the URL described above. The user selects every blocked
-> target; nothing is monitored silently. All processing is on-device — the app
+> target, except strict mode: once the user enables the service (explained on the
+> setup screen and in the disclosure), it keeps a fixed list of social-network apps (e.g. Instagram, TikTok,
+> YouTube, Facebook) closed, each openable for 1–15 minutes at a time; the list is
+> shown on the strict mode screen. Nothing is monitored silently. All processing is on-device — the app
 > has no INTERNET permission and collects, shares, or sells nothing.
 >
 > Before the Accessibility settings are ever opened, an in-app disclosure
@@ -76,8 +79,9 @@ disclosure → Accessibility settings flow.
 
 > No account or login exists — the app opens straight to onboarding.
 >
-> Blocking is a paid feature. Onboarding asks only for Usage access, shows a
-> report, then the subscription screen: tap "Have a promo code?", enter the code
+> Blocking is a paid feature, except strict mode's social-app block, which is free.
+> Onboarding asks for Usage access, shows a report, then the subscription screen
+> (closing it skips it and Accessibility is asked for strict mode): tap "Have a promo code?", enter the code
 > below and tap "Redeem in Google Play"; confirm in Google Play, then press Back
 > to return. The app unlocks and asks for Accessibility — accept the disclosure
 > and follow the on-screen guide in Settings. (The code also works in Play Store →

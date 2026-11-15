@@ -55,13 +55,16 @@ bug. Check every item before submit.
 - **Strict mode stays on the allowed side** (decided 2026-11-10; the AppBlock-style
   Settings lock was considered and rejected). It locks only our own UI, records a
   violation in `onUnbind` and posts a "protection is off" notification. The service reads
-  nothing new, so the a11y declaration and disclosure are unchanged. Store and in-app copy
+  nothing new. Since 2026-11-15 strict mode also blocks a fixed social-app list
+  (`StrictSocialApps`) the user did not pick one by one — the declaration (§2) and the
+  disclosure name it; keep them in sync with that list's purpose. Store and in-app copy
   must say "lock your rules", never "impossible to bypass" — force-stop, uninstall and
   Safe mode still work, and the strict screen says so.
 
 ## 7. Permissions asked, and when (decided 2026-10-17)
-- First launch asks ONLY for usage access. Accessibility comes after a purchase or
-  when a block is first turned on — always behind the disclosure (§3).
+- First launch asks for usage access; accessibility comes right after the paywall for
+  every user (free users get strict mode's fixed social-app block), or when a block is
+  first turned on — always behind the disclosure (§3), always skippable.
 - **No `SYSTEM_ALERT_WINDOW`**: both block screens are activities started by the
   a11y service, which the system binding exempts from background-launch limits
   (verified 3/3 on the emulator with the op denied). Unverified on MIUI, whose own

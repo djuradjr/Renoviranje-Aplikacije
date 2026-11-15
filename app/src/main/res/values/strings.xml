@@ -39,10 +39,13 @@
     <string name="onboarding_usage_desc">Block Doomscroll needs permission to view your app usage statistics. This lets us show you exactly how much time you spend in each app.</string>
     <string name="onboarding_accessibility_title">Turn on blocking</string>
     <string name="onboarding_accessibility_desc">Blocking runs through Android\'s accessibility service, which you switch on in Settings. Tap the button below, then follow these three steps.</string>
+    <string name="onboarding_accessibility_title_free">Turn on protection</string>
+    <string name="onboarding_accessibility_desc_free">Turn on protection so strict mode can close social apps. It runs through Android\'s accessibility service, which you switch on in Settings. Tap the button below, then follow these three steps.</string>
+    <string name="strict_protection_off">Turn on protection</string>
 
     <!-- Prominent disclosure (Play policy) -->
     <string name="disclosure_title">Accessibility access</string>
-    <string name="disclosure_message">This app uses Android\'s Accessibility Service to read which app is currently on screen, and — only when you block specific websites — the browser address bar.\n\nWhy: this is the only way to show the block screen the moment you open a blocked app or site.\n\nWhere the data goes: nowhere. Everything is processed and stored only on this device. The app has no internet access and never collects, shares, or sells this data.</string>
+    <string name="disclosure_message">This app uses Android\'s Accessibility Service to read which app is currently on screen, and — only when you block specific websites — the browser address bar.\n\nWhy: this is the only way to show the block screen the moment you open a blocked app or site, including the social apps strict mode keeps closed.\n\nWhere the data goes: nowhere. Everything is processed and stored only on this device. The app has no internet access and never collects, shares, or sells this data.</string>
     <string name="disclosure_accept">Accept and continue</string>
     <string name="disclosure_decline">Not now</string>
 

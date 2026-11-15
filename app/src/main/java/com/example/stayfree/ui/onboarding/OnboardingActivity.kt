@@ -47,8 +47,8 @@ class OnboardingActivity : AppCompatActivity() {
     private val protectionSteps = listOf(OnboardingStep.ACCESSIBILITY)
     private var steps = trackingSteps
     /**
-     * Usage access, the report, then the paywall (skipped with premium). Accessibility is
-     * asked only of premium users — without premium the service blocks nothing.
+     * Usage access, the report, then the paywall (skipped with premium), then accessibility
+     * for everyone: free users get strict mode's social-app block, premium everything.
      */
     private enum class Phase { PERMISSIONS, REPORT, PROTECTION }
 
@@ -57,7 +57,8 @@ class OnboardingActivity : AppCompatActivity() {
 
     private val paywall = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         finishing = false
-        if (premium.isPremium.value) enterProtection() else complete()
+        // Free users too: strict mode keeps social apps closed without premium.
+        enterProtection()
     }
 
     private var phase = Phase.PERMISSIONS
@@ -108,8 +109,9 @@ class OnboardingActivity : AppCompatActivity() {
 
     private fun showStep(index: Int) {
         val step = steps[index]
-        binding.tvTitle.setText(step.titleRes)
-        binding.tvDescription.setText(step.descriptionRes)
+        val free = step == OnboardingStep.ACCESSIBILITY && !premium.isPremium.value
+        binding.tvTitle.setText(if (free) R.string.onboarding_accessibility_title_free else step.titleRes)
+        binding.tvDescription.setText(if (free) R.string.onboarding_accessibility_desc_free else step.descriptionRes)
         binding.a11yGuide.isVisible = step == OnboardingStep.ACCESSIBILITY
         val position = if (phase == Phase.PROTECTION) trackingSteps.size + 1 + index else index
         binding.tvStepIndicator.text = getString(

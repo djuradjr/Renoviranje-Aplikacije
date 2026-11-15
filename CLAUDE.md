@@ -35,11 +35,14 @@ font Archivo, tamna tema podrazumevana. Pravila i komponente: `bb-ui` skill.
   hard block fires.
 - **Blocking is the paid feature** (Play Billing, branch `placanje-billing`): without
   premium the a11y service fires nothing, but stored blocks survive and resume.
+  The ONE free exception (2026-11-15): strict mode always keeps the social apps in
+  `domain/strict/StrictSocialApps` closed (reason `STRICT_SOCIAL`, checked before the
+  premium gate); no off switch, only the 1–15 min short unlock.
   Every UI path that turns a block ON calls `requireBlocking()` (premium, then the a11y
-  setup screen if access is missing); turning one OFF never does. Onboarding asks ONLY
-  for usage access: usage → report → paywall (skipped with premium) → a11y step for
-  premium only; it enables no blocks. No overlay, battery or notification step — see
-  `bb-play-policy` §7. Details, debug flags and tests: `bb-billing`.
+  setup screen if access is missing); turning one OFF never does. Onboarding: usage →
+  report → paywall (skipped with premium) → a11y step for everyone (free copy explains
+  the strict social block; skippable, disclosure first). No overlay, battery or
+  notification step — see `bb-play-policy` §7. Details, debug flags and tests: `bb-billing`.
 - **Strict mode** (2026-11-10, `util/StrictGate` + `domain/strict/StrictLock`): a
   self-chosen lock with no early exit. Every UI path that LOOSENS protection (block off,
   limit up, rule deleted, Focus ended early, Sleep schedule replaced, reset time moved)

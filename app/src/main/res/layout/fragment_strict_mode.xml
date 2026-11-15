@@ -94,6 +94,15 @@
                 tools:text="2 violations during this lock"
                 tools:visibility="visible" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_protection"
+                style="@style/Skor.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:text="@string/strict_protection_off"
+                android:visibility="gone" />
+
             <TextView
                 style="@style/Skor.Label"
                 android:layout_width="match_parent"

@@ -14,10 +14,13 @@
     <string name="onboarding_usage_desc">Block Doomscroll treba dozvolu da vidi statistiku korišćenja aplikacija. Tako ti pokazujemo tačno koliko vremena provodiš u svakoj aplikaciji.</string>
     <string name="onboarding_accessibility_title">Uključi blokiranje</string>
     <string name="onboarding_accessibility_desc">Blokiranje radi preko Androidove usluge pristupačnosti, koju uključuješ u podešavanjima. Dodirni dugme ispod, pa prati ova tri koraka.</string>
+    <string name="onboarding_accessibility_title_free">Uključi zaštitu</string>
+    <string name="onboarding_accessibility_desc_free">Uključi zaštitu da bi strogi režim zatvarao društvene mreže. Radi preko Androidove usluge pristupačnosti, koju uključuješ u podešavanjima. Dodirni dugme ispod, pa prati ova tri koraka.</string>
+    <string name="strict_protection_off">Uključi zaštitu</string>
 
     <!-- Prominent disclosure (Play policy) -->
     <string name="disclosure_title">Dozvola za pristupačnost</string>
-    <string name="disclosure_message">Ova aplikacija koristi Androidovu uslugu pristupačnosti da očita koja je aplikacija trenutno na ekranu, i — samo kada blokiraš određene sajtove — adresnu traku pregledača.\n\nZašto: to je jedini način da se ekran blokade prikaže čim otvoriš blokiranu aplikaciju ili sajt.\n\nGde idu podaci: nigde. Sve se obrađuje i čuva samo na ovom uređaju. Aplikacija nema pristup internetu i nikada ne prikuplja, ne deli niti prodaje ove podatke.</string>
+    <string name="disclosure_message">Ova aplikacija koristi Androidovu uslugu pristupačnosti da očita koja je aplikacija trenutno na ekranu, i — samo kada blokiraš određene sajtove — adresnu traku pregledača.\n\nZašto: to je jedini način da se ekran blokade prikaže čim otvoriš blokiranu aplikaciju ili sajt, uključujući društvene mreže koje strogi režim drži zatvorenim.\n\nGde idu podaci: nigde. Sve se obrađuje i čuva samo na ovom uređaju. Aplikacija nema pristup internetu i nikada ne prikuplja, ne deli niti prodaje ove podatke.</string>
     <string name="disclosure_accept">Prihvati i nastavi</string>
     <string name="disclosure_decline">Ne sada</string>
 
