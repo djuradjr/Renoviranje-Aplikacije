@@ -10,13 +10,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.stayfree.R
 import com.example.stayfree.databinding.ItemBlockAppBinding
 import com.example.stayfree.databinding.ItemContentTargetRowBinding
+import com.example.stayfree.domain.cleanfeed.ScrollBudget
 import com.example.stayfree.util.AppInfoUtils
 
 class BlockAppsAdapter(
     private val onToggle: (packageName: String, blocked: Boolean) -> Unit,
     private val onLimitChange: (packageName: String, minutes: Int, increase: Boolean) -> Unit,
     private val onContentToggle: (targetId: String, enabled: Boolean) -> Unit,
-    private val onContentLimitChange: (targetId: String, minutes: Int, increase: Boolean) -> Unit
+    private val onContentLimitChange: (targetId: String, minutes: Int, increase: Boolean) -> Unit,
+    private val onCleanFeedOpen: () -> Unit,
+    private val onCleanFeedLimitChange: (posts: Int, increase: Boolean) -> Unit
 ) : ListAdapter<BlockAppItem, BlockAppsAdapter.ViewHolder>(DIFF) {
 
     // Expanded app rows — UI-only state, intentionally not persisted.
@@ -62,6 +65,7 @@ class BlockAppsAdapter(
                 if (btn.isPressed) onToggle(item.packageName, checked)
             }
 
+            bindCleanFeed(item, expanded)
             bindLimitStepper(item, expanded)
             if (expanded) bindContentTargets(item) else binding.contentTargetsContainer.removeAllViews()
         }
@@ -83,6 +87,22 @@ class BlockAppsAdapter(
             bindArrow(binding.btnLimitUp, enabled = idx < LIMIT_STEPS.lastIndex) {
                 onLimitChange(item.packageName, LIMIT_STEPS[idx + 1], true)
             }
+        }
+
+        private fun bindCleanFeed(item: BlockAppItem, expanded: Boolean) {
+            val limit = item.cleanFeedLimit
+            binding.cardCleanFeed.visibility = if (expanded && limit != null) View.VISIBLE else View.GONE
+            if (!expanded || limit == null) return
+            binding.tvCleanLimitValue.text = limit.toString()
+            val steps = ScrollBudget.LIMIT_STEPS
+            val idx = nearestStepIndex(steps, limit)
+            bindArrow(binding.btnCleanLimitDown, enabled = idx > 0) {
+                onCleanFeedLimitChange(steps[idx - 1], false)
+            }
+            bindArrow(binding.btnCleanLimitUp, enabled = idx < steps.lastIndex) {
+                onCleanFeedLimitChange(steps[idx + 1], true)
+            }
+            binding.btnCleanFeedOpen.setOnClickListener { onCleanFeedOpen() }
         }
 
         private fun bindContentTargets(item: BlockAppItem) {

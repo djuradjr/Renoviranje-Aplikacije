@@ -9,6 +9,8 @@ import androidx.lifecycle.lifecycleScope
 import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityBlockOverlayBinding
+import com.example.stayfree.domain.cleanfeed.CleanFeedRules
+import com.example.stayfree.ui.cleanfeed.CleanInstagramActivity
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.PinGate
 import com.example.stayfree.util.PinPrompt
@@ -65,6 +67,11 @@ class BlockOverlayActivity : AppCompatActivity() {
             finish()
         }
 
+        binding.btnCleanInstagram.setOnClickListener {
+            startActivity(CleanInstagramActivity.newIntent(this))
+            finish()
+        }
+
         binding.btnOverride.setOnClickListener {
             showPinDialog()
         }
@@ -104,6 +111,10 @@ class BlockOverlayActivity : AppCompatActivity() {
         val appIcon = AppInfoUtils.getAppIcon(this, packageName_)
 
         binding.tvAppName.text = appName
+        // Only for the Block Apps block of Instagram itself. Focus, Sleep and schedules
+        // mean "no Instagram at all", so the clean feed is not offered there.
+        binding.btnCleanInstagram.isVisible = packageName_ == CleanFeedRules.INSTAGRAM_PACKAGE &&
+            blockReason in setOf("APP_BLOCKED", "APP_LIMIT_REACHED")
         if (appIcon != null) binding.ivAppIcon.setImageDrawable(appIcon)
 
         binding.tvBlockReason.text = when (blockReason) {

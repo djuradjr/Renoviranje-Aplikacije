@@ -48,6 +48,16 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Only when the blocked app is Instagram: the way back in is the clean feed. -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_clean_instagram"
+        style="@style/Widget.App.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/spacing_md"
+        android:text="@string/clean_feed_open"
+        android:visibility="gone" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_unlock"
         style="@style/Widget.App.Button.Outlined"

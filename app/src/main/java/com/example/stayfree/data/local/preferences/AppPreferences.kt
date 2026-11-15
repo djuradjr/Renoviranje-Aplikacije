@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.stayfree.domain.cleanfeed.ScrollBudget
+import com.example.stayfree.domain.cleanfeed.ScrollSession
 import com.example.stayfree.domain.score.AppCategory
 import com.example.stayfree.domain.strict.StrictAnchor
 import com.example.stayfree.domain.strict.StrictState
@@ -103,6 +105,10 @@ class AppPreferences @Inject constructor(
         // effective day {"date","count","minutes"}.
         val SHORT_UNLOCKS = stringPreferencesKey("short_unlocks_json")
         val SHORT_UNLOCK_DAY = stringPreferencesKey("short_unlock_day_json")
+        // Clean Instagram feed (premium): posts per session, and the running
+        // session {"posts","last","until"} — see ScrollBudget.
+        val CLEAN_FEED_LIMIT = intPreferencesKey("clean_feed_limit_posts")
+        val CLEAN_FEED_SESSION = stringPreferencesKey("clean_feed_session_json")
     }
 
     val dailyResetTimeMinutes: Flow<Int> = dataStore.data.map { it[DAILY_RESET_TIME_MINUTES] ?: 0 }
@@ -152,6 +158,12 @@ class AppPreferences @Inject constructor(
     }
 
     val premiumActive: Flow<Boolean> = dataStore.data.map { it[PREMIUM_ACTIVE] ?: false }
+
+    /** Clean Instagram feed: posts allowed per session before the pause. */
+    val cleanFeedLimit: Flow<Int> =
+        dataStore.data.map { it[CLEAN_FEED_LIMIT] ?: ScrollBudget.DEFAULT_LIMIT }
+    val cleanFeedSession: Flow<ScrollSession> =
+        dataStore.data.map { parseCleanFeedSession(it[CLEAN_FEED_SESSION]) }
 
     val dailyGoalMinutes: Flow<Int> =
         dataStore.data.map { it[DAILY_GOAL_MINUTES] ?: DEFAULT_DAILY_GOAL_MINUTES }
@@ -348,6 +360,34 @@ class AppPreferences @Inject constructor(
             prefs[CONTENT_TARGET_USAGE] = JSONObject().put("date", date).put("usage", usage).toString()
         }
         return newTotal
+    }
+
+    suspend fun setCleanFeedLimit(posts: Int) {
+        dataStore.edit { it[CLEAN_FEED_LIMIT] = posts.coerceAtLeast(1) }
+    }
+
+    /** Atomic read-modify-write of the clean-feed session; returns the stored result. */
+    suspend fun updateCleanFeedSession(transform: (ScrollSession) -> ScrollSession): ScrollSession {
+        var result = ScrollSession()
+        dataStore.edit { prefs ->
+            result = transform(parseCleanFeedSession(prefs[CLEAN_FEED_SESSION]))
+            prefs[CLEAN_FEED_SESSION] = JSONObject()
+                .put("posts", result.posts)
+                .put("last", result.lastActiveAt)
+                .put("until", result.lockedUntil)
+                .toString()
+        }
+        return result
+    }
+
+    private fun parseCleanFeedSession(json: String?): ScrollSession {
+        if (json.isNullOrEmpty()) return ScrollSession()
+        return try {
+            val o = JSONObject(json)
+            ScrollSession(o.optInt("posts"), o.optLong("last"), o.optLong("until"))
+        } catch (e: Exception) {
+            ScrollSession()
+        }
     }
 
     suspend fun setPremiumActive(active: Boolean) {

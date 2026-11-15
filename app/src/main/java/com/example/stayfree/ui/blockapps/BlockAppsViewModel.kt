@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.stayfree.data.local.preferences.AppPreferences
+import com.example.stayfree.domain.cleanfeed.CleanFeedRules
 import com.example.stayfree.domain.content.ContentSignatures
 import com.example.stayfree.util.AppInfoUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +34,9 @@ data class BlockAppItem(
     val appName: String,
     val isBlocked: Boolean,
     val limitMinutes: Int,
-    val contentTargets: List<ContentTargetRow> = emptyList()
+    val contentTargets: List<ContentTargetRow> = emptyList(),
+    /** Posts per clean-feed session; non-null only on the Instagram row. */
+    val cleanFeedLimit: Int? = null
 )
 
 @HiltViewModel
@@ -78,9 +81,12 @@ class BlockAppsViewModel @Inject constructor(
     }
 
     /** null = still loading (installed-app query hasn't finished yet). */
-    val items: StateFlow<List<BlockAppItem>?> = combine(allItems, query) { list, q ->
-        if (q.isBlank()) list
-        else list.filter { it.appName.contains(q.trim(), ignoreCase = true) }
+    val items: StateFlow<List<BlockAppItem>?> = combine(allItems, query, prefs.cleanFeedLimit) { list, q, cleanLimit ->
+        val withClean = list.map {
+            if (it.packageName == CleanFeedRules.INSTAGRAM_PACKAGE) it.copy(cleanFeedLimit = cleanLimit) else it
+        }
+        if (q.isBlank()) withClean
+        else withClean.filter { it.appName.contains(q.trim(), ignoreCase = true) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun setQuery(q: String) {
@@ -97,6 +103,10 @@ class BlockAppsViewModel @Inject constructor(
 
     fun setContentEnabled(id: String, enabled: Boolean) {
         viewModelScope.launch { prefs.setContentBlockEnabled(id, enabled) }
+    }
+
+    fun setCleanFeedLimit(posts: Int) {
+        viewModelScope.launch { prefs.setCleanFeedLimit(posts) }
     }
 
     fun setContentLimit(id: String, minutes: Int) {

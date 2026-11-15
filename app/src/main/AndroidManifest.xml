@@ -2,12 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions — fully offline app: no INTERNET permission by design -->
-    <!-- Play Billing (6.0+) pulls Google datatransport telemetry, which adds INTERNET.
-         Billing itself talks to the Play Store app over IPC; stripping it keeps us offline. -->
-    <uses-permission
-        android:name="android.permission.INTERNET"
-        tools:node="remove" />
+    <!-- INTERNET exists ONLY for the clean Instagram feed (CleanInstagramActivity):
+         a WebView that talks to instagram.com directly. Nothing goes to our own
+         servers. Before release: re-check Data Safety + the privacy policy, and
+         Play Billing's datatransport telemetry, which this permission now lets
+         through (it was stripped while the app was fully offline). -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
@@ -89,6 +89,18 @@
             android:excludeFromRecents="true"
             android:taskAffinity=""
             android:theme="@style/Theme.StayFree" />
+
+        <!-- Clean Instagram (premium): instagram.com on the Following feed, with a
+             scroll limit. singleTask: the block screen and Block Apps reopen the
+             same page instead of stacking copies. configChanges: a rotation must
+             not reload the feed. -->
+        <activity
+            android:name=".ui.cleanfeed.CleanInstagramActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:theme="@style/Theme.StayFree"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".ui.premium.PaywallActivity"

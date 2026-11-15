@@ -438,4 +438,15 @@
     <string name="notif_unlock_title">%1$s otključan</string>
     <string name="notif_unlock_text">Blokada se vraća kad odbrojavanje istekne.</string>
     <string name="notif_unlock_warning_title">%1$s: još 1 minut</string>
+    <!-- Čisti Instagram (premium) -->
+    <string name="clean_feed_title">Čisti Instagram</string>
+    <string name="clean_feed_subtitle">Samo profili koje pratiš. Bez Reels-a i Explore-a, uz limit skrolovanja.</string>
+    <string name="clean_feed_note">Radi preko instagram.com. Prijaviš se jednom, a prijava ostaje samo na ovom telefonu.</string>
+    <string name="clean_feed_open">Otvori čisti Instagram</string>
+    <string name="clean_feed_limit_label">Objava po sesiji</string>
+    <string name="clean_feed_counter_cd">%1$d od %2$d objava u ovoj sesiji</string>
+    <string name="clean_feed_close">Zatvori</string>
+    <string name="clean_feed_cover_title">To je bilo %1$d objava</string>
+    <string name="clean_feed_cover_message">Feed se odmara do %1$s. Poruke su i dalje dostupne.</string>
+    <string name="clean_feed_messages">Otvori poruke</string>
 </resources>
