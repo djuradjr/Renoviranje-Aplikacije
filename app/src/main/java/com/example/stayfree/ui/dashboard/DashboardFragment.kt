@@ -79,7 +79,7 @@ class DashboardFragment : Fragment() {
         setupRecyclerViews()
         setupDateNav()
         setupCharts()
-        pinBladeUnderBrain()
+        pinGlows()
         observeData()
         binding.btnProtectionRestart.setOnClickListener {
             startActivity(OnboardingActivity.protectionIntent(requireContext()))
@@ -155,24 +155,42 @@ class DashboardFragment : Fragment() {
     }
 
     /**
-     * The blade starts just under whichever brain is showing; banners above it
-     * (protection stopped) move the hero down, so a fixed offset would cut through them.
+     * The blade starts just under whichever brain is showing and the side glow wraps
+     * the cards; banners above them (protection stopped) move everything down, so
+     * fixed offsets would cut through them.
      */
-    private fun pinBladeUnderBrain() {
+    private fun pinGlows() {
         val overlap = resources.getDimensionPixelSize(R.dimen.dash_blade_overlap)
+        val glowLead = resources.getDimensionPixelSize(R.dimen.dash_side_glow_lead)
+        val glowTail = resources.getDimensionPixelSize(R.dimen.dash_side_glow_tail)
         binding.dashboardContent.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             val b = _binding ?: return@addOnLayoutChangeListener
             val brain = if (b.dailyContent.isVisible) b.ivBrain else b.ivPeriodBrain
-            val bottom = IntArray(2).also { brain.getLocationInWindow(it) }[1] + brain.height
             val origin = IntArray(2).also { b.dashboardContent.getLocationInWindow(it) }[1]
-            val top = (bottom - origin - overlap).coerceAtLeast(0)
-            val params = b.glowBlade.layoutParams as ViewGroup.MarginLayoutParams
-            if (params.topMargin != top) {
-                params.topMargin = top
-                // Requesting layout from inside a layout pass is dropped; post it.
-                b.glowBlade.post { b.glowBlade.layoutParams = params }
-            }
+            fun topOf(v: View) = IntArray(2).also { v.getLocationInWindow(it) }[1] - origin
+
+            pinTop(b.glowBlade, (topOf(brain) + brain.height - overlap).coerceAtLeast(0), null)
+
+            // Side glow: lit from the middle of the first card down to the last block,
+            // fading in above the cards and out below them.
+            val daily = b.dailyContent.isVisible
+            val first = if (daily) b.hourlyCard else b.rowPeriodMetrics
+            val last = if (daily) b.rowTopApps else b.cardPeriodChart
+            val top = (topOf(first) - glowLead).coerceAtLeast(0)
+            val bottom = topOf(last) + last.height + glowTail
+            pinTop(b.sideGlow, top, bottom - top)
+            b.sideGlow.setBand(topOf(first) + first.height / 2 - top, topOf(last) - top)
         }
+    }
+
+    private fun pinTop(view: View, top: Int, height: Int?) {
+        val params = view.layoutParams as ViewGroup.MarginLayoutParams
+        val h = height ?: params.height
+        if (params.topMargin == top && params.height == h) return
+        params.topMargin = top
+        params.height = h
+        // Requesting layout from inside a layout pass is dropped; post it.
+        view.post { view.layoutParams = params }
     }
 
     private fun setupSegments() {
