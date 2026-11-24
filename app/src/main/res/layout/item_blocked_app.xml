@@ -55,6 +55,7 @@
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="1"
+        android:textSize="13sp"
         tools:text="Instagram" />
 
     <TextView
@@ -68,15 +69,4 @@
         android:maxLines="1"
         android:textColor="@color/skor_focus"
         tools:text="Otključaj" />
-
-    <TextView
-        android:id="@+id/chip_clean_feed"
-        style="@style/Skor.Chip"
-        android:layout_marginTop="@dimen/spacing_xs"
-        android:backgroundTint="@color/skor_focus_soft"
-        android:foreground="?attr/selectableItemBackgroundBorderless"
-        android:text="@string/blocking_clean_feed_chip"
-        android:textColor="@color/skor_focus"
-        android:visibility="gone"
-        tools:visibility="visible" />
 </LinearLayout>

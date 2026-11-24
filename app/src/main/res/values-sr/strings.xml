@@ -461,9 +461,6 @@
     <string name="blocking_focus_card_title">Fokus</string>
     <string name="blocking_focus_start">Pokreni</string>
     <string name="blocking_focus_left">još %s</string>
-    <string name="blocking_add_rule_title">Dodaj pravilo</string>
-    <string name="blocking_add_rule_pill">Raspored ili limit</string>
-    <string name="blocking_add_rule_desc">Npr. radno vreme, spavanje ili dnevni limit</string>
 
     <!-- D4 shared components -->
     <string name="hourly_peak">Najviše u %1$dh</string>
@@ -476,6 +473,10 @@
     <string name="dashboard_screen_caption">na ekranu · cilj %1$s</string>
     <string name="dashboard_screen_caption_nogoal">na ekranu</string>
     <string name="dashboard_period_total_caption">Ukupno</string>
+
+    <!-- D4 protection tab -->
+    <string name="blocking_pro_card_title">Čist Instagram i Facebook</string>
+    <string name="blocking_pro_card_desc">Prijatelji i poruke, bez Reels-a</string>
     <plurals name="streak_days">
         <item quantity="one">%d dan</item>
         <item quantity="few">%d dana</item>

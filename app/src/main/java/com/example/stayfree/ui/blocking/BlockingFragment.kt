@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.FragmentBlockingBinding
+import com.example.stayfree.domain.cleanfeed.CleanFeedRules
 import com.example.stayfree.ui.cleanfeed.CleanInstagramActivity
 import com.example.stayfree.ui.onboarding.OnboardingActivity
 import com.example.stayfree.ui.premium.PaywallActivity
@@ -58,12 +59,6 @@ class BlockingFragment : Fragment() {
             onUnlock = { pkg -> startActivity(ShortUnlockActivity.newIntent(requireContext(), pkg, null)) },
             onOpen = { pkg ->
                 requireContext().packageManager.getLaunchIntentForPackage(pkg)?.let { startActivity(it) }
-            },
-            onCleanFeed = {
-                startActivity(
-                    if (premium.isPremium.value) CleanInstagramActivity.newIntent(requireContext())
-                    else PaywallActivity.newIntent(requireContext())
-                )
             }
         )
         binding.rvApps.apply {
@@ -82,8 +77,8 @@ class BlockingFragment : Fragment() {
         binding.btnAddSite.setOnClickListener { nav.navigate(R.id.action_blocking_to_website) }
         binding.btnRules.setOnClickListener { nav.navigate(R.id.action_blocking_to_rules) }
         binding.cardFocus.setOnClickListener { nav.navigate(R.id.action_blocking_to_focusMode) }
-        // AddBlockRuleFragment asks for premium on save, as before.
-        binding.cardAddRule.setOnClickListener { nav.navigate(R.id.action_blocking_to_addRule) }
+        binding.pillCleanFeed.setOnClickListener { openCleanFeed() }
+        binding.cardCleanPro.setOnClickListener { openCleanFeed() }
         binding.btnPremium.setOnClickListener { requirePremium(premium) }
         binding.btnSetup.setOnClickListener { openProtection() }
 
@@ -91,6 +86,10 @@ class BlockingFragment : Fragment() {
             launch {
                 premium.isPremium.collectLatest { active ->
                     binding.cardPremium.isVisible = !active
+                    // Premium users just go in; free users see what they would be paying for.
+                    binding.ivCleanFeedLock.isVisible = !active
+                    binding.chipCleanFeedPro.isVisible = !active
+                    binding.chipCleanPro.isVisible = !active
                     bindProtection(active)
                 }
             }
@@ -99,6 +98,8 @@ class BlockingFragment : Fragment() {
                     appsAdapter.submitList(apps)
                     binding.rvApps.isVisible = apps.isNotEmpty()
                     binding.tvAppsEmpty.isVisible = apps.isEmpty()
+                    binding.pillCleanFeed.isVisible =
+                        apps.any { it.packageName == CleanFeedRules.INSTAGRAM_PACKAGE }
                 }
             }
             launch {
@@ -120,13 +121,22 @@ class BlockingFragment : Fragment() {
 
     private fun openProtection() = startActivity(OnboardingActivity.protectionIntent(requireContext()))
 
+    /** Clean Instagram is premium: free users land on the paywall instead. */
+    private fun openCleanFeed() = startActivity(
+        if (premium.isPremium.value) CleanInstagramActivity.newIntent(requireContext())
+        else PaywallActivity.newIntent(requireContext())
+    )
+
     /** Status line under the title, plus the premium-only setup card when access is missing. */
     private fun bindProtection(premiumActive: Boolean) {
         val on = PermissionUtils.hasAccessibilityServiceEnabled(requireContext())
         binding.cardSetup.isVisible = premiumActive && !on
         binding.tvStatus.setText(if (on) R.string.blocking_status_strict_on else R.string.blocking_status_protection_off)
         binding.tvStatus.setTextColor(
-            ContextCompat.getColor(requireContext(), if (on) R.color.skor_text_dim else R.color.skor_focus)
+            ContextCompat.getColor(requireContext(), if (on) R.color.skor_text_subtitle else R.color.skor_focus)
+        )
+        binding.tvStatus.setCompoundDrawablesRelativeWithIntrinsicBounds(
+            if (on) R.drawable.ic_status_dot else 0, 0, 0, 0
         )
         binding.tvStatus.isClickable = !on
         binding.tvStatus.setOnClickListener(if (on) null else View.OnClickListener { openProtection() })

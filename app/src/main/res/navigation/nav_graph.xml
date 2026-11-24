@@ -27,9 +27,6 @@
         android:name="com.example.stayfree.ui.blocking.BlockingFragment"
         android:label="@string/nav_blocking">
         <action
-            android:id="@+id/action_blocking_to_addRule"
-            app:destination="@id/addBlockRuleFragment" />
-        <action
             android:id="@+id/action_blocking_to_focusMode"
             app:destination="@id/focusModeFragment" />
         <action

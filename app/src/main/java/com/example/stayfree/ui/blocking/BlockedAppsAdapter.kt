@@ -10,14 +10,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.stayfree.R
 import com.example.stayfree.databinding.ItemBlockedAppBinding
 import com.example.stayfree.databinding.ItemBlockedSiteBinding
-import com.example.stayfree.domain.cleanfeed.CleanFeedRules
 import com.example.stayfree.util.AppInfoUtils
 
 class BlockedAppsAdapter(
     private val onUnlock: (String) -> Unit,
-    private val onOpen: (String) -> Unit,
-    private val onCleanFeed: () -> Unit
-) : ListAdapter<BlockedApp, BlockedAppsAdapter.Holder>(Diff) {
+    private val onOpen: (String) -> Unit
+): ListAdapter<BlockedApp, BlockedAppsAdapter.Holder>(Diff) {
 
     class Holder(val binding: ItemBlockedAppBinding) : RecyclerView.ViewHolder(binding.root) {
         var boundPackage: String? = null
@@ -51,8 +49,6 @@ class BlockedAppsAdapter(
             context.getString(R.string.blocking_unlock_left, ((left + 59_999L) / 60_000L).toInt())
         } else context.getString(R.string.blocking_unlock)
         b.root.setOnClickListener { if (unlocked) onOpen(app.packageName) else onUnlock(app.packageName) }
-        b.chipCleanFeed.isVisible = app.packageName == CleanFeedRules.INSTAGRAM_PACKAGE
-        b.chipCleanFeed.setOnClickListener { onCleanFeed() }
     }
 
     private object Diff : DiffUtil.ItemCallback<BlockedApp>() {

@@ -494,9 +494,6 @@
     <string name="blocking_focus_card_title">Focus</string>
     <string name="blocking_focus_start">Start</string>
     <string name="blocking_focus_left">%s left</string>
-    <string name="blocking_add_rule_title">Add rule</string>
-    <string name="blocking_add_rule_pill">Schedule or limit</string>
-    <string name="blocking_add_rule_desc">E.g. work hours, sleep or a daily limit</string>
 
     <!-- D4 shared components -->
     <string name="pro_chip" translatable="false">PRO</string>
@@ -515,6 +512,10 @@
     <string name="dashboard_screen_caption">on screen · goal %1$s</string>
     <string name="dashboard_screen_caption_nogoal">on screen</string>
     <string name="dashboard_period_total_caption">Total</string>
+
+    <!-- D4 protection tab -->
+    <string name="blocking_pro_card_title">Clean Instagram &amp; Facebook</string>
+    <string name="blocking_pro_card_desc">Friends and messages, no Reels</string>
     <string name="dashboard_axis_0" translatable="false">0h</string>
     <string name="dashboard_axis_6" translatable="false">6h</string>
     <string name="dashboard_axis_12" translatable="false">12h</string>
