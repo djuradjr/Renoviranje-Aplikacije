@@ -7,6 +7,17 @@
     <dimen name="spacing_xl">32dp</dimen>
     <dimen name="spacing_xxl">40dp</dimen>
     <dimen name="radius_card">22dp</dimen>
+
+    <!-- D4 dashboard (reference frame 390dp wide) -->
+    <dimen name="dash_margin">20dp</dimen>
+    <dimen name="dash_gap">16dp</dimen>
+    <dimen name="dash_tile_gap">8dp</dimen>
+    <dimen name="dash_hero_height">150dp</dimen>
+    <dimen name="dash_ring_size">120dp</dimen>
+    <dimen name="dash_brain_width">140dp</dimen>
+    <dimen name="dash_brain_height">118dp</dimen>
+    <dimen name="dash_hourly_card_height">190dp</dimen>
+    <dimen name="dash_blade_overlap">24dp</dimen>
     <dimen name="radius_sm">12dp</dimen>
     <dimen name="radius_md">16dp</dimen>
     <dimen name="radius_dash">18dp</dimen>

@@ -1,6 +1,5 @@
 package com.example.stayfree.ui.dashboard
 
-import android.animation.ObjectAnimator
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -11,7 +10,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -25,9 +23,11 @@ import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.FragmentDashboardBinding
 import com.example.stayfree.domain.model.AppUsage
-import com.example.stayfree.domain.score.FocusScore
+import com.example.stayfree.ui.common.AppUsageTileView
 import com.example.stayfree.ui.common.CountUp
+import com.example.stayfree.ui.common.ScoreDisplay
 import com.example.stayfree.ui.onboarding.OnboardingActivity
+import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.PermissionUtils
 import com.example.stayfree.util.TimeUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -37,7 +37,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.Locale
 import javax.inject.Inject
 
 private const val REVIEW_AFTER_BLOCKS = 5
@@ -51,7 +50,6 @@ class DashboardFragment : Fragment() {
     private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
     private val viewModel: DashboardViewModel by viewModels()
-    private lateinit var topAppsAdapter: AppUsageListAdapter
     private lateinit var periodAppsAdapter: AppUsageListAdapter
 
     // Tracks the previously shown date so day changes can slide in from the right side.
@@ -77,9 +75,11 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupSegments()
+        setupMetrics()
         setupRecyclerViews()
         setupDateNav()
         setupCharts()
+        pinBladeUnderBrain()
         observeData()
         binding.btnProtectionRestart.setOnClickListener {
             startActivity(OnboardingActivity.protectionIntent(requireContext()))
@@ -154,34 +154,46 @@ class DashboardFragment : Fragment() {
         }
     }
 
-    private fun segmentViews(): Map<StatsPeriod, TextView> = mapOf(
-        StatsPeriod.DAILY to binding.segDay,
-        StatsPeriod.WEEKLY to binding.segWeek,
-        StatsPeriod.MONTHLY to binding.segMonth
-    )
-
-    private fun setupSegments() {
-        segmentViews().forEach { (period, segment) ->
-            segment.setOnClickListener {
-                it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                viewModel.setPeriod(period)
+    /**
+     * The blade starts just under whichever brain is showing; banners above it
+     * (protection stopped) move the hero down, so a fixed offset would cut through them.
+     */
+    private fun pinBladeUnderBrain() {
+        val overlap = resources.getDimensionPixelSize(R.dimen.dash_blade_overlap)
+        binding.dashboardContent.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            val b = _binding ?: return@addOnLayoutChangeListener
+            val brain = if (b.dailyContent.isVisible) b.ivBrain else b.ivPeriodBrain
+            val bottom = IntArray(2).also { brain.getLocationInWindow(it) }[1] + brain.height
+            val origin = IntArray(2).also { b.dashboardContent.getLocationInWindow(it) }[1]
+            val top = (bottom - origin - overlap).coerceAtLeast(0)
+            val params = b.glowBlade.layoutParams as ViewGroup.MarginLayoutParams
+            if (params.topMargin != top) {
+                params.topMargin = top
+                // Requesting layout from inside a layout pass is dropped; post it.
+                b.glowBlade.post { b.glowBlade.layoutParams = params }
             }
         }
     }
 
-    /** Amber active segment on the navy track; the rest stay transparent. */
-    private fun applySegmentState(selected: StatsPeriod) {
-        segmentViews().forEach { (period, segment) ->
-            val active = period == selected
-            segment.setBackgroundResource(if (active) R.drawable.bg_skor_seg_active else 0)
-            segment.setTextColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    if (active) R.color.skor_on_seg_active else R.color.skor_text_secondary
-                )
-            )
-            segment.translationZ = if (active) 2f * resources.displayMetrics.density else 0f
+    private fun setupSegments() {
+        val periods = StatsPeriod.entries
+        binding.segPeriods.setOptions(
+            listOf(getString(R.string.stats_daily), getString(R.string.stats_weekly), getString(R.string.stats_monthly)),
+            selected = viewModel.period.value.ordinal
+        )
+        binding.segPeriods.onSelected = { index ->
+            binding.segPeriods.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            viewModel.setPeriod(periods[index])
         }
+    }
+
+    private fun setupMetrics() {
+        binding.metricScreen.bind("", getString(R.string.dashboard_screen_caption_nogoal))
+        binding.metricUnlocks.bind("", getString(R.string.dashboard_unlocks))
+        binding.metricPeriodAvg.bind("", getString(R.string.dashboard_period_daily_avg))
+        binding.metricPeriodUnlocks.bind("", getString(R.string.dashboard_unlocks))
+        binding.metricPeriodTotal.bind("", getString(R.string.dashboard_period_total_caption))
+        binding.metricPeriodInGoal.bind("", getString(R.string.dashboard_period_in_goal))
     }
 
     /** "4h", "4h 30m" or "45m" — goal copy without the seconds noise. */
@@ -195,22 +207,40 @@ class DashboardFragment : Fragment() {
         }
     }
 
+    private fun openAppDetail(packageName: String) {
+        findNavController().navigate(
+            R.id.action_dashboard_to_appDetail,
+            bundleOf("packageName" to packageName)
+        )
+    }
+
     private fun setupRecyclerViews() {
-        val onAppClick: (AppUsage) -> Unit = { appUsage ->
-            findNavController().navigate(
-                R.id.action_dashboard_to_appDetail,
-                bundleOf("packageName" to appUsage.packageName)
-            )
-        }
-        topAppsAdapter = AppUsageListAdapter(onAppClick)
-        binding.rvTopApps.apply {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = topAppsAdapter
-        }
-        periodAppsAdapter = AppUsageListAdapter(onAppClick)
+        periodAppsAdapter = AppUsageListAdapter { openAppDetail(it.packageName) }
         binding.rvPeriodApps.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = periodAppsAdapter
+        }
+    }
+
+    private fun bindTopApps(apps: List<AppUsage>) {
+        val tiles: List<AppUsageTileView> =
+            listOf(binding.tileApp1, binding.tileApp2, binding.tileApp3, binding.tileApp4)
+        binding.rowTopApps.isVisible = apps.isNotEmpty()
+        tiles.forEachIndexed { i, tile ->
+            val app = apps.getOrNull(i)
+            // INVISIBLE, not GONE: fewer than four apps keep the tile width.
+            tile.visibility = if (app == null) View.INVISIBLE else View.VISIBLE
+            if (app == null) {
+                tile.setOnClickListener(null)
+                return@forEachIndexed
+            }
+            tile.bind(
+                label = app.appName,
+                packageName = app.packageName,
+                icon = AppInfoUtils.getAppIcon(requireContext(), app.packageName),
+                time = TimeUtils.formatDuration(app.totalTimeMs)
+            )
+            tile.setOnClickListener { openAppDetail(app.packageName) }
         }
     }
 
@@ -229,8 +259,7 @@ class DashboardFragment : Fragment() {
         val minutesToDuration: (Float) -> String = { minutes ->
             TimeUtils.formatDuration((minutes * 60_000f).toLong())
         }
-        // The hourly chart is HourlyBarsView now; dragging it reports an hour
-        // instead of showing a tooltip, so the peak caption doubles as the readout.
+        // Dragging the bars reports an hour; the peak caption doubles as the readout.
         binding.chartHourly.onHourSelected = { hour ->
             binding.tvPeakTime.text = if (hour == null) {
                 peakCaption(viewModel.peakHour.value)
@@ -266,24 +295,17 @@ class DashboardFragment : Fragment() {
     }
 
     private fun peakCaption(hour: Int?): String =
-        if (hour == null) getString(R.string.dashboard_no_peak)
-        else getString(R.string.dashboard_peak_prefix, String.format(Locale.US, "%02dh", hour))
-
-    /** Ring and number share the band colour so the state reads without the digits. */
-    private fun scoreColor(score: Int): Int = when (FocusScore.bandOf(score)) {
-        FocusScore.Band.GOOD -> R.color.skor_focus
-        FocusScore.Band.MIXED -> R.color.skor_warn
-        FocusScore.Band.POOR -> R.color.skor_distraction
-    }
+        if (hour == null) "" else getString(R.string.hourly_peak, hour)
 
     private fun observeData() {
+        val empty = getString(R.string.score_empty)
         viewLifecycleOwner.lifecycleScope.launch {
             launch {
                 viewModel.period.collectLatest { period ->
-                    applySegmentState(period)
+                    binding.segPeriods.select(period.ordinal)
                     val daily = period == StatsPeriod.DAILY
-                    binding.dailyContent.visibility = if (daily) View.VISIBLE else View.GONE
-                    binding.periodContent.visibility = if (daily) View.GONE else View.VISIBLE
+                    binding.dailyContent.isVisible = daily
+                    binding.periodContent.isVisible = !daily
                     if (!daily) {
                         binding.tvPeriodPill.setText(
                             if (period == StatsPeriod.WEEKLY) R.string.dashboard_period_last_week
@@ -295,97 +317,67 @@ class DashboardFragment : Fragment() {
             }
             launch {
                 viewModel.totalScreenTime.collectLatest { ms ->
-                    CountUp.animate(binding.tvTotalScreenTime, ms) { TimeUtils.formatDuration(it) }
+                    CountUp.animate(binding.metricScreen.valueView, ms) { TimeUtils.formatDuration(it) }
                 }
             }
             launch {
                 viewModel.totalUnlocks.collectLatest { count ->
-                    CountUp.animate(binding.tvUnlocks, count.toLong()) { it.toString() }
+                    CountUp.animate(binding.metricUnlocks.valueView, count.toLong()) { it.toString() }
                 }
             }
             launch {
-                viewModel.topApps.collectLatest { apps ->
-                    topAppsAdapter.submitList(apps)
-                }
-            }
-            launch {
-                viewModel.interceptedCount.collectLatest { count ->
-                    CountUp.animate(binding.tvIntercepted, count.toLong()) { it.toString() }
-                }
+                viewModel.topApps.collectLatest { apps -> bindTopApps(apps) }
             }
             launch {
                 viewModel.goalUi.collectLatest { goal ->
-                    if (goal == null) return@collectLatest
-                    val remainingMin = (goal.remainingMs / 60_000L).toInt()
-                    val over = goal.remainingMs <= 0
-                    binding.tvGoalChip.text = if (over) {
-                        getString(
-                            R.string.dashboard_goal_chip_over,
-                            formatMinutesCompact((-remainingMin).coerceAtLeast(1))
-                        )
-                    } else {
-                        getString(
-                            R.string.dashboard_goal_chip_left,
-                            formatMinutesCompact(remainingMin.coerceAtLeast(1))
-                        )
+                    val caption = binding.metricScreen.captionView
+                    if (goal == null) {
+                        caption.setText(R.string.dashboard_screen_caption_nogoal)
+                        return@collectLatest
                     }
-                    val tint = if (over) R.color.skor_distraction else R.color.skor_focus
-                    val fill = if (over) R.color.skor_distraction_soft else R.color.skor_focus_soft
-                    binding.tvGoalChip.setTextColor(ContextCompat.getColor(requireContext(), tint))
-                    binding.tvGoalChip.backgroundTintList =
-                        ContextCompat.getColorStateList(requireContext(), fill)
+                    caption.text = getString(
+                        R.string.dashboard_screen_caption, formatMinutesCompact(goal.goalMinutes)
+                    )
+                    // Over the goal is the one place the number itself turns orange.
+                    val over = goal.remainingMs <= 0
+                    binding.metricScreen.valueView.setTextColor(
+                        ContextCompat.getColor(
+                            requireContext(), if (over) R.color.skor_distraction else R.color.skor_text
+                        )
+                    )
                 }
             }
             launch {
                 viewModel.selectedDate.collectLatest { date ->
                     val today = date == TimeUtils.getTodayString()
-                    binding.tvHeroLabel.text =
-                        getString(R.string.dashboard_hero_label, TimeUtils.formatHeroDate(date))
+                    binding.tvDate.text = TimeUtils.formatHeroDate(date)
                     binding.btnNextDay.isEnabled = !today
                     binding.btnNextDay.alpha = if (today) 0.3f else 1f
                     animateDayChange(date)
                 }
             }
             launch {
-                // collect, not collectLatest: setData animates, and a cancelled
-                // block would leave the legend showing the previous (0s) totals.
-                viewModel.hourlyBreakdown.collect { hours ->
-                    binding.chartHourly.setData(hours)
-                    val distraction = hours.sumOf { it.first }
-                    val other = hours.sumOf { it.second }
-                    binding.tvLegendDistraction.text = getString(
-                        R.string.dashboard_legend_distraction, TimeUtils.formatDuration(distraction)
-                    )
-                    binding.tvLegendOther.text = getString(
-                        R.string.dashboard_legend_other, TimeUtils.formatDuration(other)
-                    )
-                }
+                viewModel.hourlyBreakdown.collect { hours -> binding.chartHourly.setData(hours) }
             }
             launch {
                 viewModel.focusScore.collectLatest { breakdown ->
-                    if (breakdown == null) {
+                    val score = breakdown?.score
+                    binding.scoreRing.setScore(score)
+                    if (score == null) {
                         // No data yet: a dash, never a zero — zero reads as "you failed".
-                        binding.tvScore.text = getString(R.string.dashboard_no_peak)
-                        binding.scoreRing.setProgress(0f)
-                        return@collectLatest
+                        binding.tvScore.text = ScoreDisplay.text(null, empty)
+                    } else {
+                        CountUp.animate(binding.tvScore, score.toLong()) { it.toString() }
                     }
-                    CountUp.animate(binding.tvScore, breakdown.score.toLong()) { it.toString() }
-                    val color = ContextCompat.getColor(requireContext(), scoreColor(breakdown.score))
-                    binding.scoreRing.progressColor = color
-                    binding.tvScore.setTextColor(color)
-                    binding.scoreRing.setProgress(breakdown.score / 100f)
                 }
             }
             launch {
                 viewModel.categoryResolver.collectLatest { resolver ->
-                    topAppsAdapter.categoryOf = resolver
                     periodAppsAdapter.categoryOf = resolver
                 }
             }
             launch {
-                viewModel.bestStreak.collectLatest { days ->
-                    CountUp.animate(binding.tvStreak, days.toLong()) { it.toString() }
-                }
+                viewModel.currentStreak.collectLatest { days -> binding.streakRow.bind(days) }
             }
             launch {
                 viewModel.peakHour.collectLatest { hour ->
@@ -394,17 +386,17 @@ class DashboardFragment : Fragment() {
             }
             launch {
                 viewModel.periodAverageScreenTime.collectLatest { ms ->
-                    CountUp.animate(binding.tvPeriodTotalTime, ms) { TimeUtils.formatDuration(it) }
+                    CountUp.animate(binding.metricPeriodAvg.valueView, ms) { TimeUtils.formatDuration(it) }
                 }
             }
             launch {
                 viewModel.periodTotalScreenTime.collectLatest { ms ->
-                    CountUp.animate(binding.tvPeriodTotalSum, ms) { TimeUtils.formatDuration(it) }
+                    CountUp.animate(binding.metricPeriodTotal.valueView, ms) { TimeUtils.formatDuration(it) }
                 }
             }
             launch {
                 viewModel.periodTotalUnlocks.collectLatest { count ->
-                    CountUp.animate(binding.tvPeriodUnlocks, count.toLong()) { it.toString() }
+                    CountUp.animate(binding.metricPeriodUnlocks.valueView, count.toLong()) { it.toString() }
                 }
             }
             launch {
@@ -414,21 +406,17 @@ class DashboardFragment : Fragment() {
             }
             launch {
                 viewModel.periodAverageScore.collectLatest { score ->
+                    binding.periodScoreRing.setScore(score)
                     if (score == null) {
-                        binding.tvPeriodScore.text = getString(R.string.dashboard_no_peak)
-                        binding.periodScoreRing.setProgress(0f)
-                        return@collectLatest
+                        binding.tvPeriodScore.text = ScoreDisplay.text(null, empty)
+                    } else {
+                        CountUp.animate(binding.tvPeriodScore, score.toLong()) { it.toString() }
                     }
-                    CountUp.animate(binding.tvPeriodScore, score.toLong()) { it.toString() }
-                    val color = ContextCompat.getColor(requireContext(), scoreColor(score))
-                    binding.periodScoreRing.progressColor = color
-                    binding.tvPeriodScore.setTextColor(color)
-                    binding.periodScoreRing.setProgress(score / 100f)
                 }
             }
             launch {
                 viewModel.periodDaysInGoal.collectLatest { (inGoal, total) ->
-                    binding.tvPeriodInGoal.text =
+                    binding.metricPeriodInGoal.valueView.text =
                         getString(R.string.dashboard_period_in_goal_value, inGoal, total)
                 }
             }
@@ -464,7 +452,6 @@ class DashboardFragment : Fragment() {
         } else {
             getString(R.string.stats_trend_up, deltaPct)
         }
-        // Less screen time = calming teal; more = glass white (no alarm, just a nudge).
         // Less screen time reads as a win; more is a nudge, never an alarm.
         val (fill, text) = if (deltaPct < 0) {
             R.color.skor_focus_soft to R.color.skor_focus
@@ -488,8 +475,7 @@ class DashboardFragment : Fragment() {
             .setDuration(250)
             .setInterpolator(DecelerateInterpolator())
             .start()
-        val visibleList = if (period == StatsPeriod.DAILY) binding.rvTopApps else binding.rvPeriodApps
-        visibleList.scheduleLayoutAnimation()
+        if (period != StatsPeriod.DAILY) binding.rvPeriodApps.scheduleLayoutAnimation()
     }
 
     /** Slides the whole content sideways when the user browses to another day. */

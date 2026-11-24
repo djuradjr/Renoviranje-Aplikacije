@@ -7,6 +7,7 @@ import com.example.stayfree.data.repository.UsageRepository
 import com.example.stayfree.domain.model.AppUsage
 import com.example.stayfree.domain.score.AppCategory
 import com.example.stayfree.domain.score.FocusScore
+import com.example.stayfree.domain.score.GoalStreak
 import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -145,29 +146,14 @@ class DashboardViewModel @Inject constructor(
             hours.map { ms -> (ms * share).toLong() to (ms - (ms * share).toLong()) }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    /**
-     * Longest run of consecutive days under the goal in the last 30. Counts
-     * only days that actually have data — a gap ends the run rather than
-     * silently counting as a win.
-     */
-    val bestStreak: StateFlow<Int> = combine(
+    /** Current run of days under the goal, ending today (see [GoalStreak]). */
+    val currentStreak: StateFlow<Int> = combine(
         usageRepository.getUsageFromDate(TimeUtils.getDateStringDaysAgo(STREAK_WINDOW_DAYS)),
         prefs.dailyGoalMinutes
     ) { rows, goalMinutes ->
         val goalMs = goalMinutes.coerceAtLeast(1) * 60_000L
         val totals = rows.groupBy { it.date }.mapValues { (_, day) -> day.sumOf { it.totalTimeMs } }
-        var best = 0
-        var run = 0
-        (STREAK_WINDOW_DAYS downTo 0).forEach { ago ->
-            val total = totals[TimeUtils.getDateStringDaysAgo(ago)]
-            if (total != null && total > 0L && total <= goalMs) {
-                run++
-                if (run > best) best = run
-            } else {
-                run = 0
-            }
-        }
-        best
+        GoalStreak.current(goalMs, STREAK_WINDOW_DAYS) { ago -> totals[TimeUtils.getDateStringDaysAgo(ago)] }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     private val _period = MutableStateFlow(StatsPeriod.DAILY)

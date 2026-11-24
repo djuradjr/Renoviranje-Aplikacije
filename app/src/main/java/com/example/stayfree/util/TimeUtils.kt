@@ -69,10 +69,12 @@ object TimeUtils {
         return SimpleDateFormat("EEE, d MMM", Locale.US).format(Date(startMs))
     }
 
-    /** Hero-label date in the device language, e.g. "sreda 16. jul". Returns the input if unparsable. */
+    /** Dashboard date in the device language, e.g. "Sreda, 16. jul". Returns the input if unparsable. */
     fun formatHeroDate(date: String): String {
         val startMs = getDayStartMs(date) ?: return date
-        return SimpleDateFormat("EEEE d. MMM", displayLocale()).format(Date(startMs))
+        val locale = displayLocale()
+        return SimpleDateFormat("EEEE, d. MMM", locale).format(Date(startMs))
+            .replaceFirstChar { it.titlecase(locale) }
     }
 
     /** Serbian system locale defaults to Cyrillic dates; the app UI is Latin-script. */

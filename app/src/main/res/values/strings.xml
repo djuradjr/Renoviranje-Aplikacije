@@ -69,8 +69,6 @@
     <string name="dashboard_period_last_week">Last 7 days</string>
     <string name="dashboard_period_last_month">Last 30 days</string>
     <string name="dashboard_unlocks">Unlocks</string>
-    <string name="dashboard_intercepted">Intercepted</string>
-    <string name="dashboard_hero_label" translatable="false">%1$s</string>
     <string name="dashboard_peak_time">Peak</string>
     <string name="dashboard_most_used_apps">Most used apps</string>
     <string name="dashboard_prev_day">Previous day</string>
@@ -86,15 +84,7 @@
     <string name="dashboard_period_daily_avg">Daily average</string>
     <string name="dashboard_period_in_goal">Days in goal</string>
     <string name="dashboard_period_in_goal_value" translatable="false">%1$d/%2$d</string>
-    <string name="dashboard_score_label">Focus</string>
-    <string name="dashboard_screen_today">Screen today</string>
     <string name="dashboard_hourly_title">Hour by hour</string>
-    <string name="dashboard_peak_prefix">peak · %1$s</string>
-    <string name="dashboard_legend_distraction">Distraction %1$s</string>
-    <string name="dashboard_legend_other">Other %1$s</string>
-    <string name="dashboard_streak_record">Best streak</string>
-    <string name="dashboard_goal_chip_left">%1$s left</string>
-    <string name="dashboard_goal_chip_over">%1$s over goal</string>
     <string name="dashboard_hour_readout" translatable="false">%1$02dh · %2$s</string>
     <string name="dashboard_score_waiting">Score arrives tonight</string>
 
@@ -518,4 +508,16 @@
         <item quantity="other">%d days</item>
     </plurals>
     <string name="score_empty" translatable="false">–</string>
+
+    <!-- D4 dashboard -->
+    <string name="dashboard_focus_score">Focus score</string>
+    <string name="dashboard_period_score_title">Average score</string>
+    <string name="dashboard_screen_caption">on screen · goal %1$s</string>
+    <string name="dashboard_screen_caption_nogoal">on screen</string>
+    <string name="dashboard_period_total_caption">Total</string>
+    <string name="dashboard_axis_0" translatable="false">0h</string>
+    <string name="dashboard_axis_6" translatable="false">6h</string>
+    <string name="dashboard_axis_12" translatable="false">12h</string>
+    <string name="dashboard_axis_18" translatable="false">18h</string>
+    <string name="dashboard_axis_24" translatable="false">24h</string>
 </resources>

@@ -44,7 +44,6 @@
     <string name="dashboard_period_last_week">Poslednjih 7 dana</string>
     <string name="dashboard_period_last_month">Poslednjih 30 dana</string>
     <string name="dashboard_unlocks">Otključavanja</string>
-    <string name="dashboard_intercepted">Presretnuto</string>
     <string name="dashboard_peak_time">Vrhunac</string>
     <string name="dashboard_most_used_apps">Najkorišćenije aplikacije</string>
     <string name="dashboard_prev_day">Prethodni dan</string>
@@ -263,15 +262,7 @@
     <string name="dashboard_period_score_label">Prosek</string>
     <string name="dashboard_period_daily_avg">Prosek dnevno</string>
     <string name="dashboard_period_in_goal">Dana u cilju</string>
-    <string name="dashboard_score_label">Fokus</string>
-    <string name="dashboard_screen_today">Ekran danas</string>
     <string name="dashboard_hourly_title">Po satima</string>
-    <string name="dashboard_peak_prefix">vrh · %1$s</string>
-    <string name="dashboard_legend_distraction">Distrakcija %1$s</string>
-    <string name="dashboard_legend_other">Ostalo %1$s</string>
-    <string name="dashboard_streak_record">Rekord niza</string>
-    <string name="dashboard_goal_chip_left">još %1$s</string>
-    <string name="dashboard_goal_chip_over">%1$s preko cilja</string>
     <string name="dashboard_score_waiting">Skor stiže večeras</string>
     <string name="blocking_tools_section">Alati</string>
     <string name="content_block_count">%1$d.</string>
@@ -478,6 +469,13 @@
     <string name="hourly_peak">Najviše u %1$dh</string>
     <string name="hourly_axis_hour">%1$dh</string>
     <string name="streak_title">Niz bez prekoračenja</string>
+
+    <!-- D4 dashboard -->
+    <string name="dashboard_focus_score">Fokus skor</string>
+    <string name="dashboard_period_score_title">Prosečan skor</string>
+    <string name="dashboard_screen_caption">na ekranu · cilj %1$s</string>
+    <string name="dashboard_screen_caption_nogoal">na ekranu</string>
+    <string name="dashboard_period_total_caption">Ukupno</string>
     <plurals name="streak_days">
         <item quantity="one">%d dan</item>
         <item quantity="few">%d dana</item>

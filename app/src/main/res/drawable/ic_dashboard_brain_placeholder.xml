@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TEMPORARY stand-in for the 3D brain render. Replace this one file with
+     ic_dashboard_brain_placeholder.webp/png (same name) when the asset exists;
+     delete this XML then. Referenced only from fragment_dashboard.xml. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:width="150dp" android:height="125dp" android:gravity="center">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:centerX="0.38"
+                android:centerY="0.42"
+                android:gradientRadius="80dp"
+                android:startColor="#CC5FF0D2"
+                android:centerColor="#664FA8C9"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+    <item android:width="120dp" android:height="100dp" android:gravity="center"
+        android:left="40dp" android:top="10dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:gradientRadius="60dp"
+                android:startColor="#B3A78BD9"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+</layer-list>

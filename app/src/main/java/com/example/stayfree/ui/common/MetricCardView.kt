@@ -3,6 +3,7 @@ package com.example.stayfree.ui.common
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.widget.TextView
 import com.example.stayfree.databinding.ViewMetricCardBinding
 import com.example.stayfree.databinding.ViewStreakRowBinding
 
@@ -13,6 +14,10 @@ class MetricCardView @JvmOverloads constructor(
 ) : GlassCardView(context, attrs) {
 
     private val binding = ViewMetricCardBinding.inflate(LayoutInflater.from(context), this)
+
+    /** For [CountUp] and band colouring. */
+    val valueView: TextView get() = binding.tvValue
+    val captionView: TextView get() = binding.tvCaption
 
     fun bind(value: CharSequence, caption: CharSequence) {
         binding.tvValue.text = value

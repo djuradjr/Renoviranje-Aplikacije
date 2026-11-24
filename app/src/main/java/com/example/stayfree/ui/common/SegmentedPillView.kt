@@ -39,12 +39,13 @@ class SegmentedPillView @JvmOverloads constructor(
                 gravity = Gravity.CENTER
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                 typeface = ResourcesCompat.getFont(context, R.font.archivo_600)
-                setPadding(0, pad * 2, 0, pad * 2)
+                setPadding(pad * 3, pad * 2, pad * 3, pad * 2)
                 isClickable = true
                 isFocusable = true
                 setOnClickListener { select(index, notify = true) }
             }
-            addView(segment, LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f))
+            // Wraps its label inside a wrap_content pill; shares spare width when stretched.
+            addView(segment, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f))
             segments += segment
         }
         select(selected.coerceIn(0, (labels.size - 1).coerceAtLeast(0)), notify = false)
