@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceHeadlineMedium"
-        android:textColor="@color/on_primary"
+        android:textColor="@color/skor_text"
         android:textStyle="bold"
         android:textAlignment="center"
         android:layout_marginBottom="@dimen/spacing_lg" />
@@ -21,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/spacing_xl"
-        app:cardBackgroundColor="@color/surface"
+        app:cardBackgroundColor="@color/skor_card"
         app:cardCornerRadius="@dimen/radius_lg"
         app:cardElevation="0dp">
 
@@ -44,7 +44,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:textColor="@color/on_surface" />
+                android:textColor="@color/skor_text" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -64,17 +64,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/unlock_briefly"
-        android:textColor="@color/on_primary"
+        android:textColor="@color/skor_text"
         android:alpha="0.7"
         app:strokeWidth="1dp"
-        app:strokeColor="@color/on_primary" />
+        app:strokeColor="@color/skor_line" />
 
     <TextView
         android:id="@+id/tv_unlock_tally"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="13sp"
-        android:textColor="@color/primary_container"
+        android:textColor="@color/skor_text_muted"
         android:textAlignment="center"
         android:fontFeatureSettings="tnum"
         android:layout_marginTop="@dimen/spacing_xs"
@@ -87,8 +87,8 @@
         android:layout_height="wrap_content"
         android:text="@string/btn_go_back"
         android:textStyle="bold"
-        android:textColor="@color/primary"
-        app:backgroundTint="@color/surface"
+        android:textColor="@color/skor_on_focus"
+        app:backgroundTint="@color/skor_focus"
         android:layout_marginBottom="@dimen/spacing_sm" />
 
     <com.google.android.material.button.MaterialButton
@@ -97,8 +97,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/btn_override"
-        android:textColor="@color/on_primary"
-        app:strokeColor="@color/on_primary"
+        android:textColor="@color/skor_text"
+        app:strokeColor="@color/skor_line"
         android:visibility="gone" />
 
     <TextView
@@ -106,7 +106,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="13sp"
-        android:textColor="@color/primary_container"
+        android:textColor="@color/skor_text_muted"
         android:textAlignment="center"
         android:layout_marginTop="@dimen/spacing_sm"
         android:text="@string/overlay_set_pin_hint"
@@ -117,7 +117,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="13sp"
-        android:textColor="@color/primary_container"
+        android:textColor="@color/skor_text_muted"
         android:textAlignment="center"
         android:layout_marginTop="@dimen/spacing_sm"
         android:visibility="gone" />

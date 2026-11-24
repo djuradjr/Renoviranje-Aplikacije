@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Static teal glow placed behind a glass card (stands in for a 34px blur of
+     #3FBFA3 at 55%). No animation: it must cost nothing per frame. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="50%p"
+        android:startColor="@color/skor_focus_glow"
+        android:endColor="@android:color/transparent" />
+</shape>

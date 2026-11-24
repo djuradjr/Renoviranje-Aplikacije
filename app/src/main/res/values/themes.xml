@@ -67,11 +67,10 @@
         <item name="android:layout_weight">1</item>
         <item name="android:gravity">center</item>
         <item name="android:paddingVertical">8dp</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textAllCaps">true</item>
-        <item name="android:letterSpacing">0.06</item>
-        <item name="android:textColor">@color/skor_text_dim</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textFontWeight">600</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/skor_text_secondary</item>
         <item name="android:foreground">?attr/selectableItemBackground</item>
     </style>
 
@@ -112,16 +111,32 @@
         <item name="cornerSize">50%</item>
     </style>
 
+    <style name="ShapeAppearance.App.Button" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <!-- D4 primary: teal fill, dark text, 12dp corners. -->
     <style name="Widget.App.Button" parent="Widget.Material3.Button">
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Pill</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Button</item>
+        <item name="backgroundTint">@color/skor_focus</item>
+        <item name="android:textColor">@color/skor_on_focus</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textFontWeight">700</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="rippleColor">@color/skor_ripple</item>
     </style>
 
     <style name="Widget.App.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Pill</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Button</item>
+        <item name="strokeColor">@color/skor_line</item>
+        <item name="android:textColor">@color/skor_text_secondary</item>
     </style>
 
     <style name="Widget.App.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Pill</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Button</item>
+        <item name="backgroundTint">@color/skor_card_raised</item>
+        <item name="android:textColor">@color/skor_text</item>
     </style>
 
     <style name="Theme.StayFree" parent="Base.Theme.StayFree" />
@@ -134,8 +149,9 @@
 
     <style name="Theme.StayFree.Overlay">
         <item name="android:windowIsTranslucent">false</item>
-        <item name="android:windowBackground">@drawable/bg_overlay_gradient</item>
-        <item name="android:statusBarColor">@color/primary</item>
+        <item name="android:windowBackground">@drawable/bg_skor_block</item>
+        <item name="android:statusBarColor">@color/skor_block_ground</item>
+        <item name="android:navigationBarColor">@color/skor_block_ground</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 

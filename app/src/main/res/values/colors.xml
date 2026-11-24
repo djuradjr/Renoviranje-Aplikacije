@@ -92,6 +92,20 @@
 
     <color name="skor_text">#111C2B</color>
     <color name="skor_text_dim">#5B6C82</color>
+    <!-- D4 grey steps. D4 is dark-only; light keeps these only so it compiles. -->
+    <color name="skor_text_secondary">#2A3646</color>
+    <color name="skor_text_label">#3A4758</color>
+    <color name="skor_text_subtitle">#465468</color>
+    <color name="skor_text_muted">#52617A</color>
+    <color name="skor_text_faint">#6B7A8F</color>
+    <color name="skor_stroke">#DCE3EC</color>
+    <color name="skor_focus_glow">#4D0E8C74</color>
+    <color name="skor_seg_active">#111C2B</color>
+    <color name="skor_on_seg_active">#FFFFFF</color>
+    <color name="skor_seg_track">#E4EAF2</color>
+    <color name="skor_seg_stroke">#DCE3EC</color>
+    <!-- Block screens are black in every mode and must not wait on a theme. -->
+    <color name="skor_block_ground">#000000</color>
 
     <color name="skor_focus">#0E8C74</color>
     <color name="skor_focus_soft">#1A0E8C74</color>
@@ -107,7 +121,7 @@
     <!-- Splash resolves from the SYSTEM config, not AppCompatDelegate, so it
          must not be night-qualified: one fixed dark value in both modes,
          which also matches the dark-first default. -->
-    <color name="skor_splash_bg">#0F1926</color>
+    <color name="skor_splash_bg">#000000</color>
     <color name="skor_on_distraction">#FFFFFF</color>
     <color name="skor_on_night">#FFFFFF</color>
     <color name="skor_ripple">#14111C2B</color>

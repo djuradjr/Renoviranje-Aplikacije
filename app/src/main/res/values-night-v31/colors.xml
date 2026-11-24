@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- D4 glass: 55% fill, meant to sit over a RenderEffect blur (API 31+). -->
+    <color name="skor_card">#8C181818</color>
+</resources>

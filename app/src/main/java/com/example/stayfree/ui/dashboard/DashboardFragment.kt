@@ -177,7 +177,7 @@ class DashboardFragment : Fragment() {
             segment.setTextColor(
                 ContextCompat.getColor(
                     requireContext(),
-                    if (active) R.color.skor_text else R.color.skor_text_dim
+                    if (active) R.color.skor_on_seg_active else R.color.skor_text_secondary
                 )
             )
             segment.translationZ = if (active) 2f * resources.displayMetrics.density else 0f

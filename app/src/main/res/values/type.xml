@@ -22,6 +22,16 @@
         <item name="android:includeFontPadding">false</item>
     </style>
 
+    <!-- D4 hero score, standing on its own beside the ring (not inside it). -->
+    <style name="Skor.Score" parent="Skor.Text">
+        <item name="android:textSize">76sp</item>
+        <item name="android:textFontWeight">700</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">-0.026</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
     <!-- Screen-time totals, big counts. -->
     <style name="Skor.Metric" parent="Skor.Text">
         <item name="android:textSize">30sp</item>
@@ -51,8 +61,29 @@
 
     <!-- Card headers. -->
     <style name="Skor.CardTitle" parent="Skor.Text">
-        <item name="android:textSize">13sp</item>
-        <item name="android:textFontWeight">600</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textFontWeight">700</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Date line under a title. -->
+    <style name="Skor.Date" parent="Skor.Text">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textFontWeight">500</item>
+        <item name="android:textColor">@color/skor_text_muted</item>
+    </style>
+
+    <style name="Skor.Subtitle" parent="Skor.Text">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textFontWeight">400</item>
+        <item name="android:textColor">@color/skor_text_subtitle</item>
+    </style>
+
+    <!-- App name under an app tile. -->
+    <style name="Skor.AppName" parent="Skor.Text">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textFontWeight">400</item>
+        <item name="android:textColor">@color/skor_text_label</item>
     </style>
 
     <!-- List row primary text. -->
@@ -63,7 +94,7 @@
 
     <!-- List row secondary text. -->
     <style name="Skor.Caption" parent="Skor.Text">
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">13sp</item>
         <item name="android:textFontWeight">400</item>
         <item name="android:textColor">@color/skor_text_dim</item>
     </style>
@@ -79,9 +110,9 @@
 
     <!-- Axis ticks, legend, footnotes. -->
     <style name="Skor.Micro" parent="Skor.Text">
-        <item name="android:textSize">10sp</item>
+        <item name="android:textSize">11sp</item>
         <item name="android:textFontWeight">400</item>
-        <item name="android:textColor">@color/skor_text_dim</item>
+        <item name="android:textColor">@color/skor_text_faint</item>
     </style>
 
     <!-- Pill chip: status, category, legend. -->
@@ -125,7 +156,7 @@
         <item name="android:textAllCaps">false</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
-        <item name="android:textColor">@color/skor_text_dim</item>
+        <item name="android:textColor">@color/skor_text_secondary</item>
         <item name="strokeColor">@color/skor_line</item>
         <item name="cornerRadius">12dp</item>
     </style>
@@ -238,8 +269,10 @@
     <!-- Card container: flat, no elevation — separation comes from fill. -->
     <style name="Skor.Card" parent="Widget.Material3.CardView.Filled">
         <item name="cardBackgroundColor">@color/skor_card</item>
-        <item name="cardCornerRadius">14dp</item>
+        <item name="cardCornerRadius">@dimen/radius_card</item>
         <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/skor_stroke</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
     </style>

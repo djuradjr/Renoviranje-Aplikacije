@@ -19,10 +19,10 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="cardBackgroundColor">@color/skor_card</item>
-        <item name="cardCornerRadius">14dp</item>
+        <item name="cardCornerRadius">@dimen/radius_card</item>
         <item name="cardElevation">0dp</item>
-        <item name="strokeWidth">0dp</item>
-        <item name="strokeColor">?attr/colorSurfaceContainerHigh</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/skor_stroke</item>
     </style>
 
     <style name="Settings.Row" parent="">

@@ -2,7 +2,7 @@
 <resources>
     <!-- Overrides values-v27: must repeat the nav-bar items -->
     <style name="Theme.StayFree" parent="Base.Theme.StayFree">
-        <item name="android:navigationBarColor">@color/background</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:navigationBarColor">@color/skor_nav</item>
+        <item name="android:windowLightNavigationBar">@bool/light_status_bar</item>
     </style>
 </resources>

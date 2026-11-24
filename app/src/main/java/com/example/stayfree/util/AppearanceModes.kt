@@ -1,12 +1,9 @@
 package com.example.stayfree.util
 
 import androidx.appcompat.app.AppCompatDelegate
-import com.example.stayfree.data.local.preferences.AppPreferences
 
 object AppearanceModes {
-    fun toNightMode(mode: String): Int = when (mode) {
-        AppPreferences.APPEARANCE_DARK -> AppCompatDelegate.MODE_NIGHT_YES
-        AppPreferences.APPEARANCE_SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-        else -> AppCompatDelegate.MODE_NIGHT_NO
-    }
+    /** D4 is dark-only. The light palette in values/ only stays until removing it is approved. */
+    @Suppress("UNUSED_PARAMETER")
+    fun toNightMode(mode: String): Int = AppCompatDelegate.MODE_NIGHT_YES
 }
