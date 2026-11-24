@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="46dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/spacing_md">
+
+        <TextView
+            style="@style/Skor.Body"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="@string/streak_title"
+            android:textFontWeight="700"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_value"
+            style="@style/Skor.Body"
+            android:fontFeatureSettings="tnum"
+            android:textColor="@color/skor_focus"
+            android:textFontWeight="700"
+            android:textStyle="bold"
+            tools:text="5 days" />
+    </LinearLayout>
+</merge>

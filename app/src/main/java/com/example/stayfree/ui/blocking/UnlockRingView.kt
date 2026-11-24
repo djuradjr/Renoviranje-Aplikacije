@@ -23,7 +23,7 @@ class UnlockRingView @JvmOverloads constructor(
     private val density = resources.displayMetrics.density
     private val blockedPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = 2 * density
+        strokeWidth = 2.5f * density
         color = ContextCompat.getColor(context, R.color.skor_distraction)
     }
     private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

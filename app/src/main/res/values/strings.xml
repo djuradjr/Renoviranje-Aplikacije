@@ -507,4 +507,15 @@
     <string name="blocking_add_rule_title">Add rule</string>
     <string name="blocking_add_rule_pill">Schedule or limit</string>
     <string name="blocking_add_rule_desc">E.g. work hours, sleep or a daily limit</string>
+
+    <!-- D4 shared components -->
+    <string name="pro_chip" translatable="false">PRO</string>
+    <string name="hourly_peak">Most at %1$dh</string>
+    <string name="hourly_axis_hour">%1$dh</string>
+    <string name="streak_title">Streak without overruns</string>
+    <plurals name="streak_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <string name="score_empty" translatable="false">–</string>
 </resources>

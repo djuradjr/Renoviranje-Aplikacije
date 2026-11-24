@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="75dp"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_md">
+
+        <TextView
+            android:id="@+id/tv_value"
+            style="@style/Skor.MetricSmall"
+            tools:text="2h 14m" />
+
+        <TextView
+            android:id="@+id/tv_caption"
+            style="@style/Skor.Caption"
+            android:layout_marginTop="@dimen/spacing_xs"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="on screen · goal 3h" />
+    </LinearLayout>
+</merge>

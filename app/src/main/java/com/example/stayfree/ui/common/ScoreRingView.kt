@@ -85,6 +85,18 @@ class ScoreRingView @JvmOverloads constructor(
         }
     }
 
+    /** Colours the ring by score band and sweeps it in from empty. null = no data yet. */
+    fun setScore(score: Int?, animate: Boolean = true) {
+        val color = when (ScoreDisplay.toneOf(score)) {
+            ScoreDisplay.Tone.FOCUS, ScoreDisplay.Tone.EMPTY -> R.color.skor_focus
+            ScoreDisplay.Tone.WARN -> R.color.skor_warn
+            ScoreDisplay.Tone.DISTRACTION -> R.color.skor_distraction
+        }
+        progressColor = ContextCompat.getColor(context, color)
+        progress = 0f
+        setProgress(ScoreDisplay.ringFraction(score), animate)
+    }
+
     override fun onDetachedFromWindow() {
         animator?.cancel()
         animator = null

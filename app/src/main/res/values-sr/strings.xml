@@ -265,7 +265,7 @@
     <string name="dashboard_period_in_goal">Dana u cilju</string>
     <string name="dashboard_score_label">Fokus</string>
     <string name="dashboard_screen_today">Ekran danas</string>
-    <string name="dashboard_hourly_title">Sat po sat</string>
+    <string name="dashboard_hourly_title">Po satima</string>
     <string name="dashboard_peak_prefix">vrh · %1$s</string>
     <string name="dashboard_legend_distraction">Distrakcija %1$s</string>
     <string name="dashboard_legend_other">Ostalo %1$s</string>
@@ -473,4 +473,14 @@
     <string name="blocking_add_rule_title">Dodaj pravilo</string>
     <string name="blocking_add_rule_pill">Raspored ili limit</string>
     <string name="blocking_add_rule_desc">Npr. radno vreme, spavanje ili dnevni limit</string>
+
+    <!-- D4 shared components -->
+    <string name="hourly_peak">Najviše u %1$dh</string>
+    <string name="hourly_axis_hour">%1$dh</string>
+    <string name="streak_title">Niz bez prekoračenja</string>
+    <plurals name="streak_days">
+        <item quantity="one">%d dan</item>
+        <item quantity="few">%d dana</item>
+        <item quantity="other">%d dana</item>
+    </plurals>
 </resources>

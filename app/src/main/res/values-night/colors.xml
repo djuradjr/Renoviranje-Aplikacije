@@ -84,6 +84,7 @@
     <color name="skor_focus">#3FBFA3</color>
     <color name="skor_focus_soft">#263FBFA3</color>
     <color name="skor_focus_glow">#8C3FBFA3</color>
+    <color name="skor_glow_core">#5FF0D2</color>
     <color name="skor_on_focus">#06231D</color>
     <color name="skor_distraction">#FF6B35</color>
     <color name="skor_distraction_soft">#26FF6B35</color>

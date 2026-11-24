@@ -49,7 +49,7 @@
 
     <TextView
         android:id="@+id/tv_name"
-        style="@style/Skor.CardTitle"
+        style="@style/Skor.AppName"
         android:layout_width="match_parent"
         android:layout_marginTop="@dimen/spacing_sm"
         android:ellipsize="end"
@@ -59,8 +59,10 @@
 
     <TextView
         android:id="@+id/tv_action"
-        style="@style/Skor.CardTitle"
+        style="@style/Skor.Body"
         android:layout_width="match_parent"
+        android:textFontWeight="700"
+        android:textStyle="bold"
         android:fontFeatureSettings="tnum"
         android:gravity="center"
         android:maxLines="1"

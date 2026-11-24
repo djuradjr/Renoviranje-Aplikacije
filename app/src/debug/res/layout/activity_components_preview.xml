@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/skor_ground"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp"
+        tools:ignore="HardcodedText">
+
+        <!-- Score + blade + rings -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView style="@style/Skor.Date" android:text="Fokus skor" />
+
+                <TextView android:id="@+id/tv_big_score" style="@style/Skor.Score" />
+            </LinearLayout>
+
+            <com.example.stayfree.ui.common.GlowBladeView
+                android:layout_width="56dp"
+                android:layout_height="150dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:orientation="vertical">
+
+                <FrameLayout android:layout_width="64dp" android:layout_height="64dp">
+                    <com.example.stayfree.ui.common.ScoreRingView
+                        android:id="@+id/ring1" android:layout_width="match_parent" android:layout_height="match_parent" />
+                    <TextView android:id="@+id/score1" style="@style/Skor.MetricSmall" android:layout_gravity="center" />
+                </FrameLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <FrameLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="64dp">
+                <com.example.stayfree.ui.common.ScoreRingView
+                    android:id="@+id/ring2" android:layout_width="64dp" android:layout_height="64dp" android:layout_gravity="center" />
+                <TextView android:id="@+id/score2" style="@style/Skor.MetricSmall" android:layout_gravity="center" />
+            </FrameLayout>
+
+            <FrameLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="64dp">
+                <com.example.stayfree.ui.common.ScoreRingView
+                    android:id="@+id/ring3" android:layout_width="64dp" android:layout_height="64dp" android:layout_gravity="center" />
+                <TextView android:id="@+id/score3" style="@style/Skor.MetricSmall" android:layout_gravity="center" />
+            </FrameLayout>
+
+            <FrameLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="64dp">
+                <com.example.stayfree.ui.common.ScoreRingView
+                    android:id="@+id/ring4" android:layout_width="64dp" android:layout_height="64dp" android:layout_gravity="center" />
+                <TextView android:id="@+id/score4" style="@style/Skor.MetricSmall" android:layout_gravity="center" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <com.example.stayfree.ui.common.SegmentedPillView
+            android:id="@+id/segmented"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" />
+
+        <!-- Hourly card on top of the glow -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+
+            <!-- Spills past the card so the glow reads around its edges too. -->
+            <com.example.stayfree.ui.common.GlowView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="-20dp"
+                android:layout_marginVertical="-24dp" />
+
+            <com.example.stayfree.ui.common.GlassCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="190dp"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            style="@style/Skor.CardTitle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:text="@string/dashboard_hourly_title" />
+
+                        <TextView android:id="@+id/tv_peak" style="@style/Skor.Date" android:textFontWeight="400" />
+                    </LinearLayout>
+
+                    <com.example.stayfree.ui.common.HourlyBarsView
+                        android:id="@+id/bars"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginTop="12dp"
+                        android:layout_weight="1" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+                        <TextView style="@style/Skor.Micro" android:layout_width="0dp" android:layout_weight="1" android:text="0h" />
+                        <TextView style="@style/Skor.Micro" android:layout_width="0dp" android:layout_weight="1" android:text="6h" />
+                        <TextView style="@style/Skor.Micro" android:layout_width="0dp" android:layout_weight="1" android:text="12h" />
+                        <TextView style="@style/Skor.Micro" android:layout_width="0dp" android:layout_weight="1" android:text="18h" />
+                        <TextView style="@style/Skor.Micro" android:text="24h" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.example.stayfree.ui.common.GlassCardView>
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+
+            <com.example.stayfree.ui.common.MetricCardView
+                android:id="@+id/metric1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1" />
+
+            <com.example.stayfree.ui.common.MetricCardView
+                android:id="@+id/metric2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <com.example.stayfree.ui.common.StreakRowView
+            android:id="@+id/streak"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+
+            <com.example.stayfree.ui.common.AppUsageTileView
+                android:id="@+id/tile1" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="8dp" />
+            <com.example.stayfree.ui.common.AppUsageTileView
+                android:id="@+id/tile2" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="8dp" />
+            <com.example.stayfree.ui.common.AppUsageTileView
+                android:id="@+id/tile3" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="8dp" />
+            <com.example.stayfree.ui.common.AppUsageTileView
+                android:id="@+id/tile4" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <!-- PRO chips + blocked app circle -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical">
+
+            <TextView style="@style/Skor.ProChip" android:layout_marginEnd="8dp" />
+
+            <TextView style="@style/Skor.ProChip.Locked" />
+
+            <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+            <LinearLayout
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <FrameLayout android:layout_width="70dp" android:layout_height="70dp">
+
+                    <com.example.stayfree.ui.blocking.UnlockRingView
+                        android:id="@+id/blocked_ring"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <ImageView
+                        android:id="@+id/blocked_icon"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_icon_circle"
+                        android:importantForAccessibility="no" />
+
+                    <FrameLayout
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="bottom|end"
+                        android:background="@drawable/bg_lock_badge">
+
+                        <ImageView
+                            android:layout_width="11dp"
+                            android:layout_height="11dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_lock"
+                            android:tint="@android:color/white" />
+                    </FrameLayout>
+                </FrameLayout>
+
+                <TextView style="@style/Skor.AppName" android:layout_marginTop="8dp" android:text="Instagram" />
+
+                <TextView
+                    style="@style/Skor.Body"
+                    android:text="@string/blocked_unlock_preview"
+                    android:textColor="@color/skor_focus"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

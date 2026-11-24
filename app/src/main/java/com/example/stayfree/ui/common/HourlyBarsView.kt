@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -40,20 +41,24 @@ class HourlyBarsView @JvmOverloads constructor(
         color = ContextCompat.getColor(context, R.color.skor_distraction)
     }
     private val otherPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ContextCompat.getColor(context, R.color.skor_idle)
+        color = ContextCompat.getColor(context, R.color.skor_focus)
+    }
+    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.skor_track)
     }
     private val dimPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val rect = RectF()
+    private val clip = Path()
 
-    private val barRadius = dp(2f)
-    private val barGap = dp(2f)
+    private val barGap = dp(3f)
+    private val maxBarWidth = dp(10f)
 
     /** Reports the hour under the finger, or null once the touch ends. */
     var onHourSelected: ((Int?) -> Unit)? = null
 
     fun setData(hours: List<Pair<Long, Long>>, animate: Boolean = true) {
         data = hours
-        maxTotal = max(1L, hours.maxOfOrNull { it.first + it.second } ?: 1L)
+        maxTotal = HourlyStack.maxTotal(hours)
         animator?.cancel()
         if (!animate || !isAttachedToWindow) {
             reveal = 1f
@@ -104,38 +109,43 @@ class HourlyBarsView @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
-        if (data.isEmpty()) return
         val left = paddingLeft.toFloat()
         val top = paddingTop.toFloat()
         val usableW = width - paddingLeft - paddingRight
-        val usableH = height - paddingTop - paddingBottom
-        if (usableW <= 0 || usableH <= 0) return
+        val usableH = (height - paddingTop - paddingBottom).toFloat()
+        if (usableW <= 0 || usableH <= 0f) return
 
-        val slot = usableW.toFloat() / data.size
-        val barW = max(1f, slot - barGap)
+        val slot = usableW.toFloat() / HOURS
+        val barW = (slot - barGap).coerceIn(1f, maxBarWidth)
+        val radius = barW / 2f
+        val bottom = top + usableH
 
-        data.forEachIndexed { hour, (distractionMs, otherMs) ->
-            val total = distractionMs + otherMs
-            if (total <= 0L) return@forEachIndexed
-
-            val dimmed = selectedHour != null && selectedHour != hour
+        for (hour in 0 until HOURS) {
             val x = left + hour * slot + (slot - barW) / 2f
-            val fullH = usableH * (total.toFloat() / maxTotal) * reveal
-            var bottom = top + usableH
+            // Every hour keeps its empty track, so a quiet day still shows the clock.
+            rect.set(x, top, x + barW, bottom)
+            canvas.drawRoundRect(rect, radius, radius, trackPaint)
 
-            // Distraction sits at the base so the orange mass reads as the floor
-            // of the day, with neutral time stacked on top of it.
-            val distractionH = fullH * (distractionMs.toFloat() / total)
-            if (distractionH > 0f) {
-                rect.set(x, bottom - distractionH, x + barW, bottom)
-                canvas.drawRoundRect(rect, barRadius, barRadius, paint(distractionPaint, dimmed))
-                bottom -= distractionH
+            val (distractionMs, usefulMs) = data.getOrNull(hour) ?: continue
+            val seg = HourlyStack.segments(distractionMs, usefulMs, maxTotal, usableH * reveal)
+            if (seg.total <= 0f) continue
+            val dimmed = selectedHour != null && selectedHour != hour
+
+            // One rounded silhouette per bar, so the colour seam stays straight.
+            clip.reset()
+            rect.set(x, bottom - max(seg.total, barW), x + barW, bottom)
+            clip.addRoundRect(rect, radius, radius, Path.Direction.CW)
+            canvas.save()
+            canvas.clipPath(clip)
+            if (seg.distraction > 0f) {
+                rect.set(x, bottom - seg.distraction, x + barW, bottom)
+                canvas.drawRect(rect, paint(distractionPaint, dimmed))
             }
-            val otherH = fullH - distractionH
-            if (otherH > 0f) {
-                rect.set(x, bottom - otherH, x + barW, bottom)
-                canvas.drawRoundRect(rect, barRadius, barRadius, paint(otherPaint, dimmed))
+            if (seg.useful > 0f) {
+                rect.set(x, bottom - seg.total, x + barW, bottom - seg.distraction)
+                canvas.drawRect(rect, paint(otherPaint, dimmed))
             }
+            canvas.restore()
         }
     }
 
@@ -150,5 +160,6 @@ class HourlyBarsView @JvmOverloads constructor(
 
     private companion object {
         const val DIM_ALPHA = 0.32f
+        const val HOURS = 24
     }
 }
