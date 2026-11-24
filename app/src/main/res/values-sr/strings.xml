@@ -391,7 +391,6 @@
     <string name="paywall_error_launch">Google Play nije mogao da se otvori. Pokušaj ponovo.</string>
     <string name="settings_premium">Premium</string>
     <string name="settings_premium_active">Aktivan · upravljaj u Google Play-u</string>
-    <string name="settings_premium_inactive">Nije aktivan · pogledaj planove</string>
     <string name="blocking_premium_title">Blokiranje je deo Premium-a</string>
     <string name="blocking_premium_desc">Tvoje blokade su sačuvane. Uključuju se čim aktiviraš Premium.</string>
     <string name="blocking_premium_cta">Aktiviraj Premium</string>
@@ -477,6 +476,13 @@
     <!-- D4 protection tab -->
     <string name="blocking_pro_card_title">Čist Instagram i Facebook</string>
     <string name="blocking_pro_card_desc">Prijatelji i poruke, bez Reels-a</string>
+
+    <!-- D4 settings -->
+    <plurals name="settings_premium_trial">
+        <item quantity="one">%d dan besplatno</item>
+        <item quantity="few">%d dana besplatno</item>
+        <item quantity="other">%d dana besplatno</item>
+    </plurals>
     <plurals name="streak_days">
         <item quantity="one">%d dan</item>
         <item quantity="few">%d dana</item>

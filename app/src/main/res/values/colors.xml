@@ -101,6 +101,9 @@
     <color name="skor_stroke">#DCE3EC</color>
     <color name="skor_focus_glow">#4D0E8C74</color>
     <color name="skor_glow_core">#5FF0D2</color>
+    <color name="skor_icon_tile">#E4EAF2</color>
+    <color name="skor_premium_fill">#140E8C74</color>
+    <color name="skor_premium_stroke">#4D0E8C74</color>
     <color name="skor_seg_active">#111C2B</color>
     <color name="skor_on_seg_active">#FFFFFF</color>
     <color name="skor_seg_track">#E4EAF2</color>

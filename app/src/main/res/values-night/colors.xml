@@ -94,6 +94,10 @@
     <color name="skor_warn_soft">#26FFC24D</color>
     <color name="skor_idle">#3D3D3D</color>
 
+    <color name="skor_icon_tile">#1A1A1A</color>
+    <color name="skor_premium_fill">#143FBFA3</color>
+    <color name="skor_premium_stroke">#4D3FBFA3</color>
+
     <color name="skor_seg_active">#F2F2F2</color>
     <color name="skor_on_seg_active">#000000</color>
     <color name="skor_seg_track">#0B0B0B</color>

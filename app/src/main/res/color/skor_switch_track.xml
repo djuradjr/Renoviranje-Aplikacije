@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- D4: solid teal when on, the empty-ring grey when off. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_checked="true" android:color="@color/skor_focus_soft" />
-    <item android:color="@color/skor_track" />
+    <item android:state_checked="true" android:color="@color/skor_focus" />
+    <item android:color="@color/skor_line" />
 </selector>

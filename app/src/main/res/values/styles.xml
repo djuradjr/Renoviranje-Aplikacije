@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- D4 settings: uppercase section label above each grouped glass card. -->
     <style name="Settings.SectionHeader" parent="">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textAppearance">?attr/textAppearanceLabelLarge</item>
-        <item name="android:textColor">@color/skor_text_dim</item>
+        <item name="android:textColor">@color/skor_text_faint</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:letterSpacing">0.12</item>
-        <item name="android:layout_marginTop">@dimen/spacing_md</item>
-        <item name="android:layout_marginBottom">@dimen/spacing_xs</item>
+        <item name="android:layout_marginTop">@dimen/spacing_lg</item>
+        <item name="android:layout_marginBottom">@dimen/spacing_sm</item>
         <item name="android:paddingStart">@dimen/spacing_xs</item>
         <item name="android:textSize">11sp</item>
+        <item name="android:textFontWeight">500</item>
         <item name="android:fontFamily">@font/archivo</item>
     </style>
 
@@ -28,22 +29,25 @@
     <style name="Settings.Row" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:minHeight">60dp</item>
+        <item name="android:minHeight">68dp</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:gravity">center_vertical</item>
-        <item name="android:padding">@dimen/spacing_md</item>
+        <item name="android:paddingHorizontal">@dimen/spacing_md</item>
+        <item name="android:paddingVertical">12dp</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
         <item name="android:background">?attr/selectableItemBackground</item>
     </style>
 
+    <!-- 42dp rounded tile with a 24dp filled icon. -->
     <style name="Settings.RowIcon" parent="">
-        <item name="android:layout_width">38dp</item>
-        <item name="android:layout_height">38dp</item>
-        <item name="android:padding">8dp</item>
-        <item name="android:background">@drawable/bg_icon_circle_tonal</item>
+        <item name="android:layout_width">42dp</item>
+        <item name="android:layout_height">42dp</item>
+        <item name="android:padding">9dp</item>
+        <item name="android:background">@drawable/bg_settings_icon_tile</item>
         <item name="android:layout_marginEnd">@dimen/spacing_md</item>
         <item name="android:importantForAccessibility">no</item>
+        <item name="tint">@color/skor_text_secondary</item>
     </style>
 
     <style name="Settings.RowText" parent="">
@@ -56,26 +60,47 @@
     <style name="Settings.RowTitle" parent="">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
         <item name="android:textColor">@color/skor_text</item>
-        <item name="android:textSize">15sp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textFontWeight">700</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:fontFamily">@font/archivo</item>
     </style>
 
     <style name="Settings.RowSubtitle" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textAppearance">?attr/textAppearanceBodySmall</item>
         <item name="android:textColor">@color/skor_text_dim</item>
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">13sp</item>
         <item name="android:fontFamily">@font/archivo</item>
     </style>
 
     <style name="Settings.RowChevron" parent="">
         <item name="android:layout_width">24dp</item>
         <item name="android:layout_height">24dp</item>
-        <item name="android:tint">@color/skor_text_dim</item>
+        <item name="android:tint">@color/skor_text_faint</item>
         <item name="android:importantForAccessibility">no</item>
+    </style>
+
+    <!-- Hairline between rows, starting after the icon tile. -->
+    <style name="Settings.Divider" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginStart">74dp</item>
+        <item name="android:background">@color/skor_stroke</item>
+    </style>
+
+    <style name="Settings.Switch" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="thumbTint">@color/skor_switch_thumb</item>
+        <item name="trackTint">@color/skor_switch_track</item>
+        <item name="trackDecorationTint">@android:color/transparent</item>
+    </style>
+
+    <style name="ShapeAppearance.Settings.Logo" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">18dp</item>
     </style>
 
 </resources>

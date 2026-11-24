@@ -418,7 +418,6 @@
     <string name="paywall_error_launch">Couldn\'t open Google Play. Try again.</string>
     <string name="settings_premium">Premium</string>
     <string name="settings_premium_active">Active · manage in Google Play</string>
-    <string name="settings_premium_inactive">Not active · see plans</string>
     <string name="blocking_premium_title">Blocking is part of Premium</string>
     <string name="blocking_premium_desc">Your blocks are saved. They turn on as soon as you activate Premium.</string>
     <string name="blocking_premium_cta">Get Premium</string>
@@ -516,6 +515,12 @@
     <!-- D4 protection tab -->
     <string name="blocking_pro_card_title">Clean Instagram &amp; Facebook</string>
     <string name="blocking_pro_card_desc">Friends and messages, no Reels</string>
+
+    <!-- D4 settings -->
+    <plurals name="settings_premium_trial">
+        <item quantity="one">%d day free</item>
+        <item quantity="other">%d days free</item>
+    </plurals>
     <string name="dashboard_axis_0" translatable="false">0h</string>
     <string name="dashboard_axis_6" translatable="false">6h</string>
     <string name="dashboard_axis_12" translatable="false">12h</string>

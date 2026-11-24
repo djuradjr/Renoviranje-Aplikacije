@@ -26,6 +26,7 @@ import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.DialogAccountEditBinding
 import com.example.stayfree.databinding.FragmentSettingsBinding
+import androidx.core.view.isVisible
 import com.example.stayfree.ui.premium.PaywallActivity
 import com.example.stayfree.ui.premium.requirePremium
 import com.example.stayfree.util.AppearanceModes
@@ -156,15 +157,25 @@ class SettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             launch {
                 viewModel.premiumActive.collectLatest { active ->
+                    // Free: what Premium adds, in teal. Premium: where to manage it.
                     binding.tvPremiumStatus.setText(
-                        if (active) R.string.settings_premium_active else R.string.settings_premium_inactive
+                        if (active) R.string.settings_premium_active else R.string.blocking_pro_card_title
                     )
                     binding.tvPremiumStatus.setTextColor(
                         ContextCompat.getColor(
                             requireContext(),
-                            if (active) R.color.accent_teal else R.color.on_surface_variant
+                            if (active) R.color.skor_text_dim else R.color.skor_focus
                         )
                     )
+                    binding.chipPremiumTrial.isVisible = false
+                    if (active) return@collectLatest
+                    // Only promise a free trial that Play actually offers.
+                    val trialDays = premium.loadPlans()?.maxOfOrNull { it.trialDays } ?: 0
+                    if (trialDays > 0) {
+                        binding.chipPremiumTrial.text =
+                            resources.getQuantityString(R.plurals.settings_premium_trial, trialDays, trialDays)
+                        binding.chipPremiumTrial.isVisible = true
+                    }
                 }
             }
             launch {

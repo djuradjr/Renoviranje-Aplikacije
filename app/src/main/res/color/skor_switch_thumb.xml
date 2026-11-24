@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- D4: white thumb in both states; the track carries on/off. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_checked="true" android:color="@color/skor_focus" />
-    <item android:color="@color/skor_text_dim" />
+    <item android:color="@android:color/white" />
 </selector>
