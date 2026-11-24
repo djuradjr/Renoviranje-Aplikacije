@@ -175,7 +175,12 @@ class DashboardFragment : Fragment() {
             // strongest at its middle and fades out toward both ends by itself.
             val daily = b.dailyContent.isVisible
             val first = if (daily) b.hourlyCard else b.rowPeriodMetrics
-            val last = if (daily) b.rowTopApps else b.cardPeriodChart
+            // The app row is gone on a day with no usage yet; the streak row ends the cards then.
+            val last = when {
+                !daily -> b.cardPeriodChart
+                b.rowTopApps.isVisible -> b.rowTopApps
+                else -> b.streakRow
+            }
             val blockTop = topOf(first)
             val blockBottom = topOf(last) + last.height
             val top = (blockTop - glowLead).coerceAtLeast(0)
