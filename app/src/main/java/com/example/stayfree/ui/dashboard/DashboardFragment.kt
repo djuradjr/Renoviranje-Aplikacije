@@ -171,15 +171,17 @@ class DashboardFragment : Fragment() {
 
             pinTop(b.glowBlade, (topOf(brain) + brain.height - overlap).coerceAtLeast(0), null)
 
-            // Side glow: lit from the middle of the first card down to the last block,
-            // fading in above the cards and out below them.
+            // Side glow spans the cards, a little past them at both ends; it is
+            // strongest at its middle and fades out toward both ends by itself.
             val daily = b.dailyContent.isVisible
             val first = if (daily) b.hourlyCard else b.rowPeriodMetrics
             val last = if (daily) b.rowTopApps else b.cardPeriodChart
-            val top = (topOf(first) - glowLead).coerceAtLeast(0)
-            val bottom = topOf(last) + last.height + glowTail
-            pinTop(b.sideGlow, top, bottom - top)
-            b.sideGlow.setBand(topOf(first) + first.height / 2 - top, topOf(last) - top)
+            val blockTop = topOf(first)
+            val blockBottom = topOf(last) + last.height
+            val top = (blockTop - glowLead).coerceAtLeast(0)
+            // Never taller than the content, or it would add empty scroll at the bottom.
+            pinTop(b.sideGlow, top, minOf(blockBottom + glowTail, b.dashboardContent.height) - top)
+            b.sideGlow.setBlock(blockTop - top, blockBottom - blockTop)
         }
     }
 

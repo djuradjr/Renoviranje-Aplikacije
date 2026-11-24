@@ -16,15 +16,19 @@
     <dimen name="dash_ring_size">120dp</dimen>
     <!-- Narrow phones: the brain must leave room for a 3-digit score and the ring.
          values-w400dp has the full D4 size. -->
-    <dimen name="dash_brain_width">150dp</dimen>
-    <dimen name="dash_brain_height">125dp</dimen>
+    <dimen name="dash_brain_width">116dp</dimen>
+    <dimen name="dash_brain_height">92dp</dimen>
     <dimen name="dash_hourly_card_height">190dp</dimen>
     <!-- How far the blade view reaches up under the brain; GlowBladeView fades the
          blade in over its top 64dp, so it emerges from under the brain. -->
     <dimen name="dash_blade_overlap">56dp</dimen>
-    <!-- Side glow band around the cards (D4): fades in above "Po satima", out below the apps. -->
-    <dimen name="dash_side_glow_lead">50dp</dimen>
-    <dimen name="dash_side_glow_tail">40dp</dimen>
+    <!-- Room above "Po satima" and below the app row for the side glow's blur
+         (3σ of its 34dp Gaussian) to fade out completely. -->
+    <dimen name="dash_side_glow_lead">110dp</dimen>
+    <dimen name="dash_side_glow_tail">110dp</dimen>
+    <!-- Black space under the app row where the blade ends in its point and the
+         side glow fades out. -->
+    <dimen name="dash_bottom_space">96dp</dimen>
     <dimen name="radius_sm">12dp</dimen>
     <dimen name="radius_md">16dp</dimen>
     <dimen name="radius_dash">18dp</dimen>

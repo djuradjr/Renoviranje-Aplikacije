@@ -27,7 +27,8 @@ class GlowBladeView @JvmOverloads constructor(
 
     private val density = resources.displayMetrics.density
     private val coreHalf = 13f * density
-    private val haloReach = 45f * density
+    private val haloReach = 40f * density
+    private val haloSigma = 11f * density
     private val tipLength = 70f * density
     private val fadeIn = 64f * density
 
@@ -43,20 +44,31 @@ class GlowBladeView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         val cx = w / 2f
         val half = coreHalf + haloReach
-        // Halo: full teal at the core edge, linear to nothing 45dp out.
-        val edge = haloReach / (2f * half)
+        // Halo: full teal at the core edge, a Gaussian falloff (σ 11dp) to nothing by
+        // 40dp, sampled at many stops so it has no outer edge.
+        val positions = ArrayList<Float>()
+        val colors = ArrayList<Int>()
+        for (i in HALO_STOPS downTo 0) {
+            val d = haloReach * i / HALO_STOPS
+            positions += (half - coreHalf - d) / (2f * half)
+            colors += ColorUtils.setAlphaComponent(teal, haloAlpha(d))
+        }
+        for (i in 0..HALO_STOPS) {
+            val d = haloReach * i / HALO_STOPS
+            positions += (half + coreHalf + d) / (2f * half)
+            colors += ColorUtils.setAlphaComponent(teal, haloAlpha(d))
+        }
         haloPaint.shader = LinearGradient(
             cx - half, 0f, cx + half, 0f,
-            intArrayOf(ColorUtils.setAlphaComponent(teal, 0), teal, teal, ColorUtils.setAlphaComponent(teal, 0)),
-            floatArrayOf(0f, edge, 1f - edge, 1f),
-            Shader.TileMode.CLAMP
+            colors.toIntArray(), positions.toFloatArray(), Shader.TileMode.CLAMP
         )
-        // Core: crisp — the darker rim only lives in the outer ~3px.
-        val rim = (3f / (2f * coreHalf)).coerceAtMost(0.2f)
+        // Core: crisp edges (~1.5px), a 2.5dp brighter centre line.
+        val px = 1f / (2f * coreHalf)
+        val line = 1.25f * density / (2f * coreHalf)
         corePaint.shader = LinearGradient(
             cx - coreHalf, 0f, cx + coreHalf, 0f,
-            intArrayOf(RIM, CORE, CENTRE, CORE, RIM),
-            floatArrayOf(0f, rim, 0.5f, 1f - rim, 1f),
+            intArrayOf(RIM, CORE, CORE, CENTRE, CENTRE, CORE, CORE, RIM),
+            floatArrayOf(0f, 1.5f * px, 0.5f - line - 2f * px, 0.5f - line, 0.5f + line, 0.5f + line + 2f * px, 1f - 1.5f * px, 1f),
             Shader.TileMode.CLAMP
         )
         maskPaint.shader = LinearGradient(
@@ -78,6 +90,12 @@ class GlowBladeView @JvmOverloads constructor(
     }
 
     private fun lerp(a: Float, b: Float, t: Float) = a + (b - a) * t
+
+    private fun haloAlpha(d: Float): Int =
+        if (d >= haloReach) 0
+        else (255f * kotlin.math.exp(-(d * d) / (2f * haloSigma * haloSigma))).roundToIntCompat()
+
+    private fun Float.roundToIntCompat() = kotlin.math.round(this).toInt().coerceIn(0, 255)
 
     override fun onDraw(canvas: Canvas) {
         if (width == 0 || height == 0) return
@@ -114,6 +132,7 @@ class GlowBladeView @JvmOverloads constructor(
     }
 
     private companion object {
+        const val HALO_STOPS = 20
         val CORE = 0xFF61FFF6.toInt()
         val CENTRE = 0xFF70FFFF.toInt()
         val RIM = 0xFF37BEB3.toInt()

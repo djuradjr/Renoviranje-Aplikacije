@@ -35,7 +35,7 @@
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/dash_margin"
             android:paddingTop="@dimen/spacing_sm"
-            android:paddingBottom="@dimen/spacing_xl">
+            android:paddingBottom="@dimen/dash_bottom_space">
 
             <com.example.stayfree.ui.common.SegmentedPillView
                 android:id="@+id/seg_periods"
