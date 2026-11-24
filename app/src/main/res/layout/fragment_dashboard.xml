@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- D4 dashboard: score + ring under a (placeholder) brain, a teal blade of light
+<!-- D4 dashboard: score + ring under a 3D brain, a teal blade of light
      running down behind the glass cards. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -135,7 +135,7 @@
                         android:layout_gravity="center_horizontal|top"
                         android:importantForAccessibility="no"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/ic_dashboard_brain_placeholder" />
+                        android:src="@drawable/ic_dashboard_brain" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -315,7 +315,7 @@
                         android:layout_gravity="center_horizontal|top"
                         android:importantForAccessibility="no"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/ic_dashboard_brain_placeholder" />
+                        android:src="@drawable/ic_dashboard_brain" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"

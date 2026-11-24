@@ -14,8 +14,10 @@
     <dimen name="dash_tile_gap">8dp</dimen>
     <dimen name="dash_hero_height">150dp</dimen>
     <dimen name="dash_ring_size">120dp</dimen>
-    <dimen name="dash_brain_width">140dp</dimen>
-    <dimen name="dash_brain_height">118dp</dimen>
+    <!-- Narrow phones: the brain must leave room for a 3-digit score and the ring.
+         values-w400dp has the full D4 size. -->
+    <dimen name="dash_brain_width">150dp</dimen>
+    <dimen name="dash_brain_height">125dp</dimen>
     <dimen name="dash_hourly_card_height">190dp</dimen>
     <dimen name="dash_blade_overlap">24dp</dimen>
     <dimen name="radius_sm">12dp</dimen>
