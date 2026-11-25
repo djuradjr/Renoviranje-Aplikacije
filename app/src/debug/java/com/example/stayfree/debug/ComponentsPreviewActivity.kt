@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.stayfree.R
 import com.example.stayfree.databinding.ActivityComponentsPreviewBinding
+import com.example.stayfree.domain.content.ContentSignatures
+import com.example.stayfree.ui.content.ContentBlockActivity
 import com.example.stayfree.ui.common.HourlyStack
 import com.example.stayfree.ui.common.ScoreDisplay
 
@@ -12,6 +14,13 @@ class ComponentsPreviewActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // `--es content_block <targetId>` shows that content block screen for a screenshot.
+        // It only shows a block (no way in), and this activity exists in debug builds only.
+        intent.getStringExtra("content_block")?.let { id ->
+            ContentSignatures.byId(id)?.let { startActivity(ContentBlockActivity.newIntent(this, it)) }
+            finish()
+            return
+        }
         val b = ActivityComponentsPreviewBinding.inflate(layoutInflater)
         setContentView(b.root)
 

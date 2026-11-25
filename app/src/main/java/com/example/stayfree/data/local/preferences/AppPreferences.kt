@@ -105,6 +105,10 @@ class AppPreferences @Inject constructor(
         // effective day {"date","count","minutes"}.
         val SHORT_UNLOCKS = stringPreferencesKey("short_unlocks_json")
         val SHORT_UNLOCK_DAY = stringPreferencesKey("short_unlock_day_json")
+        // Instagram's share of that day's unlocks {"date","count"}, and the day the
+        // clean-feed suggestion was last shown on the unlock screen (once a day).
+        val INSTAGRAM_UNLOCK_DAY = stringPreferencesKey("instagram_unlock_day_json")
+        val CLEAN_FEED_NUDGE_DATE = stringPreferencesKey("clean_feed_nudge_date")
         // Clean Instagram feed (premium): posts per session, and the running
         // session {"posts","last","until"} — see ScrollBudget.
         val CLEAN_FEED_LIMIT = intPreferencesKey("clean_feed_limit_posts")
@@ -469,9 +473,35 @@ class AppPreferences @Inject constructor(
         }
     }
 
-    /** Stores the grant and bumps the day's tally in one write. */
-    suspend fun addShortUnlock(grant: UnlockGrant, date: String, minutes: Int, elapsedMs: Long, bootCount: Int) {
+    /** Instagram unlocks on [date] so far. */
+    suspend fun instagramUnlocksOn(date: String): Int = try {
+        JSONObject(dataStore.data.first()[INSTAGRAM_UNLOCK_DAY] ?: "{}")
+            .let { if (it.optString("date") == date) it.optInt("count") else 0 }
+    } catch (e: Exception) {
+        0
+    }
+
+    val cleanFeedNudgeDate: Flow<String?> = dataStore.data.map { it[CLEAN_FEED_NUDGE_DATE] }
+
+    suspend fun setCleanFeedNudgeDate(date: String) {
+        dataStore.edit { it[CLEAN_FEED_NUDGE_DATE] = date }
+    }
+
+    /** Stores the grant and bumps the day's tally (and Instagram's, when it is Instagram) in one write. */
+    suspend fun addShortUnlock(
+        grant: UnlockGrant, date: String, minutes: Int, elapsedMs: Long, bootCount: Int,
+        instagram: Boolean = false
+    ) {
         dataStore.edit { prefs ->
+            if (instagram) {
+                val ig = try {
+                    JSONObject(prefs[INSTAGRAM_UNLOCK_DAY] ?: "{}")
+                        .let { if (it.optString("date") == date) it.optInt("count") else 0 }
+                } catch (e: Exception) {
+                    0
+                }
+                prefs[INSTAGRAM_UNLOCK_DAY] = JSONObject().put("date", date).put("count", ig + 1).toString()
+            }
             val grants = ShortUnlock.withGrant(parseUnlocks(prefs[SHORT_UNLOCKS]), grant, elapsedMs, bootCount)
             prefs[SHORT_UNLOCKS] = JSONArray().apply {
                 grants.forEach {

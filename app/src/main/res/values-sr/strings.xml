@@ -215,7 +215,6 @@
     <string name="overlay_sleep_mode">Režim spavanja je aktivan</string>
     <string name="overlay_website_blocked">Ovaj sajt je blokiran</string>
     <string name="overlay_app_blocked">Ova aplikacija je blokirana</string>
-    <string name="overlay_strict_social">Strogi režim drži ovu aplikaciju zatvorenom</string>
     <string name="overlay_set_pin_hint">Želiš opciju zaobilaženja? Prvo postavi PIN u podešavanjima.</string>
 
     <!-- Settings -->
@@ -417,13 +416,7 @@
     <!-- Kratko otključavanje -->
     <string name="unlock_briefly">Otključaj na kratko</string>
     <string name="unlock_today_tally">Danas otključano: %1$d× · %2$d min</string>
-    <string name="unlock_title">%1$s je blokiran</string>
-    <string name="unlock_breathe">Udahni…</string>
-    <string name="unlock_ask">Koliko ti treba?</string>
     <string name="unlock_slider_desc">Trajanje otključavanja u minutima</string>
-    <string name="unlock_confirm">Otključaj %1$d min</string>
-    <string name="unlock_cancel">Ipak ne</string>
-    <string name="unlock_footnote">Blokada se sama vraća kad istekne vreme.</string>
     <string name="notif_channel_unlock_name">Kratko otključavanje</string>
     <string name="notif_channel_unlock_desc">Odbrojavanje dok je blokirana aplikacija kratko otključana</string>
     <string name="notif_unlock_title">%1$s otključan</string>
@@ -434,7 +427,6 @@
     <string name="clean_feed_subtitle">Samo profili koje pratiš. Bez Reels-a i Explore-a, uz limit skrolovanja.</string>
     <string name="clean_feed_note">Radi preko instagram.com. Prijaviš se jednom, a prijava ostaje samo na ovom telefonu.</string>
     <string name="clean_feed_open">Otvori čisti Instagram</string>
-    <string name="clean_feed_open_premium">Otvori čisti Instagram · Premium</string>
     <string name="clean_feed_limit_label">Objava po sesiji</string>
     <string name="cd_clean_limit_decrease">Manje objava po sesiji</string>
     <string name="cd_clean_limit_increase">Više objava po sesiji</string>
@@ -476,6 +468,30 @@
     <!-- D4 protection tab -->
     <string name="blocking_pro_card_title">Čist Instagram i Facebook</string>
     <string name="blocking_pro_card_desc">Prijatelji i poruke, bez Reels-a</string>
+
+    <!-- D4 block + unlock screens -->
+    <string name="overlay_strict_social_app">Strogi režim drži %1$s zatvorenim</string>
+    <string name="block_clean_caption">Samo prijatelji i poruke, bez Reels-a</string>
+    <string name="block_back">Nazad</string>
+    <string name="unlock2_close">Zatvori</string>
+    <string name="unlock2_title">Da li si siguran?</string>
+    <string name="unlock2_text">Ako ga sada otvoriš, blokada se vraća čim istekne vreme koje izabereš.</string>
+    <string name="unlock2_today">Danas već: %1$d× · %2$d min</string>
+    <string name="unlock2_minutes">%1$d min</string>
+    <string name="unlock2_back">Ne, vrati me nazad</string>
+    <string name="unlock2_confirm">Da, otključaj %1$d min</string>
+    <string name="unlock2_breathe_in">Udahni…</string>
+    <string name="unlock2_breathe_out">Izdahni…</string>
+    <string name="unlock2_never_mind">Ipak ne</string>
+    <string name="unlock2_done">Otključano na %1$d min</string>
+    <string name="unlock2_nudge_title">Fali ti neko, a ne Reels?</string>
+    <string name="unlock2_nudge_text">Čist Instagram ti daje poruke i objave prijatelja, bez Reels-a i beskonačnog skrolovanja.</string>
+    <plurals name="unlock2_nudge_trial">
+        <item quantity="one">Probaj %d dan besplatno →</item>
+        <item quantity="few">Probaj %d dana besplatno →</item>
+        <item quantity="other">Probaj %d dana besplatno →</item>
+    </plurals>
+    <string name="unlock2_nudge_see">Pogledaj Premium →</string>
 
     <!-- D4 settings -->
     <plurals name="settings_premium_trial">

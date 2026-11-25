@@ -2,6 +2,7 @@ package com.example.stayfree.ui.overlay
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.ViewOutlineProvider
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -111,9 +112,18 @@ class BlockOverlayActivity : AppCompatActivity() {
         // offered there; every other block of Instagram (strict mode included) offers it.
         val cleanFeed = packageName_ == CleanFeedRules.INSTAGRAM_PACKAGE &&
             blockReason !in setOf("FOCUS", "SLEEP", "SCHEDULED")
-        binding.btnCleanInstagram.isVisible = cleanFeed
-        if (cleanFeed) CleanFeedEntry.bind(this, binding.btnCleanInstagram, lifecycleScope, prefs)
-        if (appIcon != null) binding.ivAppIcon.setImageDrawable(appIcon)
+        binding.cleanFeed.root.isVisible = cleanFeed
+        binding.tvCleanCaption.isVisible = cleanFeed
+        if (cleanFeed) {
+            CleanFeedEntry.bind(this, binding.cleanFeed.root, binding.cleanFeed.chipCleanPro, lifecycleScope, prefs)
+        }
+        binding.appMark.ivAppIcon.apply {
+            outlineProvider = ViewOutlineProvider.BACKGROUND
+            clipToOutline = true
+            if (appIcon != null) setImageDrawable(appIcon) else setImageDrawable(null)
+        }
+        // The strict line already names the app, so the name below would repeat it.
+        binding.tvAppName.isVisible = blockReason != StayFreeAccessibilityService.REASON_STRICT_SOCIAL
 
         binding.tvBlockReason.text = when (blockReason) {
             "SCHEDULED" -> getString(R.string.overlay_by_schedule)
@@ -122,7 +132,7 @@ class BlockOverlayActivity : AppCompatActivity() {
             "SLEEP" -> getString(R.string.overlay_sleep_mode)
             "WEBSITE_BLOCKED", "WEBSITE_CAP_REACHED" -> getString(R.string.overlay_website_blocked)
             "APP_BLOCKED" -> getString(R.string.overlay_app_blocked)
-            StayFreeAccessibilityService.REASON_STRICT_SOCIAL -> getString(R.string.overlay_strict_social)
+            StayFreeAccessibilityService.REASON_STRICT_SOCIAL -> getString(R.string.overlay_strict_social_app, appName)
             else -> getString(R.string.overlay_title)
         }
 

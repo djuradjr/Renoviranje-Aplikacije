@@ -6,8 +6,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.View
+import android.view.ViewOutlineProvider
 import androidx.activity.OnBackPressedCallback
-import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.isVisible
@@ -19,6 +19,7 @@ import com.example.stayfree.domain.cleanfeed.CleanFeedRules
 import com.example.stayfree.domain.content.ContentBlockTarget
 import com.example.stayfree.ui.cleanfeed.CleanFeedEntry
 import com.example.stayfree.ui.unlock.ShortUnlockActivity
+import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.StrictGate
 import com.example.stayfree.util.UnlockGate
 import com.example.stayfree.util.TimeUtils
@@ -44,32 +45,21 @@ class ContentBlockActivity : AppCompatActivity() {
         const val EXTRA_DISPLAY_NAME = "extra_display_name"
         private const val EXTRA_PACKAGE = "extra_package"
         private const val EXTRA_TARGET_ID = "extra_target_id"
-        private const val STATE_PICK = "state_pick"
+        private const val STATE_LINE = "state_line"
 
-        private class Backdrop(@DrawableRes val image: Int, @DrawableRes val scrim: Int)
-
-        private val BACKDROPS = arrayOf(
-            Backdrop(R.drawable.blok_bg_kafa, R.drawable.bg_block_scrim_strong),
-            Backdrop(R.drawable.blok_bg_ucenje, R.drawable.bg_block_scrim_strong),
-            Backdrop(R.drawable.blok_bg_sport, R.drawable.bg_block_scrim)
-        )
         // TikTok opens its next screen over the block right after its splash, so the
         // service re-fires within seconds; keeping the pick stops a visible swap.
         private const val SAME_BLOCK_WINDOW_MS = 10_000L
-        private var lastBackdrop = -1
         private var lastLine = -1
         private var lastPickAt = 0L
 
-        /** [backdrop, motivation line]: random, never repeated across separate blocks. */
-        private fun nextPick(lineCount: Int): IntArray {
+        /** Motivation line: random, never repeated across separate blocks. */
+        private fun nextLine(lineCount: Int): Int {
             val now = SystemClock.elapsedRealtime()
-            val refire = lastBackdrop >= 0 && now - lastPickAt < SAME_BLOCK_WINDOW_MS
+            val refire = lastLine in 0 until lineCount && now - lastPickAt < SAME_BLOCK_WINDOW_MS
             lastPickAt = now
-            if (!refire || lastLine >= lineCount) {
-                lastBackdrop = randomExcept(BACKDROPS.size, lastBackdrop)
-                lastLine = randomExcept(lineCount, lastLine)
-            }
-            return intArrayOf(lastBackdrop, lastLine)
+            if (!refire) lastLine = randomExcept(lineCount, lastLine)
+            return lastLine
         }
 
         private fun randomExcept(size: Int, previous: Int): Int {
@@ -90,7 +80,7 @@ class ContentBlockActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: ActivityContentBlockBinding
-    private lateinit var pick: IntArray
+    private var line = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // White copy over a dark photo: the light app theme would turn the text dark.
@@ -102,16 +92,16 @@ class ContentBlockActivity : AppCompatActivity() {
         if (savedInstanceState == null) lifecycleScope.launch { prefs.incrementBlocksShown() }
 
         val lines = resources.getStringArray(R.array.content_block_motivation)
-        pick = savedInstanceState?.getIntArray(STATE_PICK)
-            ?.takeIf { it.size == 2 && it[0] in BACKDROPS.indices && it[1] in lines.indices }
-            ?: nextPick(lines.size)
-        val backdrop = BACKDROPS[pick[0]]
-        binding.ivBackground.setImageResource(backdrop.image)
-        binding.vScrim.setBackgroundResource(backdrop.scrim)
-        binding.tvMotivation.text = lines[pick[1]]
+        line = savedInstanceState?.getInt(STATE_LINE, -1)?.takeIf { it in lines.indices } ?: nextLine(lines.size)
+        binding.tvMotivation.text = lines[line]
 
         val displayName = intent.getStringExtra(EXTRA_DISPLAY_NAME) ?: getString(R.string.app_name)
         binding.tvTitle.text = getString(R.string.content_block_title, displayName)
+        binding.appMark.ivAppIcon.apply {
+            outlineProvider = ViewOutlineProvider.BACKGROUND
+            clipToOutline = true
+            setImageDrawable(intent.getStringExtra(EXTRA_PACKAGE)?.let { AppInfoUtils.getAppIcon(this@ContentBlockActivity, it) })
+        }
 
         // The service increments the counter before starting us, so this read
         // already includes the block the user is looking at.
@@ -134,8 +124,9 @@ class ContentBlockActivity : AppCompatActivity() {
         }
 
         if (intent.getStringExtra(EXTRA_PACKAGE) == CleanFeedRules.INSTAGRAM_PACKAGE) {
-            binding.btnCleanInstagram.visibility = View.VISIBLE
-            CleanFeedEntry.bind(this, binding.btnCleanInstagram, lifecycleScope, prefs)
+            binding.cleanFeed.root.visibility = View.VISIBLE
+            binding.tvCleanCaption.visibility = View.VISIBLE
+            CleanFeedEntry.bind(this, binding.cleanFeed.root, binding.cleanFeed.chipCleanPro, lifecycleScope, prefs)
         }
 
         binding.btnExit.setOnClickListener { goHome() }
@@ -171,7 +162,7 @@ class ContentBlockActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putIntArray(STATE_PICK, pick)
+        outState.putInt(STATE_LINE, line)
     }
 
     private fun goHome() {

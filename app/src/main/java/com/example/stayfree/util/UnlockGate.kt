@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.SystemClock
 import android.provider.Settings
 import com.example.stayfree.data.local.preferences.AppPreferences
+import com.example.stayfree.domain.cleanfeed.CleanFeedRules
+import com.example.stayfree.domain.content.ContentSignatures
 import com.example.stayfree.domain.unlock.ShortUnlock
 import com.example.stayfree.domain.unlock.UnlockDay
 import com.example.stayfree.domain.unlock.UnlockGrant
@@ -28,8 +30,20 @@ class UnlockGate @Inject constructor(
         val elapsed = SystemClock.elapsedRealtime()
         val boot = bootCount
         val grant = ShortUnlock.grant(key, minutes, elapsed, boot, System.currentTimeMillis())
-        prefs.addShortUnlock(grant, effectiveDate(), minutes, elapsed, boot)
+        prefs.addShortUnlock(
+            grant, effectiveDate(), minutes, elapsed, boot,
+            instagram = packageOfKey(key) == CleanFeedRules.INSTAGRAM_PACKAGE
+        )
     }
+
+    /** Instagram unlocks so far today (app or any of its content surfaces). */
+    suspend fun instagramUnlocksToday(): Int = prefs.instagramUnlocksOn(effectiveDate())
+
+    suspend fun todayDate(): String = effectiveDate()
+
+    private fun packageOfKey(key: String): String? =
+        ShortUnlock.packageOf(key)
+            ?: ShortUnlock.contentTargetIdOf(key)?.let { ContentSignatures.byId(it)?.packageName }
 
     fun remainingMs(grant: UnlockGrant): Long =
         ShortUnlock.remainingMs(grant, SystemClock.elapsedRealtime(), bootCount)

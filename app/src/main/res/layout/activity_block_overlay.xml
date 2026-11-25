@@ -1,125 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<!-- D4 app block: plain black (draws on the first frame), calm copy, no guilt.
+     Order of ways out: clean feed (Instagram) → short unlock → back home. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="@dimen/spacing_xl">
+    android:fillViewport="true"
+    android:fitsSystemWindows="true">
 
-    <TextView
-        android:id="@+id/tv_block_reason"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceHeadlineMedium"
-        android:textColor="@color/skor_text"
-        android:textStyle="bold"
-        android:textAlignment="center"
-        android:layout_marginBottom="@dimen/spacing_lg" />
-
-    <com.google.android.material.card.MaterialCardView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/spacing_xl"
-        app:cardBackgroundColor="@color/skor_card"
-        app:cardCornerRadius="@dimen/radius_lg"
-        app:cardElevation="0dp">
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/spacing_lg"
+        android:paddingVertical="@dimen/spacing_xl">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_skor_card"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:gravity="center"
-            android:padding="@dimen/spacing_lg">
+            android:paddingHorizontal="@dimen/spacing_lg"
+            android:paddingVertical="28dp">
 
-            <ImageView
-                android:id="@+id/iv_app_icon"
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:layout_marginBottom="@dimen/spacing_md"
-                android:importantForAccessibility="no" />
+            <include
+                android:id="@+id/app_mark"
+                layout="@layout/view_block_app_mark" />
+
+            <TextView
+                android:id="@+id/tv_block_reason"
+                style="@style/Skor.BlockTitle"
+                android:layout_marginTop="20dp"
+                tools:text="Strogi režim drži Instagram zatvorenim" />
 
             <TextView
                 android:id="@+id/tv_app_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:textColor="@color/skor_text" />
+                style="@style/Skor.Date"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                tools:text="Instagram" />
+
+            <TextView
+                android:id="@+id/tv_unlock_tally"
+                style="@style/Skor.Caption"
+                android:layout_marginTop="12dp"
+                android:fontFeatureSettings="tnum"
+                android:gravity="center"
+                android:visibility="gone"
+                tools:text="Danas otključano: 1× · 5 min"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/tv_strict"
+                style="@style/Skor.Caption"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:visibility="gone" />
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
 
-    <!-- Only when the blocked app is Instagram: the way back in is the clean feed. -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_clean_instagram"
-        style="@style/Widget.App.Button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/spacing_md"
-        android:text="@string/clean_feed_open"
-        android:visibility="gone" />
+        <include
+            android:id="@+id/clean_feed"
+            layout="@layout/view_clean_feed_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_lg"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_unlock"
-        style="@style/Widget.App.Button.Outlined"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/unlock_briefly"
-        android:textColor="@color/skor_text"
-        android:alpha="0.7"
-        app:strokeWidth="1dp"
-        app:strokeColor="@color/skor_line" />
+        <TextView
+            android:id="@+id/tv_clean_caption"
+            style="@style/Skor.Caption"
+            android:layout_marginTop="@dimen/spacing_sm"
+            android:gravity="center"
+            android:text="@string/block_clean_caption"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
-    <TextView
-        android:id="@+id/tv_unlock_tally"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="13sp"
-        android:textColor="@color/skor_text_muted"
-        android:textAlignment="center"
-        android:fontFeatureSettings="tnum"
-        android:layout_marginTop="@dimen/spacing_xs"
-        android:visibility="gone" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_unlock"
+            style="@style/Skor.Button.Quiet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:text="@string/unlock_briefly" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_go_back"
-        android:layout_marginTop="@dimen/spacing_md"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/btn_go_back"
-        android:textStyle="bold"
-        android:textColor="@color/skor_on_focus"
-        app:backgroundTint="@color/skor_focus"
-        android:layout_marginBottom="@dimen/spacing_sm" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_override"
+            style="@style/Skor.Button.Quiet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_sm"
+            android:text="@string/btn_override"
+            android:visibility="gone" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_override"
-        style="@style/Widget.App.Button.Outlined"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/btn_override"
-        android:textColor="@color/skor_text"
-        app:strokeColor="@color/skor_line"
-        android:visibility="gone" />
+        <TextView
+            android:id="@+id/tv_pin_hint"
+            style="@style/Skor.Caption"
+            android:layout_marginTop="@dimen/spacing_sm"
+            android:gravity="center"
+            android:text="@string/overlay_set_pin_hint"
+            android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/tv_pin_hint"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="13sp"
-        android:textColor="@color/skor_text_muted"
-        android:textAlignment="center"
-        android:layout_marginTop="@dimen/spacing_sm"
-        android:text="@string/overlay_set_pin_hint"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/tv_strict"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="13sp"
-        android:textColor="@color/skor_text_muted"
-        android:textAlignment="center"
-        android:layout_marginTop="@dimen/spacing_sm"
-        android:visibility="gone" />
-
-</LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_go_back"
+            style="@style/Skor.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_sm"
+            android:text="@string/block_back" />
+    </LinearLayout>
+</ScrollView>

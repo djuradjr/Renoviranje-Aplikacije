@@ -1,142 +1,269 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Short unlock: a 5 s breath first (ring fills, controls stay inert), then 1-15 min
-     on a slider. "Not now" is as easy to reach as the unlock itself. -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- D4 short unlock, three steps on one black screen: the question (with "go back" as
+     the primary action), a 5 s breath, then "unlocked". Only the breath's end unlocks. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/skor_ground"
-    android:fillViewport="true"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
 
+    <!-- Header: small logo, name, close -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:paddingHorizontal="32dp"
-        android:paddingVertical="24dp">
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/dash_margin"
+        android:paddingEnd="8dp">
 
         <ImageView
-            android:id="@+id/iv_app_icon"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:importantForAccessibility="no"
-            tools:src="@mipmap/ic_launcher" />
+            android:src="@mipmap/ic_launcher_round" />
 
         <TextView
-            android:id="@+id/tv_title"
             style="@style/Skor.Text"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:letterSpacing="-0.025"
+            android:layout_width="0dp"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:text="@string/content_block_brand"
             android:textFontWeight="700"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            tools:text="Instagram is blocked" />
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tv_ask"
-            style="@style/Skor.Body"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:text="@string/unlock_ask"
-            android:textColor="@color/skor_text_dim"
-            android:textFontWeight="400" />
+        <ImageButton
+            android:id="@+id/btn_close"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/unlock2_close"
+            android:src="@drawable/ic_close"
+            app:tint="@color/skor_text_muted" />
+    </LinearLayout>
 
-        <FrameLayout
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:layout_marginTop="28dp">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-            <com.example.stayfree.ui.common.ScoreRingView
-                android:id="@+id/ring"
+        <!-- 1. Are you sure? -->
+        <ScrollView
+            android:id="@+id/panel_confirm"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <LinearLayout
-                android:id="@+id/group_breathe"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    style="@style/Skor.Title"
-                    android:text="@string/unlock_breathe" />
-
-                <TextView
-                    android:id="@+id/tv_breathe_count"
-                    style="@style/Skor.Caption"
-                    android:layout_marginTop="4dp"
-                    android:fontFeatureSettings="tnum"
-                    tools:text="4" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/group_minutes"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:orientation="vertical"
-                android:visibility="invisible"
-                tools:visibility="visible">
+                android:paddingHorizontal="@dimen/spacing_lg"
+                android:paddingBottom="@dimen/spacing_lg">
+
+                <ImageView
+                    android:id="@+id/iv_app_icon"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:layout_marginTop="@dimen/spacing_md"
+                    android:background="@drawable/bg_icon_circle"
+                    android:importantForAccessibility="no"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    style="@style/Skor.BlockTitle"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/unlock2_title" />
+
+                <TextView
+                    android:id="@+id/tv_text"
+                    style="@style/Skor.Subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:lineSpacingMultiplier="1.3"
+                    android:text="@string/unlock2_text" />
+
+                <TextView
+                    android:id="@+id/chip_today"
+                    style="@style/Skor.Chip"
+                    android:layout_marginTop="14dp"
+                    android:backgroundTint="@color/skor_distraction_soft"
+                    android:fontFeatureSettings="tnum"
+                    android:textColor="@color/skor_distraction"
+                    android:visibility="gone"
+                    tools:text="Danas već: 3× · 15 min"
+                    tools:visibility="visible" />
 
                 <TextView
                     android:id="@+id/tv_minutes"
-                    style="@style/Skor.Display"
-                    android:textSize="64sp"
-                    tools:text="5" />
+                    style="@style/Skor.Metric"
+                    android:layout_marginTop="28dp"
+                    tools:text="5 min" />
 
-                <TextView
-                    style="@style/Skor.Label"
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/slider"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="@string/unlock_minutes_unit" />
+                    android:contentDescription="@string/unlock_slider_desc"
+                    android:stepSize="1"
+                    android:value="5"
+                    android:valueFrom="1"
+                    android:valueTo="15"
+                    app:labelBehavior="gone"
+                    app:thumbColor="@color/skor_text"
+                    app:tickVisible="false"
+                    app:trackColorActive="@color/skor_focus"
+                    app:trackColorInactive="@color/skor_line" />
+
+                <!-- Free users, Instagram, from the 3rd unlock of the day, once a day. -->
+                <LinearLayout
+                    android:id="@+id/card_nudge"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_md"
+                    android:background="@drawable/bg_premium_card"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_md"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <TextView
+                        style="@style/Skor.Body"
+                        android:text="@string/unlock2_nudge_title"
+                        android:textFontWeight="700"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        style="@style/Skor.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="4dp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:text="@string/unlock2_nudge_text" />
+
+                    <TextView
+                        android:id="@+id/tv_nudge_link"
+                        style="@style/Skor.Body"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/skor_focus"
+                        android:textFontWeight="700"
+                        android:textStyle="bold"
+                        tools:text="Probaj 7 dana besplatno →" />
+                </LinearLayout>
+
+                <Space
+                    android:layout_width="1dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:minHeight="@dimen/spacing_lg" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_back"
+                    style="@style/Skor.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/unlock2_back" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_unlock"
+                    style="@style/Skor.Button.Neutral"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_sm"
+                    tools:text="Da, otključaj 5 min" />
             </LinearLayout>
-        </FrameLayout>
+        </ScrollView>
 
-        <com.google.android.material.slider.Slider
-            android:id="@+id/slider"
+        <!-- 2. Breathe -->
+        <LinearLayout
+            android:id="@+id/panel_breathe"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:contentDescription="@string/unlock_slider_desc"
-            android:enabled="false"
-            android:stepSize="1"
-            android:value="5"
-            android:valueFrom="1"
-            android:valueTo="15"
-            app:haloColor="@color/skor_focus_soft"
-            app:labelBehavior="gone"
-            app:thumbColor="@color/skor_focus"
-            app:tickVisible="false"
-            app:trackColorActive="@color/skor_focus"
-            app:trackColorInactive="@color/skor_line" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_unlock"
-            style="@style/Skor.Button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:enabled="false"
-            tools:text="Unlock 5 min" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_cancel"
-            style="@style/Skor.Button.Neutral"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/unlock_cancel" />
-
-        <TextView
-            style="@style/Skor.Caption"
-            android:layout_marginTop="16dp"
+            android:layout_height="match_parent"
             android:gravity="center"
-            android:text="@string/unlock_footnote" />
-    </LinearLayout>
-</ScrollView>
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_lg"
+            android:visibility="gone">
+
+            <FrameLayout
+                android:layout_width="180dp"
+                android:layout_height="180dp">
+
+                <com.example.stayfree.ui.common.ScoreRingView
+                    android:id="@+id/ring"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <ImageView
+                    android:id="@+id/iv_lock"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_lock"
+                    app:tint="@color/skor_distraction" />
+
+                <!-- Shown instead of the moving ring when system animations are off. -->
+                <TextView
+                    android:id="@+id/tv_seconds"
+                    style="@style/Skor.Score"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    tools:text="5" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tv_breath"
+                style="@style/Skor.BlockTitle"
+                android:layout_marginTop="28dp"
+                android:accessibilityLiveRegion="polite"
+                tools:text="Udahni…" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_never_mind"
+                style="@style/Skor.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                android:text="@string/unlock2_never_mind" />
+        </LinearLayout>
+
+        <!-- 3. Unlocked -->
+        <LinearLayout
+            android:id="@+id/panel_done"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_lg"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_lock_open"
+                app:tint="@color/skor_focus" />
+
+            <TextView
+                android:id="@+id/tv_done"
+                style="@style/Skor.BlockTitle"
+                android:layout_marginTop="20dp"
+                tools:text="Otključano na 5 min" />
+
+            <TextView
+                android:id="@+id/tv_countdown"
+                style="@style/Skor.Metric"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/skor_focus"
+                tools:text="5:00" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

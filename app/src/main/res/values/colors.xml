@@ -114,6 +114,7 @@
     <color name="skor_focus">#0E8C74</color>
     <color name="skor_focus_soft">#1A0E8C74</color>
     <color name="skor_on_focus">#FFFFFF</color>
+    <color name="skor_on_focus_soft">#26FFFFFF</color>
     <color name="skor_distraction">#D9450F</color>
     <color name="skor_distraction_soft">#1AD9450F</color>
     <color name="skor_night">#6F4FB0</color>

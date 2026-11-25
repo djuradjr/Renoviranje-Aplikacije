@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "Open clean Instagram" on block screens: teal primary; free users also see PRO. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/btn_clean_instagram"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_button_focus"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:gravity="center"
+    android:minHeight="52dp"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/spacing_md">
+
+    <TextView
+        style="@style/Skor.Text"
+        android:text="@string/clean_feed_open"
+        android:textColor="@color/skor_on_focus"
+        android:textFontWeight="700"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/chip_clean_pro"
+        style="@style/Skor.ProChip"
+        android:layout_marginStart="@dimen/spacing_sm"
+        android:backgroundTint="@color/skor_on_focus_soft"
+        android:textColor="@color/skor_on_focus"
+        android:visibility="gone" />
+</LinearLayout>
