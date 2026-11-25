@@ -24,10 +24,10 @@
 
     <!-- D4 hero score, standing on its own beside the ring (not inside it). -->
     <style name="Skor.Score" parent="Skor.Text">
-        <item name="android:textSize">76sp</item>
+        <item name="android:textSize">80sp</item>
         <item name="android:textFontWeight">700</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:letterSpacing">-0.026</item>
+        <item name="android:letterSpacing">-0.025</item>
         <item name="android:fontFeatureSettings">tnum</item>
         <item name="android:includeFontPadding">false</item>
     </style>

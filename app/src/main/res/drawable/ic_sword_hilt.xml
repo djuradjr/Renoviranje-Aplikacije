@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- D4 sword handle above the brain (the brain is the guard, the blade runs below):
+     gunmetal pommel, collar and a grip of five beads, lit from the top-left with a
+     faint teal rim on the right. The bottom bead hides behind the brain. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="30dp"
+    android:height="80dp"
+    android:viewportWidth="30"
+    android:viewportHeight="80">
+
+    <!-- Rod under the beads -->
+    <path android:pathData="M11,26h8v54h-8z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="11" android:startY="0" android:endX="19" android:endY="0"
+                android:startColor="#FF424C5E" android:centerColor="#FF1C2029" android:endColor="#FF11131A" />
+        </aapt:attr>
+    </path>
+
+    <!-- Grip: five beads -->
+    <path android:pathData="M7.5,37a7.5,4.2 0,1 0,15 0a7.5,4.2 0,1 0,-15 0z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="12" android:centerY="35" android:gradientRadius="9"
+                android:startColor="#FF7C8699" android:centerColor="#FF424C5E" android:endColor="#FF11131A" />
+        </aapt:attr>
+    </path>
+    <path android:pathData="M7.5,45.2a7.5,4.2 0,1 0,15 0a7.5,4.2 0,1 0,-15 0z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="12" android:centerY="43.2" android:gradientRadius="9"
+                android:startColor="#FF7C8699" android:centerColor="#FF424C5E" android:endColor="#FF11131A" />
+        </aapt:attr>
+    </path>
+    <path android:pathData="M7.5,53.4a7.5,4.2 0,1 0,15 0a7.5,4.2 0,1 0,-15 0z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="12" android:centerY="51.4" android:gradientRadius="9"
+                android:startColor="#FF7C8699" android:centerColor="#FF424C5E" android:endColor="#FF11131A" />
+        </aapt:attr>
+    </path>
+    <path android:pathData="M7.5,61.6a7.5,4.2 0,1 0,15 0a7.5,4.2 0,1 0,-15 0z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="12" android:centerY="59.6" android:gradientRadius="9"
+                android:startColor="#FF7C8699" android:centerColor="#FF424C5E" android:endColor="#FF11131A" />
+        </aapt:attr>
+    </path>
+    <path android:pathData="M7.5,69.8a7.5,4.2 0,1 0,15 0a7.5,4.2 0,1 0,-15 0z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="12" android:centerY="67.8" android:gradientRadius="9"
+                android:startColor="#FF7C8699" android:centerColor="#FF424C5E" android:endColor="#FF11131A" />
+        </aapt:attr>
+    </path>
+
+    <!-- Bead speculars -->
+    <path android:fillColor="#73FFFFFF"
+        android:pathData="M10,35.4a2,0.9 0,1 0,4 0a2,0.9 0,1 0,-4 0zM10,43.6a2,0.9 0,1 0,4 0a2,0.9 0,1 0,-4 0zM10,51.8a2,0.9 0,1 0,4 0a2,0.9 0,1 0,-4 0zM10,60a2,0.9 0,1 0,4 0a2,0.9 0,1 0,-4 0zM10,68.2a2,0.9 0,1 0,4 0a2,0.9 0,1 0,-4 0z" />
+
+    <!-- Teal rim light on the beads' right edges -->
+    <path android:strokeColor="#663FBFA3" android:strokeWidth="0.8" android:strokeLineCap="round"
+        android:pathData="M20.5,34.6q1.8,2.4 0,4.8M20.5,42.8q1.8,2.4 0,4.8M20.5,51q1.8,2.4 0,4.8M20.5,59.2q1.8,2.4 0,4.8M20.5,67.4q1.8,2.4 0,4.8" />
+
+    <!-- Collar -->
+    <path android:pathData="M4,24h22a3,3 0,0 1,0 6h-22a3,3 0,0 1,0 -6z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="0" android:startY="24" android:endX="0" android:endY="30"
+                android:startColor="#FF7C8699" android:centerColor="#FF424C5E" android:endColor="#FF11131A" />
+        </aapt:attr>
+    </path>
+    <path android:strokeColor="#663FBFA3" android:strokeWidth="0.8" android:strokeLineCap="round"
+        android:pathData="M26.6,25q1.6,2 0,4" />
+
+    <!-- Pommel -->
+    <path android:pathData="M3,12a12,12 0,1 0,24 0a12,12 0,1 0,-24 0z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="10" android:centerY="8" android:gradientRadius="19"
+                android:startColor="#FF7C8699" android:centerColor="#FF424C5E" android:endColor="#FF11131A" />
+        </aapt:attr>
+    </path>
+    <path android:fillColor="#99FFFFFF" android:pathData="M7,6.5a3,2 0,1 0,6 0a3,2 0,1 0,-6 0z" />
+    <path android:strokeColor="#803FBFA3" android:strokeWidth="1" android:strokeLineCap="round"
+        android:pathData="M22,4.5a11,11 0,0 1,3.5 12" />
+</vector>

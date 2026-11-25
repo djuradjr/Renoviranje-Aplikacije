@@ -1,12 +1,15 @@
 package com.example.stayfree.ui.dashboard
 
+import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.view.GestureDetector
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
@@ -38,6 +41,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.abs
 
 private const val REVIEW_AFTER_BLOCKS = 5
 
@@ -163,6 +167,7 @@ class DashboardFragment : Fragment() {
         val overlap = resources.getDimensionPixelSize(R.dimen.dash_blade_overlap)
         val glowLead = resources.getDimensionPixelSize(R.dimen.dash_side_glow_lead)
         val glowTail = resources.getDimensionPixelSize(R.dimen.dash_side_glow_tail)
+        val hiltTuck = resources.getDimensionPixelSize(R.dimen.dash_hilt_tuck)
         binding.dashboardContent.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             val b = _binding ?: return@addOnLayoutChangeListener
             val brain = if (b.dailyContent.isVisible) b.ivBrain else b.ivPeriodBrain
@@ -170,6 +175,8 @@ class DashboardFragment : Fragment() {
             fun topOf(v: View) = IntArray(2).also { v.getLocationInWindow(it) }[1] - origin
 
             pinTop(b.glowBlade, (topOf(brain) + brain.height - overlap).coerceAtLeast(0), null)
+            // The handle's last bead hides behind the top of the brain.
+            pinTop(b.ivHilt, (topOf(brain) + hiltTuck - b.ivHilt.height).coerceAtLeast(0), null)
 
             // Side glow spans the cards, a little past them at both ends; it is
             // strongest at its middle and fades out toward both ends by itself.
@@ -200,16 +207,20 @@ class DashboardFragment : Fragment() {
         view.post { view.layoutParams = params }
     }
 
+    /** D4 offers Dan / Nedelja; the monthly view stays in the view model, unused. */
+    private val periods = listOf(StatsPeriod.DAILY, StatsPeriod.WEEKLY)
+
     private fun setupSegments() {
-        val periods = StatsPeriod.entries
         binding.segPeriods.setOptions(
-            listOf(getString(R.string.stats_daily), getString(R.string.stats_weekly), getString(R.string.stats_monthly)),
-            selected = viewModel.period.value.ordinal
+            listOf(getString(R.string.stats_daily), getString(R.string.stats_weekly)),
+            selected = periods.indexOf(viewModel.period.value).coerceAtLeast(0)
         )
         binding.segPeriods.onSelected = { index ->
             binding.segPeriods.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             viewModel.setPeriod(periods[index])
         }
+        binding.scoreRing.ringWidth = resources.getDimension(R.dimen.dash_ring_stroke)
+        binding.periodScoreRing.ringWidth = resources.getDimension(R.dimen.dash_ring_stroke)
     }
 
     private fun setupMetrics() {
@@ -269,15 +280,22 @@ class DashboardFragment : Fragment() {
         }
     }
 
+    /** Swiping the date or the score sideways moves a day back or forward (D4 has no arrows). */
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupDateNav() {
-        binding.btnPrevDay.setOnClickListener {
-            it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-            viewModel.goToPreviousDay()
-        }
-        binding.btnNextDay.setOnClickListener {
-            it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-            viewModel.goToNextDay()
-        }
+        val minFling = 600f * resources.displayMetrics.density
+        val detector = GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: MotionEvent) = true
+            override fun onFling(e1: MotionEvent?, e2: MotionEvent, vx: Float, vy: Float): Boolean {
+                if (abs(vx) < minFling || abs(vx) < abs(vy) * 1.5f) return false
+                binding.hero.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                if (vx > 0) viewModel.goToPreviousDay() else viewModel.goToNextDay()
+                return true
+            }
+        })
+        val swipe = View.OnTouchListener { _, event -> detector.onTouchEvent(event) }
+        binding.hero.setOnTouchListener(swipe)
+        binding.dateNav.setOnTouchListener(swipe)
     }
 
     private fun setupCharts() {
@@ -327,7 +345,7 @@ class DashboardFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             launch {
                 viewModel.period.collectLatest { period ->
-                    binding.segPeriods.select(period.ordinal)
+                    binding.segPeriods.select(periods.indexOf(period).coerceAtLeast(0))
                     val daily = period == StatsPeriod.DAILY
                     binding.dailyContent.isVisible = daily
                     binding.periodContent.isVisible = !daily
@@ -374,10 +392,7 @@ class DashboardFragment : Fragment() {
             }
             launch {
                 viewModel.selectedDate.collectLatest { date ->
-                    val today = date == TimeUtils.getTodayString()
                     binding.tvDate.text = TimeUtils.formatHeroDate(date)
-                    binding.btnNextDay.isEnabled = !today
-                    binding.btnNextDay.alpha = if (today) 0.3f else 1f
                     animateDayChange(date)
                 }
             }

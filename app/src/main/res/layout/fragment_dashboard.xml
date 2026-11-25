@@ -28,19 +28,63 @@
             android:layout_gravity="center_horizontal"
             android:importantForAccessibility="no" />
 
+        <!-- Sword handle: rises above the brain, its last bead tucked behind it (top set in code). -->
+        <ImageView
+            android:id="@+id/iv_hilt"
+            android:layout_width="30dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center_horizontal"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_sword_hilt" />
+
         <LinearLayout
-            android:id="@+id/dashboard_content"
-            android:layout_width="match_parent"
+            android:id="@+id/dashboard_content"            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/dash_margin"
             android:paddingTop="@dimen/spacing_sm"
             android:paddingBottom="@dimen/dash_bottom_space">
 
-            <com.example.stayfree.ui.common.SegmentedPillView
-                android:id="@+id/seg_periods"
+            <!-- Top row: the day (or the period) on the left, Dan / Nedelja on the right. -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="48dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/date_nav"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_date"
+                        style="@style/Skor.Date"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        tools:text="Petak, 20. nov" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_period_pill"
+                    style="@style/Skor.Date"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:visibility="gone"
+                    tools:text="Poslednjih 7 dana" />
+
+                <com.example.stayfree.ui.common.SegmentedPillView
+                    android:id="@+id/seg_periods"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_sm" />
+            </LinearLayout>
 
             <!-- The system killed the accessibility service: blocking is silently off. -->
             <LinearLayout
@@ -96,41 +140,9 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageButton
-                        android:id="@+id/btn_prev_day"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginStart="-8dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/dashboard_prev_day"
-                        android:src="@drawable/ic_chevron_left"
-                        app:tint="@color/skor_text_muted" />
-
-                    <TextView
-                        android:id="@+id/tv_date"
-                        style="@style/Skor.Date"
-                        android:layout_marginHorizontal="2dp"
-                        tools:text="Petak, 20. nov" />
-
-                    <ImageButton
-                        android:id="@+id/btn_next_day"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/dashboard_next_day"
-                        android:src="@drawable/ic_chevron_right"
-                        app:tint="@color/skor_text_muted" />
-                </LinearLayout>
-
                 <!-- Hero: score left, ring right, the brain floating between them. -->
                 <FrameLayout
+                    android:id="@+id/hero"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/dash_hero_height"
                     android:layout_marginTop="@dimen/spacing_xs">
@@ -297,12 +309,6 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <TextView
-                    android:id="@+id/tv_period_pill"
-                    style="@style/Skor.Date"
-                    android:layout_marginTop="12dp"
-                    android:paddingVertical="6dp"
-                    tools:text="Poslednjih 7 dana" />
 
                 <FrameLayout
                     android:layout_width="match_parent"

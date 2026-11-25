@@ -10,14 +10,17 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.example.stayfree.R
 
-/** D4 segmented switch (Dan / Nedelja): light active pill on a near-black track. */
+/**
+ * D4 period switch (Dan / Nedelja): separate pills 6dp apart — the active one
+ * light with black text, the others near-black with a hairline.
+ */
 class SegmentedPillView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
 ) : LinearLayout(context, attrs) {
 
+    private val density = resources.displayMetrics.density
     private val segments = mutableListOf<TextView>()
-    private val pad = (4 * resources.displayMetrics.density).toInt()
 
     var selectedIndex: Int = 0
         private set
@@ -26,26 +29,29 @@ class SegmentedPillView @JvmOverloads constructor(
 
     init {
         orientation = HORIZONTAL
-        setBackgroundResource(R.drawable.bg_skor_seg_track)
-        setPadding(pad, pad, pad, pad)
+        gravity = Gravity.CENTER_VERTICAL
     }
 
     fun setOptions(labels: List<String>, selected: Int = 0) {
         removeAllViews()
         segments.clear()
+        val padH = (13 * density).toInt()
         labels.forEachIndexed { index, label ->
             val segment = TextView(context).apply {
                 text = label
                 gravity = Gravity.CENTER
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                 typeface = ResourcesCompat.getFont(context, R.font.archivo_600)
-                setPadding(pad * 3, pad * 2, pad * 3, pad * 2)
+                includeFontPadding = false
+                setPadding(padH, 0, padH, 0)
+                minWidth = (54 * density).toInt()
                 isClickable = true
                 isFocusable = true
                 setOnClickListener { select(index, notify = true) }
             }
-            // Wraps its label inside a wrap_content pill; shares spare width when stretched.
-            addView(segment, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f))
+            val lp = LayoutParams(LayoutParams.WRAP_CONTENT, (31 * density).toInt())
+            if (index > 0) lp.marginStart = (6 * density).toInt()
+            addView(segment, lp)
             segments += segment
         }
         select(selected.coerceIn(0, (labels.size - 1).coerceAtLeast(0)), notify = false)
@@ -55,7 +61,7 @@ class SegmentedPillView @JvmOverloads constructor(
         selectedIndex = index
         segments.forEachIndexed { i, segment ->
             val active = i == index
-            segment.setBackgroundResource(if (active) R.drawable.bg_skor_seg_active else 0)
+            segment.setBackgroundResource(if (active) R.drawable.bg_skor_seg_active else R.drawable.bg_skor_seg_inactive)
             segment.setTextColor(
                 ContextCompat.getColor(
                     context, if (active) R.color.skor_on_seg_active else R.color.skor_text_secondary
