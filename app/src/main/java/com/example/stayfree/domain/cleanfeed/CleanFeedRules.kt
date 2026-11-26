@@ -127,8 +127,9 @@ object CleanFeedRules {
         """
         (function(){
           if (window.__bbClean) { window.__bbClean(); return; }
-          var css = 'a[href="/reels/"],a[href^="/reels/"],a[href="/explore/"]:not([href^="/explore/search"])' +
-            '{display:none!important}' +
+          // The Explore tab stays: it is the only way to search, and the grid it would
+          // open is redirected to plain search by decide().
+          var css = 'a[href="/reels/"],a[href^="/reels/"]{display:none!important}' +
             '[data-bb-endlist]{box-sizing:border-box!important;padding-bottom:0!important;' +
             'max-height:var(--bb-max)!important;overflow:hidden!important}' +
             '[data-bb-endwrap]~*{display:none!important}' +
