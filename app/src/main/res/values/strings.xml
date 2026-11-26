@@ -463,9 +463,10 @@
     <string name="clean_feed_counter" translatable="false">%1$d / %2$d</string>
     <string name="clean_feed_counter_cd">%1$d of %2$d posts this session</string>
     <string name="clean_feed_close">Close</string>
-    <string name="clean_feed_cover_title">That\'s %1$d posts</string>
-    <string name="clean_feed_cover_message">Your feed rests until %1$s. Messages are still open.</string>
-    <string name="clean_feed_messages">Open messages</string>
+    <string name="clean_feed_end_title">You\'ve seen all new posts</string>
+    <string name="clean_feed_end_message">More posts at %1$s.</string>
+    <string name="clean_feed_messages">Messages</string>
+    <string name="clean_feed_stories">Stories</string>
     <!-- Blocking tab (what is blocked right now) -->
     <string name="blocking_status_strict_on">Strict mode is on · unlock for 1–15 min</string>
     <string name="blocking_status_protection_off">Protection is off. Tap to turn it on</string>

@@ -8,7 +8,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.format.DateFormat
-import android.view.View
+import android.transition.ChangeBounds
+import android.transition.TransitionManager
+import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
@@ -21,7 +23,10 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityCleanInstagramBinding
@@ -35,17 +40,18 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.util.Date
 import javax.inject.Inject
 
 /**
- * "Clean Instagram" (premium): instagram.com in our own WebView, opened on the
- * Following feed only. Reels, Explore and the algorithmic home feed are redirected
- * away ([CleanFeedRules]); scrolling is capped per session ([ScrollBudget]) and a
- * calm cover takes over the feed when the cap is spent — messages stay open.
+ * "Clean Instagram" (premium): instagram.com in our own WebViews: the stories tray on
+ * top, the Following feed below. Reels, Explore and the algorithmic home feed are
+ * redirected away ([CleanFeedRules]); posts are capped per session ([ScrollBudget])
+ * and the feed ends in a "caught up" card when the cap is spent.
  *
  * Privacy: the page talks to Instagram directly. We expose no JavaScript interface,
- * never read cookies or page content, and only measure scroll distance.
+ * never read cookies or page content, and only read back a count of posts seen.
  */
 @AndroidEntryPoint
 class CleanInstagramActivity : AppCompatActivity() {
@@ -55,12 +61,18 @@ class CleanInstagramActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCleanInstagramBinding
     private var limit = ScrollBudget.DEFAULT_LIMIT
     private var session = ScrollSession()
-    // Scrolled pixels not yet worth a whole post.
-    private var pendingPx = 0f
     private var unlockJob: Job? = null
     private var webReady = false
+    private var trayReady = false
+    private var trayWanted = true
+    private var lastFeedUrl: String? = null
 
     companion object {
+        private const val POLL_MS = 1_000L
+        private const val TRAY_SCROLL_SLOP = 12
+        private const val TRAY_FIT_ATTEMPTS = 20
+        private const val TAKE_JS = "window.__bbTake ? window.__bbTake() : 0"
+
         fun newIntent(context: Context): Intent =
             Intent(context, CleanInstagramActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -72,12 +84,10 @@ class CleanInstagramActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.btnClose.setOnClickListener { finish() }
-        binding.btnCoverExit.setOnClickListener { goHome() }
-        binding.btnCoverMessages.setOnClickListener { binding.webView.loadUrl(CleanFeedRules.INBOX_URL) }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val web = binding.webView
-                if (webReady && web.canGoBack() && !binding.cover.isVisible) web.goBack() else finish()
+                if (webReady && web.canGoBack()) web.goBack() else finish()
             }
         })
 
@@ -96,12 +106,17 @@ class CleanInstagramActivity : AppCompatActivity() {
                 binding.webView.loadUrl(CleanFeedRules.HOME_URL)
             }
             render()
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                while (true) {
+                    delay(POLL_MS)
+                    pollSeenPosts()
+                }
+            }
         }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun setUpWebView() {
-        val web = binding.webView
+    private fun configure(web: WebView) {
         web.settings.apply {
             javaScriptEnabled = true          // instagram.com does not render without it
             domStorageEnabled = true
@@ -113,9 +128,21 @@ class CleanInstagramActivity : AppCompatActivity() {
             // Instagram serves a degraded page to anything marked as an embedded WebView.
             userAgentString = userAgentString.replace("; wv", "")
         }
-        CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, false)
+    }
 
+    private fun setUpWebView() {
+        val web = binding.webView
+        configure(web)
+        CookieManager.getInstance().setAcceptCookie(true)
+        setUpStories()
+
+        web.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
+            // Like the app: the tray slides away while reading down, returns on the way up.
+            val dy = scrollY - oldScrollY
+            if (dy > TRAY_SCROLL_SLOP && scrollY > binding.webStories.height) showTray(false)
+            else if (dy < -TRAY_SCROLL_SLOP || scrollY == 0) showTray(true)
+        }
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 if (!request.isForMainFrame) return false
@@ -128,7 +155,10 @@ class CleanInstagramActivity : AppCompatActivity() {
                 val nav = CleanFeedRules.decide(url)
                 if (nav is Nav.Redirect && nav.url != url) view.loadUrl(nav.url)
                 view.evaluateJavascript(CleanFeedRules.INJECTED_JS, null)
-                pendingPx = 0f
+                // Back from a story: the tray's rings may have changed.
+                if (CleanFeedRules.isFeed(url) && !CleanFeedRules.isFeed(lastFeedUrl)) binding.webStories.reload()
+                lastFeedUrl = url
+                updateTray()
                 render()
             }
 
@@ -150,13 +180,76 @@ class CleanInstagramActivity : AppCompatActivity() {
                 binding.progress.setProgressCompat(newProgress, true)
             }
         }
-        web.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-            val dy = scrollY - oldScrollY
-            if (dy > 0 && !session.isLocked(now()) && CleanFeedRules.countsTowardLimit(web.url)) {
-                onScrolledDown(dy)
+        webReady = true
+    }
+
+    /**
+     * The tray WebView only ever shows the bare home page, cut down to the stories
+     * tray by [CleanFeedRules.TRAY_JS]. Tapping a story (or anything else) opens it in
+     * the feed WebView, full screen, and the tray steps back to the home page.
+     */
+    private fun setUpStories() {
+        val tray = binding.webStories
+        configure(tray)
+        tray.isVerticalScrollBarEnabled = false
+        tray.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                if (!request.isForMainFrame) return false
+                val url = request.url.toString()
+                if (CleanFeedRules.isStoriesTray(url)) return false
+                openInFeed(url)
+                return true
+            }
+
+            override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
+                super.doUpdateVisitedHistory(view, url, isReload)
+                if (CleanFeedRules.isStoriesTray(url)) return
+                openInFeed(url)
+                if (view.canGoBack()) view.goBack() else view.loadUrl(CleanFeedRules.STORIES_URL)
+            }
+
+            override fun onPageFinished(view: WebView, url: String) = fitTray()
+
+            @RequiresApi(Build.VERSION_CODES.O)
+            override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                finish()
+                return true
             }
         }
-        webReady = true
+        tray.loadUrl(CleanFeedRules.STORIES_URL)
+    }
+
+    /** The tray renders a moment after the page loads: measure until it is there. */
+    private fun fitTray(attempt: Int = 0) {
+        binding.webStories.evaluateJavascript(CleanFeedRules.TRAY_JS) { result ->
+            val heightDp = result?.toIntOrNull() ?: 0
+            if (heightDp <= 0) {
+                if (attempt < TRAY_FIT_ATTEMPTS) binding.webStories.postDelayed({ fitTray(attempt + 1) }, 500L)
+                return@evaluateJavascript
+            }
+            val px = (heightDp * resources.displayMetrics.density).toInt()
+            binding.webStories.updateLayoutParams { height = px }
+            trayReady = true
+            updateTray()
+        }
+    }
+
+    private fun openInFeed(url: String) {
+        if (!handle(binding.webView, url)) binding.webView.loadUrl(url)
+    }
+
+    private fun showTray(show: Boolean) {
+        if (trayWanted == show) return
+        trayWanted = show
+        updateTray()
+    }
+
+    /** Above the feed only: a story, messages or a profile get the whole screen. */
+    private fun updateTray() {
+        val show = trayReady && trayWanted && CleanFeedRules.isFeed(binding.webView.url)
+        if (binding.webStories.isVisible == show) return
+        TransitionManager.beginDelayedTransition(binding.root as ViewGroup, ChangeBounds().setDuration(180L))
+        binding.webStories.isVisible = show
     }
 
     /** Returns true when the WebView must NOT load [url] itself. */
@@ -172,16 +265,15 @@ class CleanInstagramActivity : AppCompatActivity() {
         }
     }
 
-    private fun onScrolledDown(dy: Int) {
-        val postPx = binding.webView.height * ScrollBudget.POST_SCREEN_FRACTION
-        if (postPx <= 0f) return
-        pendingPx += dy
-        val posts = (pendingPx / postPx).toInt()
-        if (posts <= 0) return
-        pendingPx -= posts * postPx
-        lifecycleScope.launch {
-            session = prefs.updateCleanFeedSession { ScrollBudget.addPosts(it, posts, limit, now()) }
-            render()
+    /** The page counts friends' posts as they scroll into view; we persist them. */
+    private fun pollSeenPosts() {
+        binding.webView.evaluateJavascript(TAKE_JS) { result ->
+            val posts = result?.toIntOrNull() ?: 0
+            if (posts <= 0) return@evaluateJavascript
+            lifecycleScope.launch {
+                session = prefs.updateCleanFeedSession { ScrollBudget.addPosts(it, posts, limit, now()) }
+                render()
+            }
         }
     }
 
@@ -189,6 +281,7 @@ class CleanInstagramActivity : AppCompatActivity() {
         super.onResume()
         if (!webReady) return
         binding.webView.onResume()
+        binding.webStories.onResume()
         lifecycleScope.launch {
             limit = prefs.cleanFeedLimit.first()
             session = prefs.updateCleanFeedSession { ScrollBudget.current(it, now()) }
@@ -198,7 +291,10 @@ class CleanInstagramActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        if (webReady) binding.webView.onPause()
+        if (webReady) {
+            binding.webView.onPause()
+            binding.webStories.onPause()
+        }
         CookieManager.getInstance().flush()
     }
 
@@ -212,6 +308,10 @@ class CleanInstagramActivity : AppCompatActivity() {
         binding.webView.apply {
             stopLoading()
             webChromeClient = null
+            destroy()
+        }
+        binding.webStories.apply {
+            stopLoading()
             destroy()
         }
         super.onDestroy()
@@ -229,23 +329,18 @@ class CleanInstagramActivity : AppCompatActivity() {
             ContextCompat.getColor(this, if (remaining <= 3) R.color.skor_warn else R.color.skor_text_dim)
         )
 
-        // Spent: the feed rests, messages stay usable.
-        val cover = locked && !CleanFeedRules.isMessages(binding.webView.url)
-        if (cover && !binding.cover.isVisible) {
-            binding.cover.alpha = 0f
-            binding.cover.isVisible = true
-            binding.cover.animate().alpha(1f).setDuration(200).start()
-        } else if (!cover) {
-            binding.cover.isVisible = false
-        }
-        if (locked) {
-            binding.tvCoverTitle.text = getString(R.string.clean_feed_cover_title, limit)
-            binding.tvCoverMessage.text = getString(
-                R.string.clean_feed_cover_message,
+        // Spent: the feed ends in a "caught up" card; stories and messages stay usable.
+        val card = JSONObject()
+            .put("title", getString(R.string.clean_feed_end_title))
+            .put("message", if (!locked) "" else getString(
+                R.string.clean_feed_end_message,
                 DateFormat.getTimeFormat(this).format(Date(session.lockedUntil))
-            )
-            scheduleUnlock(session.lockedUntil - now)
-        }
+            ))
+            .put("messages", getString(R.string.clean_feed_messages))
+            .put("stories", getString(R.string.clean_feed_stories))
+            .put("accent", String.format("#%06X", 0xFFFFFF and ContextCompat.getColor(this, R.color.skor_focus)))
+        binding.webView.evaluateJavascript("window.__bbSet && window.__bbSet($remaining, $card)", null)
+        if (locked) scheduleUnlock(session.lockedUntil - now)
     }
 
     /** The pause can end while the screen is open: lift the cover on time. */
@@ -256,14 +351,6 @@ class CleanInstagramActivity : AppCompatActivity() {
             session = prefs.updateCleanFeedSession { ScrollBudget.current(it, now()) }
             render()
         }
-    }
-
-    private fun goHome() {
-        startActivity(Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        })
-        finish()
     }
 
     private fun now() = System.currentTimeMillis()

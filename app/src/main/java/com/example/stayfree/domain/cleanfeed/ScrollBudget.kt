@@ -1,8 +1,8 @@
 package com.example.stayfree.domain.cleanfeed
 
 /**
- * Scroll limit for the clean feed: [ScrollSession.posts] counts posts scrolled past.
- * At the limit the feed locks for [PAUSE_MS]; when the pause ends a fresh session
+ * Post limit for the clean feed: [ScrollSession.posts] counts friends' posts seen.
+ * At the limit the feed ends for [PAUSE_MS]; when the pause ends a fresh session
  * starts. A session also starts over after [PAUSE_MS] of not scrolling, so closing
  * and reopening the screen never resets the count early.
  */
@@ -20,14 +20,6 @@ object ScrollBudget {
     /** Choices offered in the app, in posts per session. */
     val LIMIT_STEPS = listOf(10, 20, 30, 50)
     const val PAUSE_MS = 30 * 60_000L
-
-    /**
-     * One post on instagram.com's phone layout is a little under a screen
-     * (header, square media, actions, caption). Scrolled pixels / (screen height
-     * × this) ≈ posts scrolled past. Measured, not read from the page, so it
-     * survives any redesign.
-     */
-    const val POST_SCREEN_FRACTION = 0.8f
 
     /** The session as it stands at [now]: an ended pause or a long idle start over. */
     fun current(s: ScrollSession, now: Long): ScrollSession {
