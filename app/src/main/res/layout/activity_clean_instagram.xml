@@ -46,6 +46,18 @@
             android:layout_height="wrap_content"
             android:fontFeatureSettings="tnum"
             tools:text="4 / 20" />
+
+        <!-- Instagram's own header (with this heart) is hidden on the feed. -->
+        <ImageButton
+            android:id="@+id/btn_activity"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="-8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/clean_feed_activity"
+            android:src="@drawable/ic_heart_outline"
+            app:tint="@color/skor_text" />
     </LinearLayout>
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
@@ -64,9 +76,65 @@
         android:layout_height="0dp"
         android:visibility="gone" />
 
-    <WebView
-        android:id="@+id/web_view"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1">
+
+        <WebView
+            android:id="@+id/web_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- A post or reel opened outside the feed once the session's posts are
+             spent. Clickable so no touch reaches the page underneath. -->
+        <LinearLayout
+            android:id="@+id/post_limit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/skor_ground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="32dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                style="@style/Skor.Text"
+                android:gravity="center"
+                android:text="@string/clean_feed_post_limit_title"
+                android:textFontWeight="700"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_post_limit_message"
+                style="@style/Skor.Text"
+                android:layout_width="match_parent"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:lineSpacingMultiplier="1.3"
+                android:textColor="@color/skor_text_dim"
+                android:textSize="15sp"
+                tools:text="More posts at 21:30." />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_post_limit_messages"
+                style="@style/Skor.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/clean_feed_to_messages" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_post_limit_back"
+                style="@style/Skor.Button.Quiet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/clean_feed_back" />
+        </LinearLayout>
+    </FrameLayout>
 </LinearLayout>

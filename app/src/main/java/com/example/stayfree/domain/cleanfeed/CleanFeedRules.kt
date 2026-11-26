@@ -108,6 +108,31 @@ object CleanFeedRules {
             uri.query.isNullOrEmpty()
     }
 
+    const val INBOX_URL = "https://www.instagram.com/direct/inbox/"
+    const val ACTIVITY_URL = "https://www.instagram.com/accounts/activity/"
+
+    /**
+     * The id of a single post or reel page (/p/<id>/, /reel/<id>/, also under a
+     * username), or null for any other page. Path-only so it is unit-testable.
+     */
+    fun postIdOfPath(rawPath: String): String? =
+        POST_PATH.find(rawPath)?.groupValues?.get(2)
+
+    // Ids are case-sensitive: only the /p/ part is matched without case.
+    private val POST_PATH = Regex("/(p|reel|tv)/([^/?#]+)", RegexOption.IGNORE_CASE)
+
+    fun postIdOf(url: String?): String? {
+        val uri = url?.let { runCatching { Uri.parse(it) }.getOrNull() } ?: return null
+        if (!isInstagramHost(uri.host)) return null
+        return postIdOfPath(uri.path.orEmpty())
+    }
+
+    /** Messages: a post opened from here is always allowed and never counted. */
+    fun isMessages(url: String?): Boolean {
+        val uri = url?.let { runCatching { Uri.parse(it) }.getOrNull() } ?: return false
+        return isInstagramHost(uri.host) && uri.path.orEmpty().startsWith("/direct/")
+    }
+
     /** The feed page, where the stories tray belongs above the posts. */
     fun isFeed(url: String?): Boolean {
         val uri = url?.let { runCatching { Uri.parse(it) }.getOrNull() } ?: return false
@@ -322,6 +347,13 @@ object CleanFeedRules {
             unclip();
             hide();
           }
+          // A post opened outside the feed (search, a profile, notifications): the app
+          // counts it only if the feed has not already.
+          window.__bbMarkSeen = function(id){
+            if (seen[id]) return 0;
+            markSeen(id);
+            return 1;
+          };
           // Polled every second: also the safety net that re-applies the end state and
           // counts posts already on screen without a scroll.
           window.__bbTake = function(){

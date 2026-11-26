@@ -36,6 +36,15 @@ class CleanFeedRulesTest {
         assertEquals(Nav.Allow, CleanFeedRules.decidePath("/explore/search/", null))
     }
 
+    @Test fun `post and reel pages give their id, case kept`() {
+        assertEquals("C123abC", CleanFeedRules.postIdOfPath("/p/C123abC/"))
+        assertEquals("DgM1-D_x", CleanFeedRules.postIdOfPath("/reel/DgM1-D_x/"))
+        assertEquals("C1", CleanFeedRules.postIdOfPath("/some.friend/p/C1/"))
+        assertEquals(null, CleanFeedRules.postIdOfPath("/some.friend/"))
+        assertEquals(null, CleanFeedRules.postIdOfPath("/reels/"))
+        assertEquals(null, CleanFeedRules.postIdOfPath("/direct/inbox/"))
+    }
+
     @Test fun `profiles, posts and messages stay`() {
         assertEquals(Nav.Allow, CleanFeedRules.decidePath("/some.friend/", null))
         assertEquals(Nav.Allow, CleanFeedRules.decidePath("/p/C123abc/", null))

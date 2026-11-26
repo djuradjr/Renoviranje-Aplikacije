@@ -467,6 +467,10 @@
     <string name="clean_feed_end_message">More posts at %1$s.</string>
     <string name="clean_feed_messages">Messages</string>
     <string name="clean_feed_stories">Stories</string>
+    <string name="clean_feed_activity">Notifications</string>
+    <string name="clean_feed_post_limit_title">You\'ve used this session\'s posts</string>
+    <string name="clean_feed_to_messages">Go to messages</string>
+    <string name="clean_feed_back">Back</string>
     <string name="clean_feed_pause_label">Pause between sessions</string>
     <string name="clean_feed_sessions_label">Sessions per day</string>
     <string name="clean_feed_sessions_unlimited">No limit</string>

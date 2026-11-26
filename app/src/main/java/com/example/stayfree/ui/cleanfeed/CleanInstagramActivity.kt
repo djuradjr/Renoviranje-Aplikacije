@@ -71,6 +71,8 @@ class CleanInstagramActivity : AppCompatActivity() {
     private var trayReady = false
     private var trayWanted = true
     private var lastFeedUrl: String? = null
+    // The post (by id) the user opened from messages: shown even past the limit.
+    private var postFromMessages: String? = null
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     // Main-frame loads that failed, by URL: retried a couple of times, then left.
     private val failedLoads = mutableMapOf<String, Int>()
@@ -106,10 +108,19 @@ class CleanInstagramActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.btnClose.setOnClickListener { close() }
+        binding.btnActivity.setOnClickListener {
+            if (webReady) binding.webView.loadUrl(CleanFeedRules.ACTIVITY_URL)
+        }
+        binding.btnPostLimitMessages.setOnClickListener {
+            showPostLimit(false)
+            binding.webView.loadUrl(CleanFeedRules.INBOX_URL)
+        }
+        binding.btnPostLimitBack.setOnClickListener { leavePost() }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val web = binding.webView
-                if (webReady && web.canGoBack()) web.goBack() else close()
+                if (binding.postLimit.isVisible) leavePost()
+                else if (webReady && web.canGoBack()) web.goBack() else close()
             }
         })
 
@@ -176,6 +187,7 @@ class CleanInstagramActivity : AppCompatActivity() {
                 val nav = CleanFeedRules.decide(url)
                 if (nav is Nav.Redirect && nav.url != url) view.loadUrl(nav.url)
                 view.evaluateJavascript(CleanFeedRules.INJECTED_JS, null)
+                gatePost(view, url, previous = lastFeedUrl)
                 // Back from a story: the tray's rings may have changed.
                 if (CleanFeedRules.isFeed(url) && !CleanFeedRules.isFeed(lastFeedUrl)) binding.webStories.reload()
                 lastFeedUrl = url
@@ -329,6 +341,58 @@ class CleanInstagramActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * A post or reel opened outside the feed (search, a profile, notifications) uses
+     * the same budget: counted once before the limit, covered after it. One opened
+     * from messages is always shown and never counted; where the user goes from it
+     * follows the normal rule.
+     */
+    private fun gatePost(view: WebView, url: String, previous: String?) {
+        val id = CleanFeedRules.postIdOf(url)
+        if (id == null) {
+            postFromMessages = null
+            showPostLimit(false)
+            return
+        }
+        if (CleanFeedRules.isMessages(previous)) postFromMessages = id
+        if (id == postFromMessages) {
+            showPostLimit(false)
+            return
+        }
+        if (session.isLocked(now())) {
+            showPostLimit(true)
+            return
+        }
+        showPostLimit(false)
+        val markJs = "(function(id){if(window.__bbMarkSeen)return window.__bbMarkSeen(id);return 1;})(" +
+            JSONObject.quote(id) + ")"
+        view.evaluateJavascript(markJs) { result ->
+            if (result != "1") return@evaluateJavascript
+            lifecycleScope.launch {
+                session = prefs.updateCleanFeedSession { ScrollBudget.addPosts(it, 1, rules, day(), now()) }
+                render()
+            }
+        }
+    }
+
+    private fun showPostLimit(show: Boolean) {
+        if (show) binding.tvPostLimitMessage.text = limitMessage()
+        binding.postLimit.isVisible = show
+    }
+
+    private fun leavePost() {
+        showPostLimit(false)
+        val web = binding.webView
+        if (web.canGoBack()) web.goBack() else web.loadUrl(CleanFeedRules.HOME_URL)
+    }
+
+    /** "More posts at 15:22.", or that the day's sessions are used up. */
+    private fun limitMessage(): String =
+        if (session.dayLocked) resources.getQuantityString(
+            R.plurals.clean_feed_end_day, session.sessionsToday, session.sessionsToday)
+        else getString(R.string.clean_feed_end_message,
+            DateFormat.getTimeFormat(this).format(Date(session.lockedUntil)))
+
     /** The page counts friends' posts as they scroll into view; we persist them. */
     private fun pollSeenPosts() {
         binding.webView.evaluateJavascript(TAKE_JS) { result ->
@@ -397,20 +461,13 @@ class CleanInstagramActivity : AppCompatActivity() {
         // Spent: the feed ends in a "caught up" card; stories and messages stay usable.
         val card = JSONObject()
             .put("title", getString(R.string.clean_feed_end_title))
-            .put("message", when {
-                !locked -> ""
-                session.dayLocked -> resources.getQuantityString(
-                    R.plurals.clean_feed_end_day, session.sessionsToday, session.sessionsToday)
-                else -> getString(
-                    R.string.clean_feed_end_message,
-                    DateFormat.getTimeFormat(this).format(Date(session.lockedUntil))
-                )
-            })
+            .put("message", if (locked) limitMessage() else "")
             .put("messages", getString(R.string.clean_feed_messages))
             .put("stories", getString(R.string.clean_feed_stories))
             .put("accent", String.format("#%06X", 0xFFFFFF and ContextCompat.getColor(this, R.color.skor_focus)))
         binding.webView.evaluateJavascript("window.__bbSet && window.__bbSet($remaining, $card)", null)
         if (locked) scheduleUnlock(session.lockedUntil - now)
+        else if (binding.postLimit.isVisible) showPostLimit(false)
     }
 
     /** The pause can end while the screen is open: lift the cover on time. */

@@ -436,6 +436,10 @@
     <string name="clean_feed_end_message">Nove objave stižu u %1$s.</string>
     <string name="clean_feed_messages">Poruke</string>
     <string name="clean_feed_stories">Priče</string>
+    <string name="clean_feed_activity">Obaveštenja</string>
+    <string name="clean_feed_post_limit_title">Potrošio si objave za ovu sesiju</string>
+    <string name="clean_feed_to_messages">Idi u poruke</string>
+    <string name="clean_feed_back">Nazad</string>
     <string name="clean_feed_pause_label">Pauza između sesija</string>
     <string name="clean_feed_sessions_label">Sesija dnevno</string>
     <string name="clean_feed_sessions_unlimited">Bez limita</string>
