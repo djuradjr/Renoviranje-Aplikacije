@@ -109,9 +109,11 @@ class AppPreferences @Inject constructor(
         // clean-feed suggestion was last shown on the unlock screen (once a day).
         val INSTAGRAM_UNLOCK_DAY = stringPreferencesKey("instagram_unlock_day_json")
         val CLEAN_FEED_NUDGE_DATE = stringPreferencesKey("clean_feed_nudge_date")
-        // Clean Instagram feed (premium): posts per session, and the running
-        // session {"posts","last","until"} — see ScrollBudget.
+        // Clean Instagram feed (premium): posts per session, pause, sessions per day,
+        // and the running session {"posts","last","until","day","n","dayLock"} — see ScrollBudget.
         val CLEAN_FEED_LIMIT = intPreferencesKey("clean_feed_limit_posts")
+        val CLEAN_FEED_PAUSE = intPreferencesKey("clean_feed_pause_minutes")
+        val CLEAN_FEED_SESSIONS = intPreferencesKey("clean_feed_sessions_per_day")
         val CLEAN_FEED_SESSION = stringPreferencesKey("clean_feed_session_json")
     }
 
@@ -163,9 +165,14 @@ class AppPreferences @Inject constructor(
 
     val premiumActive: Flow<Boolean> = dataStore.data.map { it[PREMIUM_ACTIVE] ?: false }
 
-    /** Clean Instagram feed: posts allowed per session before the pause. */
-    val cleanFeedLimit: Flow<Int> =
-        dataStore.data.map { it[CLEAN_FEED_LIMIT] ?: ScrollBudget.DEFAULT_LIMIT }
+    /** Clean Instagram feed: posts per session, the pause after it, sessions per day. */
+    val cleanFeedRules: Flow<ScrollBudget.Rules> = dataStore.data.map {
+        ScrollBudget.Rules(
+            limit = it[CLEAN_FEED_LIMIT] ?: ScrollBudget.DEFAULT_LIMIT,
+            pauseMinutes = it[CLEAN_FEED_PAUSE] ?: ScrollBudget.DEFAULT_PAUSE_MINUTES,
+            sessionsPerDay = it[CLEAN_FEED_SESSIONS] ?: ScrollBudget.DEFAULT_SESSIONS_PER_DAY
+        )
+    }
     val cleanFeedSession: Flow<ScrollSession> =
         dataStore.data.map { parseCleanFeedSession(it[CLEAN_FEED_SESSION]) }
 
@@ -370,6 +377,15 @@ class AppPreferences @Inject constructor(
         dataStore.edit { it[CLEAN_FEED_LIMIT] = posts.coerceAtLeast(1) }
     }
 
+    suspend fun setCleanFeedPause(minutes: Int) {
+        dataStore.edit { it[CLEAN_FEED_PAUSE] = minutes.coerceAtLeast(ScrollBudget.PAUSE_STEPS.first()) }
+    }
+
+    /** 0 = no daily maximum. */
+    suspend fun setCleanFeedSessionsPerDay(sessions: Int) {
+        dataStore.edit { it[CLEAN_FEED_SESSIONS] = sessions.coerceAtLeast(0) }
+    }
+
     /** Atomic read-modify-write of the clean-feed session; returns the stored result. */
     suspend fun updateCleanFeedSession(transform: (ScrollSession) -> ScrollSession): ScrollSession {
         var result = ScrollSession()
@@ -379,6 +395,9 @@ class AppPreferences @Inject constructor(
                 .put("posts", result.posts)
                 .put("last", result.lastActiveAt)
                 .put("until", result.lockedUntil)
+                .put("day", result.day)
+                .put("n", result.sessionsToday)
+                .put("dayLock", result.dayLocked)
                 .toString()
         }
         return result
@@ -388,7 +407,8 @@ class AppPreferences @Inject constructor(
         if (json.isNullOrEmpty()) return ScrollSession()
         return try {
             val o = JSONObject(json)
-            ScrollSession(o.optInt("posts"), o.optLong("last"), o.optLong("until"))
+            ScrollSession(o.optInt("posts"), o.optLong("last"), o.optLong("until"),
+                o.optString("day"), o.optInt("n"), o.optBoolean("dayLock"))
         } catch (e: Exception) {
             ScrollSession()
         }

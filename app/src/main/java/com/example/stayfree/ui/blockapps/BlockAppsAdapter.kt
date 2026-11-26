@@ -19,8 +19,10 @@ class BlockAppsAdapter(
     private val onContentToggle: (targetId: String, enabled: Boolean) -> Unit,
     private val onContentLimitChange: (targetId: String, minutes: Int, increase: Boolean) -> Unit,
     private val onCleanFeedOpen: () -> Unit,
-    private val onCleanFeedLimitChange: (posts: Int, increase: Boolean) -> Unit
-) : ListAdapter<BlockAppItem, BlockAppsAdapter.ViewHolder>(DIFF) {
+    private val onCleanFeedLimitChange: (posts: Int, increase: Boolean) -> Unit,
+    private val onCleanFeedPauseChange: (minutes: Int, loosen: Boolean) -> Unit,
+    private val onCleanFeedSessionsChange: (sessions: Int, loosen: Boolean) -> Unit
+): ListAdapter<BlockAppItem, BlockAppsAdapter.ViewHolder>(DIFF) {
 
     // Expanded app rows — UI-only state, intentionally not persisted.
     private val expandedPkgs = mutableSetOf<String>()
@@ -90,17 +92,37 @@ class BlockAppsAdapter(
         }
 
         private fun bindCleanFeed(item: BlockAppItem, expanded: Boolean) {
-            val limit = item.cleanFeedLimit
-            binding.cardCleanFeed.visibility = if (expanded && limit != null) View.VISIBLE else View.GONE
-            if (!expanded || limit == null) return
-            binding.tvCleanLimitValue.text = limit.toString()
+            val rules = item.cleanFeedRules
+            binding.cardCleanFeed.visibility = if (expanded && rules != null) View.VISIBLE else View.GONE
+            if (!expanded || rules == null) return
+            val ctx = binding.root.context
+            binding.tvCleanLimitValue.text = rules.limit.toString()
             val steps = ScrollBudget.LIMIT_STEPS
-            val idx = nearestStepIndex(steps, limit)
+            val idx = nearestStepIndex(steps, rules.limit)
             bindArrow(binding.btnCleanLimitDown, enabled = idx > 0) {
                 onCleanFeedLimitChange(steps[idx - 1], false)
             }
             bindArrow(binding.btnCleanLimitUp, enabled = idx < steps.lastIndex) {
                 onCleanFeedLimitChange(steps[idx + 1], true)
+            }
+
+            // A shorter pause is loosening.
+            val pauses = ScrollBudget.PAUSE_STEPS
+            val p = nearestStepIndex(pauses, rules.pauseMinutes)
+            binding.tvCleanPauseValue.text = ctx.getString(R.string.block_app_limit_minutes, pauses[p])
+            bindArrow(binding.btnCleanPauseDown, enabled = p > 0) { onCleanFeedPauseChange(pauses[p - 1], true) }
+            bindArrow(binding.btnCleanPauseUp, enabled = p < pauses.lastIndex) {
+                onCleanFeedPauseChange(pauses[p + 1], false)
+            }
+
+            // The ladder runs from strict to "no limit" (0): every step up is loosening.
+            val sessions = ScrollBudget.SESSIONS_STEPS
+            val s = sessions.indexOf(rules.sessionsPerDay).takeIf { it >= 0 } ?: sessions.lastIndex
+            binding.tvCleanSessionsValue.text = if (sessions[s] == 0) ctx.getString(R.string.clean_feed_sessions_unlimited)
+                else sessions[s].toString()
+            bindArrow(binding.btnCleanSessionsDown, enabled = s > 0) { onCleanFeedSessionsChange(sessions[s - 1], false) }
+            bindArrow(binding.btnCleanSessionsUp, enabled = s < sessions.lastIndex) {
+                onCleanFeedSessionsChange(sessions[s + 1], true)
             }
             binding.btnCleanFeedOpen.setOnClickListener { onCleanFeedOpen() }
         }

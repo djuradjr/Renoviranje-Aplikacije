@@ -38,6 +38,7 @@ import com.example.stayfree.domain.cleanfeed.CleanFeedRules.Nav
 import com.example.stayfree.domain.cleanfeed.ScrollBudget
 import com.example.stayfree.domain.cleanfeed.ScrollSession
 import com.example.stayfree.ui.premium.PaywallActivity
+import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -62,7 +63,8 @@ class CleanInstagramActivity : AppCompatActivity() {
     @Inject lateinit var prefs: AppPreferences
 
     private lateinit var binding: ActivityCleanInstagramBinding
-    private var limit = ScrollBudget.DEFAULT_LIMIT
+    private var rules = ScrollBudget.Rules()
+    private var resetMinutes = 0
     private var session = ScrollSession()
     private var unlockJob: Job? = null
     private var webReady = false
@@ -118,8 +120,7 @@ class CleanInstagramActivity : AppCompatActivity() {
                 finish()
                 return@launch
             }
-            limit = prefs.cleanFeedLimit.first()
-            session = prefs.updateCleanFeedSession { ScrollBudget.current(it, now()) }
+            loadRules()
             setUpWebView()
             // Rotation or a process restore keeps the page the user was on.
             if (savedInstanceState?.let { binding.webView.restoreState(it) } == null) {
@@ -334,7 +335,7 @@ class CleanInstagramActivity : AppCompatActivity() {
             val posts = result?.toIntOrNull() ?: 0
             if (posts <= 0) return@evaluateJavascript
             lifecycleScope.launch {
-                session = prefs.updateCleanFeedSession { ScrollBudget.addPosts(it, posts, limit, now()) }
+                session = prefs.updateCleanFeedSession { ScrollBudget.addPosts(it, posts, rules, day(), now()) }
                 render()
             }
         }
@@ -346,8 +347,7 @@ class CleanInstagramActivity : AppCompatActivity() {
         binding.webView.onResume()
         binding.webStories.onResume()
         lifecycleScope.launch {
-            limit = prefs.cleanFeedLimit.first()
-            session = prefs.updateCleanFeedSession { ScrollBudget.current(it, now()) }
+            loadRules()
             render()
         }
     }
@@ -384,7 +384,8 @@ class CleanInstagramActivity : AppCompatActivity() {
     private fun render() {
         val now = now()
         val locked = session.isLocked(now)
-        val remaining = ScrollBudget.remaining(session, limit, now)
+        val remaining = ScrollBudget.remaining(session, rules, day(now), now)
+        val limit = rules.limit
 
         binding.tvCounter.text = getString(R.string.clean_feed_counter, limit - remaining, limit)
         binding.tvCounter.contentDescription =
@@ -396,10 +397,15 @@ class CleanInstagramActivity : AppCompatActivity() {
         // Spent: the feed ends in a "caught up" card; stories and messages stay usable.
         val card = JSONObject()
             .put("title", getString(R.string.clean_feed_end_title))
-            .put("message", if (!locked) "" else getString(
-                R.string.clean_feed_end_message,
-                DateFormat.getTimeFormat(this).format(Date(session.lockedUntil))
-            ))
+            .put("message", when {
+                !locked -> ""
+                session.dayLocked -> resources.getQuantityString(
+                    R.plurals.clean_feed_end_day, session.sessionsToday, session.sessionsToday)
+                else -> getString(
+                    R.string.clean_feed_end_message,
+                    DateFormat.getTimeFormat(this).format(Date(session.lockedUntil))
+                )
+            })
             .put("messages", getString(R.string.clean_feed_messages))
             .put("stories", getString(R.string.clean_feed_stories))
             .put("accent", String.format("#%06X", 0xFFFFFF and ContextCompat.getColor(this, R.color.skor_focus)))
@@ -412,10 +418,19 @@ class CleanInstagramActivity : AppCompatActivity() {
         unlockJob?.cancel()
         unlockJob = lifecycleScope.launch {
             delay(inMs.coerceAtLeast(0L) + 500L)
-            session = prefs.updateCleanFeedSession { ScrollBudget.current(it, now()) }
+            session = prefs.updateCleanFeedSession { ScrollBudget.current(it, rules, day(), now()) }
             render()
         }
     }
+
+    private suspend fun loadRules() {
+        rules = prefs.cleanFeedRules.first()
+        resetMinutes = prefs.dailyResetTimeMinutes.first()
+        session = prefs.updateCleanFeedSession { ScrollBudget.current(it, rules, day(), now()) }
+    }
+
+    private fun day(now: Long = now()) = ScrollBudget.Day(
+        TimeUtils.getEffectiveDate(resetMinutes, now), TimeUtils.nextEffectiveDayStartMs(resetMinutes, now))
 
     private fun now() = System.currentTimeMillis()
 }

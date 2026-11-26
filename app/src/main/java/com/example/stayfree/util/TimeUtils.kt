@@ -7,6 +7,18 @@ object TimeUtils {
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
+    /** When the next effective day (see [getEffectiveDate]) starts. */
+    fun nextEffectiveDayStartMs(resetTimeMinutes: Int, nowMs: Long = System.currentTimeMillis()): Long {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = nowMs
+        calendar.set(Calendar.HOUR_OF_DAY, resetTimeMinutes / 60)
+        calendar.set(Calendar.MINUTE, resetTimeMinutes % 60)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        if (calendar.timeInMillis <= nowMs) calendar.add(Calendar.DAY_OF_MONTH, 1)
+        return calendar.timeInMillis
+    }
+
     /**
      * Returns the "effective date" string based on the user-configured daily reset time.
      * If the current time is before today's reset, we're still in "yesterday's day".

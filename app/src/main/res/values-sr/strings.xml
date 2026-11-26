@@ -436,6 +436,18 @@
     <string name="clean_feed_end_message">Nove objave stižu u %1$s.</string>
     <string name="clean_feed_messages">Poruke</string>
     <string name="clean_feed_stories">Priče</string>
+    <string name="clean_feed_pause_label">Pauza između sesija</string>
+    <string name="clean_feed_sessions_label">Sesija dnevno</string>
+    <string name="clean_feed_sessions_unlimited">Bez limita</string>
+    <string name="cd_clean_pause_decrease">Kraća pauza</string>
+    <string name="cd_clean_pause_increase">Duža pauza</string>
+    <string name="cd_clean_sessions_decrease">Manje sesija dnevno</string>
+    <string name="cd_clean_sessions_increase">Više sesija dnevno</string>
+    <plurals name="clean_feed_end_day">
+        <item quantity="one">To je bila %d sesija za danas. Feed se otvara sutra.</item>
+        <item quantity="few">To su bile %d sesije za danas. Feed se otvara sutra.</item>
+        <item quantity="other">To je bilo %d sesija za danas. Feed se otvara sutra.</item>
+    </plurals>
     <!-- Blocking tab (what is blocked right now) -->
     <string name="blocking_status_strict_on">Strogi režim je uključen · otključavanje 1–15 min</string>
     <string name="blocking_status_protection_off">Zaštita je isključena. Dodirni da je uključiš</string>

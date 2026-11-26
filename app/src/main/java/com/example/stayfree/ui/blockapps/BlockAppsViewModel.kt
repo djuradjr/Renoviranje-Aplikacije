@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.domain.cleanfeed.CleanFeedRules
+import com.example.stayfree.domain.cleanfeed.ScrollBudget
 import com.example.stayfree.domain.content.ContentSignatures
 import com.example.stayfree.util.AppInfoUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,8 +36,8 @@ data class BlockAppItem(
     val isBlocked: Boolean,
     val limitMinutes: Int,
     val contentTargets: List<ContentTargetRow> = emptyList(),
-    /** Posts per clean-feed session; non-null only on the Instagram row. */
-    val cleanFeedLimit: Int? = null
+    /** Clean-feed settings; non-null only on the Instagram row. */
+    val cleanFeedRules: ScrollBudget.Rules? = null
 )
 
 @HiltViewModel
@@ -81,9 +82,9 @@ class BlockAppsViewModel @Inject constructor(
     }
 
     /** null = still loading (installed-app query hasn't finished yet). */
-    val items: StateFlow<List<BlockAppItem>?> = combine(allItems, query, prefs.cleanFeedLimit) { list, q, cleanLimit ->
+    val items: StateFlow<List<BlockAppItem>?> = combine(allItems, query, prefs.cleanFeedRules) { list, q, cleanRules ->
         val withClean = list.map {
-            if (it.packageName == CleanFeedRules.INSTAGRAM_PACKAGE) it.copy(cleanFeedLimit = cleanLimit) else it
+            if (it.packageName == CleanFeedRules.INSTAGRAM_PACKAGE) it.copy(cleanFeedRules = cleanRules) else it
         }
         if (q.isBlank()) withClean
         else withClean.filter { it.appName.contains(q.trim(), ignoreCase = true) }
@@ -107,6 +108,14 @@ class BlockAppsViewModel @Inject constructor(
 
     fun setCleanFeedLimit(posts: Int) {
         viewModelScope.launch { prefs.setCleanFeedLimit(posts) }
+    }
+
+    fun setCleanFeedPause(minutes: Int) {
+        viewModelScope.launch { prefs.setCleanFeedPause(minutes) }
+    }
+
+    fun setCleanFeedSessionsPerDay(sessions: Int) {
+        viewModelScope.launch { prefs.setCleanFeedSessionsPerDay(sessions) }
     }
 
     fun setContentLimit(id: String, minutes: Int) {

@@ -84,6 +84,14 @@ class BlockAppsFragment : Fragment() {
             onCleanFeedLimitChange = { posts, increase ->
                 if (!increase) viewModel.setCleanFeedLimit(posts)
                 else loosenGate.run { viewModel.setCleanFeedLimit(posts) }
+            },
+            onCleanFeedPauseChange = { minutes, loosen ->
+                if (!loosen) viewModel.setCleanFeedPause(minutes)
+                else loosenGate.run { viewModel.setCleanFeedPause(minutes) }
+            },
+            onCleanFeedSessionsChange = { sessions, loosen ->
+                if (!loosen) viewModel.setCleanFeedSessionsPerDay(sessions)
+                else loosenGate.run { viewModel.setCleanFeedSessionsPerDay(sessions) }
             }
         )
         binding.rvBlockApps.apply {

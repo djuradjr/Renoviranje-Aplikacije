@@ -467,6 +467,17 @@
     <string name="clean_feed_end_message">More posts at %1$s.</string>
     <string name="clean_feed_messages">Messages</string>
     <string name="clean_feed_stories">Stories</string>
+    <string name="clean_feed_pause_label">Pause between sessions</string>
+    <string name="clean_feed_sessions_label">Sessions per day</string>
+    <string name="clean_feed_sessions_unlimited">No limit</string>
+    <string name="cd_clean_pause_decrease">Shorter pause</string>
+    <string name="cd_clean_pause_increase">Longer pause</string>
+    <string name="cd_clean_sessions_decrease">Fewer sessions per day</string>
+    <string name="cd_clean_sessions_increase">More sessions per day</string>
+    <plurals name="clean_feed_end_day">
+        <item quantity="one">That was your %d session for today. The feed opens again tomorrow.</item>
+        <item quantity="other">That was %d sessions for today. The feed opens again tomorrow.</item>
+    </plurals>
     <!-- Blocking tab (what is blocked right now) -->
     <string name="blocking_status_strict_on">Strict mode is on · unlock for 1–15 min</string>
     <string name="blocking_status_protection_off">Protection is off. Tap to turn it on</string>
