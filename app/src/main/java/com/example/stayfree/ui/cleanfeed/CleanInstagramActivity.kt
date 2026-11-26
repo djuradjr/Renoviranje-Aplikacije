@@ -12,6 +12,8 @@ import android.transition.ChangeBounds
 import android.transition.TransitionManager
 import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.ValueCallback
+import android.webkit.WebResourceError
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -19,6 +21,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -66,16 +69,33 @@ class CleanInstagramActivity : AppCompatActivity() {
     private var trayReady = false
     private var trayWanted = true
     private var lastFeedUrl: String? = null
+    private var fileCallback: ValueCallback<Array<Uri>>? = null
+    // Main-frame loads that failed, by URL: retried a couple of times, then left.
+    private val failedLoads = mutableMapOf<String, Int>()
+
+    /** Photos for DMs and posts: the page's file input opens the system picker. */
+    private val pickFile = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        fileCallback?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data))
+        fileCallback = null
+    }
 
     companion object {
         private const val POLL_MS = 1_000L
         private const val TRAY_SCROLL_SLOP = 12
         private const val TRAY_FIT_ATTEMPTS = 20
+        private const val LOAD_RETRIES = 2
         private const val TAKE_JS = "window.__bbTake ? window.__bbTake() : 0"
+        private const val EXTRA_HOME_ON_CLOSE = "home_on_close"
 
-        fun newIntent(context: Context): Intent =
+        /**
+         * [homeOnClose]: opened in place of the real Instagram app. Closing must then go
+         * to the launcher: falling back to Instagram would trigger the block, which
+         * sends the user here again.
+         */
+        fun newIntent(context: Context, homeOnClose: Boolean = false): Intent =
             Intent(context, CleanInstagramActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(EXTRA_HOME_ON_CLOSE, homeOnClose)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,11 +103,11 @@ class CleanInstagramActivity : AppCompatActivity() {
         binding = ActivityCleanInstagramBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.btnClose.setOnClickListener { finish() }
+        binding.btnClose.setOnClickListener { close() }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val web = binding.webView
-                if (webReady && web.canGoBack()) web.goBack() else finish()
+                if (webReady && web.canGoBack()) web.goBack() else close()
             }
         })
 
@@ -167,6 +187,10 @@ class CleanInstagramActivity : AppCompatActivity() {
                 render()
             }
 
+            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                if (request.isForMainFrame) retryLoad(view, request.url.toString())
+            }
+
             @RequiresApi(Build.VERSION_CODES.O)
             override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
                 // The renderer died (memory pressure); this WebView is unusable now.
@@ -178,6 +202,22 @@ class CleanInstagramActivity : AppCompatActivity() {
             override fun onProgressChanged(view: WebView, newProgress: Int) {
                 binding.progress.isVisible = newProgress < 100
                 binding.progress.setProgressCompat(newProgress, true)
+            }
+
+            override fun onShowFileChooser(
+                view: WebView,
+                callback: ValueCallback<Array<Uri>>,
+                params: FileChooserParams
+            ): Boolean {
+                fileCallback?.onReceiveValue(null)
+                fileCallback = callback
+                return try {
+                    pickFile.launch(params.createIntent())
+                    true
+                } catch (e: ActivityNotFoundException) {
+                    fileCallback = null
+                    false
+                }
             }
         }
         webReady = true
@@ -210,6 +250,10 @@ class CleanInstagramActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView, url: String) = fitTray()
 
+            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                if (request.isForMainFrame) retryLoad(view, request.url.toString())
+            }
+
             @RequiresApi(Build.VERSION_CODES.O)
             override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
                 finish()
@@ -232,6 +276,25 @@ class CleanInstagramActivity : AppCompatActivity() {
             trayReady = true
             updateTray()
         }
+    }
+
+    /**
+     * Instagram sometimes refuses a load once (seen on a story opened by URL) and
+     * WebView would show its bare error page. Try again shortly, a couple of times.
+     */
+    private fun retryLoad(view: WebView, url: String) {
+        val attempt = (failedLoads[url] ?: 0) + 1
+        if (attempt > LOAD_RETRIES) return
+        failedLoads[url] = attempt
+        view.postDelayed({ if (!isDestroyed) view.loadUrl(url) }, 1_000L * attempt)
+    }
+
+    private fun close() {
+        if (intent.getBooleanExtra(EXTRA_HOME_ON_CLOSE, false)) {
+            startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+        finish()
     }
 
     private fun openInFeed(url: String) {
@@ -305,6 +368,7 @@ class CleanInstagramActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         unlockJob?.cancel()
+        fileCallback?.onReceiveValue(null)
         binding.webView.apply {
             stopLoading()
             webChromeClient = null

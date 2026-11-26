@@ -13,6 +13,7 @@ import com.example.stayfree.databinding.ActivityBlockOverlayBinding
 import com.example.stayfree.domain.cleanfeed.CleanFeedRules
 import com.example.stayfree.service.StayFreeAccessibilityService
 import com.example.stayfree.ui.cleanfeed.CleanFeedEntry
+import com.example.stayfree.ui.cleanfeed.CleanInstagramActivity
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.PinGate
 import com.example.stayfree.util.PinPrompt
@@ -115,7 +116,17 @@ class BlockOverlayActivity : AppCompatActivity() {
         binding.cleanFeed.root.isVisible = cleanFeed
         binding.tvCleanCaption.isVisible = cleanFeed
         if (cleanFeed) {
-            CleanFeedEntry.bind(this, binding.cleanFeed.root, binding.cleanFeed.chipCleanPro, lifecycleScope, prefs)
+            lifecycleScope.launch {
+                // Premium goes straight to the clean feed instead of a closed door; the
+                // short unlock stays on the Blocking tab. Free users still see the PRO button.
+                if (prefs.premiumActive.first()) {
+                    startActivity(CleanInstagramActivity.newIntent(this@BlockOverlayActivity, homeOnClose = true))
+                    finish()
+                } else {
+                    CleanFeedEntry.bind(this@BlockOverlayActivity, binding.cleanFeed.root,
+                        binding.cleanFeed.chipCleanPro, lifecycleScope, prefs)
+                }
+            }
         }
         binding.appMark.ivAppIcon.apply {
             outlineProvider = ViewOutlineProvider.BACKGROUND
