@@ -36,6 +36,7 @@ import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityCleanFeedBinding
 import com.example.stayfree.domain.cleanfeed.CleanNetwork
 import com.example.stayfree.domain.cleanfeed.CleanNetwork.Nav
+import com.example.stayfree.domain.cleanfeed.FacebookNetwork
 import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.domain.cleanfeed.ScrollBudget
 import com.example.stayfree.domain.cleanfeed.ScrollSession
@@ -104,6 +105,7 @@ abstract class CleanFeedActivity : AppCompatActivity() {
         fun newIntent(context: Context, network: CleanNetwork, homeOnClose: Boolean = false): Intent {
             val screen = when (network) {
                 InstagramNetwork -> CleanInstagramActivity::class.java
+                FacebookNetwork -> CleanFacebookActivity::class.java
             }
             return Intent(context, screen)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -507,4 +509,10 @@ abstract class CleanFeedActivity : AppCompatActivity() {
 class CleanInstagramActivity : CleanFeedActivity() {
     override val network = InstagramNetwork
     override val titleRes = R.string.clean_feed_title
+}
+
+@AndroidEntryPoint
+class CleanFacebookActivity : CleanFeedActivity() {
+    override val network = FacebookNetwork
+    override val titleRes = R.string.clean_facebook_title
 }

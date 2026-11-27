@@ -424,6 +424,7 @@
     <string name="notif_unlock_warning_title">%1$s: još 1 minut</string>
     <!-- Čisti Instagram (premium) -->
     <string name="clean_feed_title">Čisti Instagram</string>
+    <string name="clean_facebook_title">Čisti Facebook</string>
     <string name="clean_feed_subtitle">Samo profili koje pratiš. Bez Reels-a i Explore-a, uz limit skrolovanja.</string>
     <string name="clean_feed_note">Radi preko instagram.com. Prijaviš se jednom, a prijava ostaje samo na ovom telefonu.</string>
     <string name="clean_feed_open">Otvori čisti Instagram</string>

@@ -454,6 +454,7 @@
     <string name="notif_unlock_warning_title">%1$s: 1 minute left</string>
     <!-- Clean Instagram (premium) -->
     <string name="clean_feed_title">Clean Instagram</string>
+    <string name="clean_facebook_title">Clean Facebook</string>
     <string name="clean_feed_subtitle">Only people you follow. No Reels, no Explore, a limit on scrolling.</string>
     <string name="clean_feed_note">Runs on instagram.com. You sign in once; the login stays on this phone only.</string>
     <string name="clean_feed_open">Open clean Instagram</string>
