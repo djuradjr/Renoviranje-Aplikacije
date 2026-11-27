@@ -36,10 +36,64 @@ data object FacebookNetwork : CleanNetwork {
     override val id = ID
     override val packages = setOf(FACEBOOK_PACKAGE, FACEBOOK_LITE_PACKAGE)
     override val homeUrl = HOME_URL
-    override val storiesUrl: String? = null
+    /** The algorithmic home page, loaded only for its stories tray. */
+    const val STORIES_URL = "$BASE/"
+    override val storiesUrl = STORIES_URL
     override val inboxUrl = INBOX_URL
     override val activityUrl = ACTIVITY_URL
-    override val trayJs: String? = null
+    /**
+     * For the stories WebView: the desktop page fitted to the phone, page scrolling
+     * off, every fixed or sticky bar hidden, the tray pinned to the top. The tray is
+     * found as the horizontal scroller around a story link, never by label, so it
+     * works in any language. Evaluates to the tray height in CSS px (= dp), or 0
+     * while the tray has not rendered yet.
+     */
+    override val trayJs: String by lazy {
+        "(function(){\n" + FIT_JS + "\n" + """
+          function tray(){
+            var a = document.querySelector('a[href*="/stories/"]');
+            for (var n = a; n && n !== document.body; n = n.parentElement) {
+              var ox = getComputedStyle(n).overflowX;
+              if (ox === 'auto' || ox === 'scroll') return n;
+            }
+            return null;
+          }
+          function pin(){
+            fit();
+            if (!document.getElementById('bb-tray')) {
+              var s = document.createElement('style'); s.id = 'bb-tray';
+              s.textContent = 'html,body{overflow:hidden!important}';
+              (document.head || document.documentElement).appendChild(s);
+            }
+            var t = tray();
+            var all = document.body ? document.body.getElementsByTagName('*') : [];
+            for (var i = 0; i < all.length; i++) {
+              if (t && (all[i] === t || all[i].contains(t))) continue;
+              var p = getComputedStyle(all[i]).position;
+              if (p === 'fixed' || p === 'sticky') all[i].style.setProperty('display', 'none', 'important');
+            }
+            if (!t) return 0;
+            if (!t.hasAttribute('data-bb-pinned')) {
+              t.setAttribute('data-bb-pinned', '1');
+              var bg = getComputedStyle(document.body).backgroundColor;
+              if (!bg || bg === 'rgba(0, 0, 0, 0)') bg = getComputedStyle(document.documentElement).backgroundColor;
+              t.style.cssText += ';position:fixed!important;top:0!important;left:0!important;right:0!important;' +
+                'width:100%!important;z-index:2147483647!important;background-color:' + bg + '!important;';
+            }
+            return Math.ceil(t.getBoundingClientRect().height);
+          }
+          if (!window.__bbTray) {
+            var queued = false;
+            window.__bbTray = pin;
+            new MutationObserver(function(){
+              if (queued) return; queued = true;
+              setTimeout(function(){ queued = false; pin(); }, 300);
+            }).observe(document, {childList: true, subtree: true});
+          }
+          return pin();
+        })()
+        """.trimIndent()
+    }
 
     /** Desktop Chrome on Linux, with the WebView's own Chrome version. */
     override fun userAgent(webViewDefault: String): String {
@@ -94,7 +148,11 @@ data object FacebookNetwork : CleanNetwork {
     private fun searchUrl(query: String?): String =
         if (query.isNullOrBlank()) SEARCH_URL else SEARCH_URL + "?q=" + URLEncoder.encode(query, "UTF-8")
 
-    override fun isStoriesTray(url: String?): Boolean = false
+    override fun isStoriesTray(url: String?): Boolean {
+        val uri = url?.let { runCatching { Uri.parse(it) }.getOrNull() } ?: return false
+        return isFacebookHost(uri.host) && uri.path.orEmpty().let { it == "" || it == "/" } &&
+            uri.query.isNullOrEmpty()
+    }
 
     /**
      * The id of a single post or video page, or null for any other page. Photo pages
