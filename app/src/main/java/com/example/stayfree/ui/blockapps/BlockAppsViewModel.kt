@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.stayfree.data.local.preferences.AppPreferences
-import com.example.stayfree.domain.cleanfeed.CleanFeedRules
+import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.domain.cleanfeed.ScrollBudget
 import com.example.stayfree.domain.content.ContentSignatures
 import com.example.stayfree.util.AppInfoUtils
@@ -82,9 +82,9 @@ class BlockAppsViewModel @Inject constructor(
     }
 
     /** null = still loading (installed-app query hasn't finished yet). */
-    val items: StateFlow<List<BlockAppItem>?> = combine(allItems, query, prefs.cleanFeedRules) { list, q, cleanRules ->
+    val items: StateFlow<List<BlockAppItem>?> = combine(allItems, query, prefs.cleanFeedRules(InstagramNetwork.ID)) { list, q, cleanRules ->
         val withClean = list.map {
-            if (it.packageName == CleanFeedRules.INSTAGRAM_PACKAGE) it.copy(cleanFeedRules = cleanRules) else it
+            if (it.packageName == InstagramNetwork.INSTAGRAM_PACKAGE) it.copy(cleanFeedRules = cleanRules) else it
         }
         if (q.isBlank()) withClean
         else withClean.filter { it.appName.contains(q.trim(), ignoreCase = true) }
@@ -107,15 +107,15 @@ class BlockAppsViewModel @Inject constructor(
     }
 
     fun setCleanFeedLimit(posts: Int) {
-        viewModelScope.launch { prefs.setCleanFeedLimit(posts) }
+        viewModelScope.launch { prefs.setCleanFeedLimit(InstagramNetwork.ID, posts) }
     }
 
     fun setCleanFeedPause(minutes: Int) {
-        viewModelScope.launch { prefs.setCleanFeedPause(minutes) }
+        viewModelScope.launch { prefs.setCleanFeedPause(InstagramNetwork.ID, minutes) }
     }
 
     fun setCleanFeedSessionsPerDay(sessions: Int) {
-        viewModelScope.launch { prefs.setCleanFeedSessionsPerDay(sessions) }
+        viewModelScope.launch { prefs.setCleanFeedSessionsPerDay(InstagramNetwork.ID, sessions) }
     }
 
     fun setContentLimit(id: String, minutes: Int) {

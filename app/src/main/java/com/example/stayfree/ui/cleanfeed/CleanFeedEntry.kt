@@ -5,6 +5,7 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.example.stayfree.data.local.preferences.AppPreferences
+import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.ui.premium.PaywallActivity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -18,7 +19,7 @@ object CleanFeedEntry {
             proChip.isVisible = !premium
             button.setOnClickListener {
                 activity.startActivity(
-                    if (premium) CleanInstagramActivity.newIntent(activity) else PaywallActivity.newIntent(activity)
+                    if (premium) CleanFeedActivity.newIntent(activity, InstagramNetwork) else PaywallActivity.newIntent(activity)
                 )
                 activity.finish()
             }

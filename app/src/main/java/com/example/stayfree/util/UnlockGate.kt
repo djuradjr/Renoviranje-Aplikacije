@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.SystemClock
 import android.provider.Settings
 import com.example.stayfree.data.local.preferences.AppPreferences
-import com.example.stayfree.domain.cleanfeed.CleanFeedRules
+import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.domain.content.ContentSignatures
 import com.example.stayfree.domain.unlock.ShortUnlock
 import com.example.stayfree.domain.unlock.UnlockDay
@@ -32,7 +32,7 @@ class UnlockGate @Inject constructor(
         val grant = ShortUnlock.grant(key, minutes, elapsed, boot, System.currentTimeMillis())
         prefs.addShortUnlock(
             grant, effectiveDate(), minutes, elapsed, boot,
-            instagram = packageOfKey(key) == CleanFeedRules.INSTAGRAM_PACKAGE
+            instagram = packageOfKey(key) == InstagramNetwork.INSTAGRAM_PACKAGE
         )
     }
 

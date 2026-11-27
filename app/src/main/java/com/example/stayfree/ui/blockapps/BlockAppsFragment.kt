@@ -14,7 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.FragmentBlockAppsBinding
-import com.example.stayfree.ui.cleanfeed.CleanInstagramActivity
+import com.example.stayfree.domain.cleanfeed.InstagramNetwork
+import com.example.stayfree.ui.cleanfeed.CleanFeedActivity
 import com.example.stayfree.ui.common.LoosenGate
 import com.example.stayfree.ui.common.bindBackHeader
 import com.example.stayfree.ui.premium.requireBlocking
@@ -78,7 +79,7 @@ class BlockAppsFragment : Fragment() {
                 else loosenGate.run { viewModel.setContentLimit(id, minutes) }
             },
             onCleanFeedOpen = {
-                if (requirePremium(premium)) startActivity(CleanInstagramActivity.newIntent(requireContext()))
+                if (requirePremium(premium)) startActivity(CleanFeedActivity.newIntent(requireContext(), InstagramNetwork))
             },
             // More posts per session is loosening, like a higher time limit.
             onCleanFeedLimitChange = { posts, increase ->

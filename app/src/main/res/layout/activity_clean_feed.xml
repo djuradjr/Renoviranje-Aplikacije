@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Clean Instagram: a slim Skor header (title + posts-left counter), then
-     Instagram's stories tray above the Following feed. At the post limit the
-     feed itself ends in a card drawn by CleanFeedRules.INJECTED_JS. -->
+<!-- Clean feed (one per network): a slim Skor header (title + posts-left counter),
+     then the network's stories tray above the feed. At the post limit the feed
+     itself ends in a card drawn by CleanFeedJs. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -47,7 +47,7 @@
             android:fontFeatureSettings="tnum"
             tools:text="4 / 20" />
 
-        <!-- Instagram's own header (with this heart) is hidden on the feed. -->
+        <!-- The network's own header (with its notifications) is hidden on the feed. -->
         <ImageButton
             android:id="@+id/btn_activity"
             android:layout_width="44dp"
@@ -69,7 +69,7 @@
         app:trackColor="@android:color/transparent"
         app:trackThickness="2dp" />
 
-    <!-- Instagram's stories tray, cut out of the home page; height set once measured. -->
+    <!-- The stories tray, cut out of the network's home page; height set once measured. -->
     <WebView
         android:id="@+id/web_stories"
         android:layout_width="match_parent"

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.domain.cleanfeed.ScrollBudget
 import com.example.stayfree.domain.cleanfeed.ScrollSession
 import com.example.stayfree.domain.score.AppCategory
@@ -109,12 +110,19 @@ class AppPreferences @Inject constructor(
         // clean-feed suggestion was last shown on the unlock screen (once a day).
         val INSTAGRAM_UNLOCK_DAY = stringPreferencesKey("instagram_unlock_day_json")
         val CLEAN_FEED_NUDGE_DATE = stringPreferencesKey("clean_feed_nudge_date")
-        // Clean Instagram feed (premium): posts per session, pause, sessions per day,
-        // and the running session {"posts","last","until","day","n","dayLock"} — see ScrollBudget.
-        val CLEAN_FEED_LIMIT = intPreferencesKey("clean_feed_limit_posts")
-        val CLEAN_FEED_PAUSE = intPreferencesKey("clean_feed_pause_minutes")
-        val CLEAN_FEED_SESSIONS = intPreferencesKey("clean_feed_sessions_per_day")
-        val CLEAN_FEED_SESSION = stringPreferencesKey("clean_feed_session_json")
+    }
+
+    /**
+     * Clean feed of one network (premium): posts per session, pause, sessions per day,
+     * and the running session {"posts","last","until","day","n","dayLock"} — see
+     * ScrollBudget. Instagram keeps the key names it had before other networks existed.
+     */
+    private class CleanFeedKeys(network: String) {
+        private val suffix = if (network == InstagramNetwork.ID) "" else "_$network"
+        val limit = intPreferencesKey("clean_feed_limit_posts$suffix")
+        val pause = intPreferencesKey("clean_feed_pause_minutes$suffix")
+        val sessions = intPreferencesKey("clean_feed_sessions_per_day$suffix")
+        val session = stringPreferencesKey("clean_feed_session_json$suffix")
     }
 
     val dailyResetTimeMinutes: Flow<Int> = dataStore.data.map { it[DAILY_RESET_TIME_MINUTES] ?: 0 }
@@ -165,16 +173,17 @@ class AppPreferences @Inject constructor(
 
     val premiumActive: Flow<Boolean> = dataStore.data.map { it[PREMIUM_ACTIVE] ?: false }
 
-    /** Clean Instagram feed: posts per session, the pause after it, sessions per day. */
-    val cleanFeedRules: Flow<ScrollBudget.Rules> = dataStore.data.map {
-        ScrollBudget.Rules(
-            limit = it[CLEAN_FEED_LIMIT] ?: ScrollBudget.DEFAULT_LIMIT,
-            pauseMinutes = it[CLEAN_FEED_PAUSE] ?: ScrollBudget.DEFAULT_PAUSE_MINUTES,
-            sessionsPerDay = it[CLEAN_FEED_SESSIONS] ?: ScrollBudget.DEFAULT_SESSIONS_PER_DAY
-        )
+    /** A network's clean feed: posts per session, the pause after it, sessions per day. */
+    fun cleanFeedRules(network: String): Flow<ScrollBudget.Rules> {
+        val keys = CleanFeedKeys(network)
+        return dataStore.data.map {
+            ScrollBudget.Rules(
+                limit = it[keys.limit] ?: ScrollBudget.DEFAULT_LIMIT,
+                pauseMinutes = it[keys.pause] ?: ScrollBudget.DEFAULT_PAUSE_MINUTES,
+                sessionsPerDay = it[keys.sessions] ?: ScrollBudget.DEFAULT_SESSIONS_PER_DAY
+            )
+        }
     }
-    val cleanFeedSession: Flow<ScrollSession> =
-        dataStore.data.map { parseCleanFeedSession(it[CLEAN_FEED_SESSION]) }
 
     val dailyGoalMinutes: Flow<Int> =
         dataStore.data.map { it[DAILY_GOAL_MINUTES] ?: DEFAULT_DAILY_GOAL_MINUTES }
@@ -373,25 +382,28 @@ class AppPreferences @Inject constructor(
         return newTotal
     }
 
-    suspend fun setCleanFeedLimit(posts: Int) {
-        dataStore.edit { it[CLEAN_FEED_LIMIT] = posts.coerceAtLeast(1) }
+    suspend fun setCleanFeedLimit(network: String, posts: Int) {
+        dataStore.edit { it[CleanFeedKeys(network).limit] = posts.coerceAtLeast(1) }
     }
 
-    suspend fun setCleanFeedPause(minutes: Int) {
-        dataStore.edit { it[CLEAN_FEED_PAUSE] = minutes.coerceAtLeast(ScrollBudget.PAUSE_STEPS.first()) }
+    suspend fun setCleanFeedPause(network: String, minutes: Int) {
+        dataStore.edit {
+            it[CleanFeedKeys(network).pause] = minutes.coerceAtLeast(ScrollBudget.PAUSE_STEPS.first())
+        }
     }
 
     /** 0 = no daily maximum. */
-    suspend fun setCleanFeedSessionsPerDay(sessions: Int) {
-        dataStore.edit { it[CLEAN_FEED_SESSIONS] = sessions.coerceAtLeast(0) }
+    suspend fun setCleanFeedSessionsPerDay(network: String, sessions: Int) {
+        dataStore.edit { it[CleanFeedKeys(network).sessions] = sessions.coerceAtLeast(0) }
     }
 
-    /** Atomic read-modify-write of the clean-feed session; returns the stored result. */
-    suspend fun updateCleanFeedSession(transform: (ScrollSession) -> ScrollSession): ScrollSession {
+    /** Atomic read-modify-write of a network's clean-feed session; returns the stored result. */
+    suspend fun updateCleanFeedSession(network: String, transform: (ScrollSession) -> ScrollSession): ScrollSession {
+        val key = CleanFeedKeys(network).session
         var result = ScrollSession()
         dataStore.edit { prefs ->
-            result = transform(parseCleanFeedSession(prefs[CLEAN_FEED_SESSION]))
-            prefs[CLEAN_FEED_SESSION] = JSONObject()
+            result = transform(parseCleanFeedSession(prefs[key]))
+            prefs[key] = JSONObject()
                 .put("posts", result.posts)
                 .put("last", result.lastActiveAt)
                 .put("until", result.lockedUntil)

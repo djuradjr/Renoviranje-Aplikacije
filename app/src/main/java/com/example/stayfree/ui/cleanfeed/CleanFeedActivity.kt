@@ -23,6 +23,7 @@ import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -32,9 +33,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
-import com.example.stayfree.databinding.ActivityCleanInstagramBinding
-import com.example.stayfree.domain.cleanfeed.CleanFeedRules
-import com.example.stayfree.domain.cleanfeed.CleanFeedRules.Nav
+import com.example.stayfree.databinding.ActivityCleanFeedBinding
+import com.example.stayfree.domain.cleanfeed.CleanNetwork
+import com.example.stayfree.domain.cleanfeed.CleanNetwork.Nav
+import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.domain.cleanfeed.ScrollBudget
 import com.example.stayfree.domain.cleanfeed.ScrollSession
 import com.example.stayfree.ui.premium.PaywallActivity
@@ -49,20 +51,23 @@ import java.util.Date
 import javax.inject.Inject
 
 /**
- * "Clean Instagram" (premium): instagram.com in our own WebViews: the stories tray on
- * top, the Following feed below. Reels, Explore and the algorithmic home feed are
- * redirected away ([CleanFeedRules]); posts are capped per session ([ScrollBudget])
- * and the feed ends in a "caught up" card when the cap is spent.
+ * A clean feed (premium): the network's site in our own WebViews, the stories tray on
+ * top and a feed of followed accounts below. Reels and algorithmic feeds are
+ * redirected away ([CleanNetwork.decide]); posts are capped per session
+ * ([ScrollBudget]) and the feed ends in a "caught up" card when the cap is spent.
+ * One subclass per network, so each keeps its own single instance (singleTask).
  *
- * Privacy: the page talks to Instagram directly. We expose no JavaScript interface,
+ * Privacy: the page talks to the network directly. We expose no JavaScript interface,
  * never read cookies or page content, and only read back a count of posts seen.
  */
-@AndroidEntryPoint
-class CleanInstagramActivity : AppCompatActivity() {
+abstract class CleanFeedActivity : AppCompatActivity() {
 
     @Inject lateinit var prefs: AppPreferences
 
-    private lateinit var binding: ActivityCleanInstagramBinding
+    protected abstract val network: CleanNetwork
+    @get:StringRes protected abstract val titleRes: Int
+
+    private lateinit var binding: ActivityCleanFeedBinding
     private var rules = ScrollBudget.Rules()
     private var resetMinutes = 0
     private var session = ScrollSession()
@@ -92,28 +97,33 @@ class CleanInstagramActivity : AppCompatActivity() {
         private const val EXTRA_HOME_ON_CLOSE = "home_on_close"
 
         /**
-         * [homeOnClose]: opened in place of the real Instagram app. Closing must then go
-         * to the launcher: falling back to Instagram would trigger the block, which
-         * sends the user here again.
+         * [homeOnClose]: opened in place of the real app. Closing must then go to the
+         * launcher: falling back to the app would trigger the block, which sends the
+         * user here again.
          */
-        fun newIntent(context: Context, homeOnClose: Boolean = false): Intent =
-            Intent(context, CleanInstagramActivity::class.java)
+        fun newIntent(context: Context, network: CleanNetwork, homeOnClose: Boolean = false): Intent {
+            val screen = when (network) {
+                InstagramNetwork -> CleanInstagramActivity::class.java
+            }
+            return Intent(context, screen)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .putExtra(EXTRA_HOME_ON_CLOSE, homeOnClose)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityCleanInstagramBinding.inflate(layoutInflater)
+        binding = ActivityCleanFeedBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.tvTitle.setText(titleRes)
 
         binding.btnClose.setOnClickListener { close() }
         binding.btnActivity.setOnClickListener {
-            if (webReady) binding.webView.loadUrl(CleanFeedRules.ACTIVITY_URL)
+            if (webReady) binding.webView.loadUrl(network.activityUrl)
         }
         binding.btnPostLimitMessages.setOnClickListener {
             showPostLimit(false)
-            binding.webView.loadUrl(CleanFeedRules.INBOX_URL)
+            binding.webView.loadUrl(network.inboxUrl)
         }
         binding.btnPostLimitBack.setOnClickListener { leavePost() }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -127,7 +137,7 @@ class CleanInstagramActivity : AppCompatActivity() {
         lifecycleScope.launch {
             // Same gate as every block: the clean feed is a premium feature.
             if (!prefs.premiumActive.first()) {
-                startActivity(PaywallActivity.newIntent(this@CleanInstagramActivity))
+                startActivity(PaywallActivity.newIntent(this@CleanFeedActivity))
                 finish()
                 return@launch
             }
@@ -135,7 +145,7 @@ class CleanInstagramActivity : AppCompatActivity() {
             setUpWebView()
             // Rotation or a process restore keeps the page the user was on.
             if (savedInstanceState?.let { binding.webView.restoreState(it) } == null) {
-                binding.webView.loadUrl(CleanFeedRules.HOME_URL)
+                binding.webView.loadUrl(network.homeUrl)
             }
             render()
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -150,15 +160,14 @@ class CleanInstagramActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun configure(web: WebView) {
         web.settings.apply {
-            javaScriptEnabled = true          // instagram.com does not render without it
+            javaScriptEnabled = true          // neither site renders without it
             domStorageEnabled = true
             allowFileAccess = false
             allowContentAccess = false
             mediaPlaybackRequiresUserGesture = true
             setSupportMultipleWindows(false)
             mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
-            // Instagram serves a degraded page to anything marked as an embedded WebView.
-            userAgentString = userAgentString.replace("; wv", "")
+            userAgentString = network.userAgent(userAgentString)
         }
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, false)
     }
@@ -184,19 +193,19 @@ class CleanInstagramActivity : AppCompatActivity() {
             // In-site navigation (pushState) never reaches shouldOverrideUrlLoading.
             override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
                 super.doUpdateVisitedHistory(view, url, isReload)
-                val nav = CleanFeedRules.decide(url)
+                val nav = network.decide(url)
                 if (nav is Nav.Redirect && nav.url != url) view.loadUrl(nav.url)
-                view.evaluateJavascript(CleanFeedRules.INJECTED_JS, null)
+                view.evaluateJavascript(network.injectedJs, null)
                 gatePost(view, url, previous = lastFeedUrl)
                 // Back from a story: the tray's rings may have changed.
-                if (CleanFeedRules.isFeed(url) && !CleanFeedRules.isFeed(lastFeedUrl)) binding.webStories.reload()
+                if (network.isFeed(url) && !network.isFeed(lastFeedUrl)) binding.webStories.reload()
                 lastFeedUrl = url
                 updateTray()
                 render()
             }
 
             override fun onPageFinished(view: WebView, url: String) {
-                view.evaluateJavascript(CleanFeedRules.INJECTED_JS, null)
+                view.evaluateJavascript(network.injectedJs, null)
                 render()
             }
 
@@ -238,10 +247,11 @@ class CleanInstagramActivity : AppCompatActivity() {
 
     /**
      * The tray WebView only ever shows the bare home page, cut down to the stories
-     * tray by [CleanFeedRules.TRAY_JS]. Tapping a story (or anything else) opens it in
+     * tray by [CleanNetwork.trayJs]. Tapping a story (or anything else) opens it in
      * the feed WebView, full screen, and the tray steps back to the home page.
      */
     private fun setUpStories() {
+        val storiesUrl = network.storiesUrl ?: return
         val tray = binding.webStories
         configure(tray)
         tray.isVerticalScrollBarEnabled = false
@@ -249,16 +259,16 @@ class CleanInstagramActivity : AppCompatActivity() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 if (!request.isForMainFrame) return false
                 val url = request.url.toString()
-                if (CleanFeedRules.isStoriesTray(url)) return false
+                if (network.isStoriesTray(url)) return false
                 openInFeed(url)
                 return true
             }
 
             override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
                 super.doUpdateVisitedHistory(view, url, isReload)
-                if (CleanFeedRules.isStoriesTray(url)) return
+                if (network.isStoriesTray(url)) return
                 openInFeed(url)
-                if (view.canGoBack()) view.goBack() else view.loadUrl(CleanFeedRules.STORIES_URL)
+                if (view.canGoBack()) view.goBack() else view.loadUrl(storiesUrl)
             }
 
             override fun onPageFinished(view: WebView, url: String) = fitTray()
@@ -273,12 +283,13 @@ class CleanInstagramActivity : AppCompatActivity() {
                 return true
             }
         }
-        tray.loadUrl(CleanFeedRules.STORIES_URL)
+        tray.loadUrl(storiesUrl)
     }
 
     /** The tray renders a moment after the page loads: measure until it is there. */
     private fun fitTray(attempt: Int = 0) {
-        binding.webStories.evaluateJavascript(CleanFeedRules.TRAY_JS) { result ->
+        val trayJs = network.trayJs ?: return
+        binding.webStories.evaluateJavascript(trayJs) { result ->
             val heightDp = result?.toIntOrNull() ?: 0
             if (heightDp <= 0) {
                 if (attempt < TRAY_FIT_ATTEMPTS) binding.webStories.postDelayed({ fitTray(attempt + 1) }, 500L)
@@ -322,14 +333,14 @@ class CleanInstagramActivity : AppCompatActivity() {
 
     /** Above the feed only: a story, messages or a profile get the whole screen. */
     private fun updateTray() {
-        val show = trayReady && trayWanted && CleanFeedRules.isFeed(binding.webView.url)
+        val show = trayReady && trayWanted && network.isFeed(binding.webView.url)
         if (binding.webStories.isVisible == show) return
         TransitionManager.beginDelayedTransition(binding.root as ViewGroup, ChangeBounds().setDuration(180L))
         binding.webStories.isVisible = show
     }
 
     /** Returns true when the WebView must NOT load [url] itself. */
-    private fun handle(view: WebView, url: String): Boolean = when (val nav = CleanFeedRules.decide(url)) {
+    private fun handle(view: WebView, url: String): Boolean = when (val nav = network.decide(url)) {
         Nav.Allow -> false
         is Nav.Redirect -> { view.loadUrl(nav.url); true }
         Nav.Ignore -> true
@@ -348,13 +359,13 @@ class CleanInstagramActivity : AppCompatActivity() {
      * follows the normal rule.
      */
     private fun gatePost(view: WebView, url: String, previous: String?) {
-        val id = CleanFeedRules.postIdOf(url)
+        val id = network.postIdOf(url)
         if (id == null) {
             postFromMessages = null
             showPostLimit(false)
             return
         }
-        if (CleanFeedRules.isMessages(previous)) postFromMessages = id
+        if (network.isMessages(previous)) postFromMessages = id
         if (id == postFromMessages) {
             showPostLimit(false)
             return
@@ -369,7 +380,7 @@ class CleanInstagramActivity : AppCompatActivity() {
         view.evaluateJavascript(markJs) { result ->
             if (result != "1") return@evaluateJavascript
             lifecycleScope.launch {
-                session = prefs.updateCleanFeedSession { ScrollBudget.addPosts(it, 1, rules, day(), now()) }
+                session = prefs.updateCleanFeedSession(network.id) { ScrollBudget.addPosts(it, 1, rules, day(), now()) }
                 render()
             }
         }
@@ -383,7 +394,7 @@ class CleanInstagramActivity : AppCompatActivity() {
     private fun leavePost() {
         showPostLimit(false)
         val web = binding.webView
-        if (web.canGoBack()) web.goBack() else web.loadUrl(CleanFeedRules.HOME_URL)
+        if (web.canGoBack()) web.goBack() else web.loadUrl(network.homeUrl)
     }
 
     /** "More posts at 15:22.", or that the day's sessions are used up. */
@@ -399,7 +410,7 @@ class CleanInstagramActivity : AppCompatActivity() {
             val posts = result?.toIntOrNull() ?: 0
             if (posts <= 0) return@evaluateJavascript
             lifecycleScope.launch {
-                session = prefs.updateCleanFeedSession { ScrollBudget.addPosts(it, posts, rules, day(), now()) }
+                session = prefs.updateCleanFeedSession(network.id) { ScrollBudget.addPosts(it, posts, rules, day(), now()) }
                 render()
             }
         }
@@ -475,19 +486,25 @@ class CleanInstagramActivity : AppCompatActivity() {
         unlockJob?.cancel()
         unlockJob = lifecycleScope.launch {
             delay(inMs.coerceAtLeast(0L) + 500L)
-            session = prefs.updateCleanFeedSession { ScrollBudget.current(it, rules, day(), now()) }
+            session = prefs.updateCleanFeedSession(network.id) { ScrollBudget.current(it, rules, day(), now()) }
             render()
         }
     }
 
     private suspend fun loadRules() {
-        rules = prefs.cleanFeedRules.first()
+        rules = prefs.cleanFeedRules(network.id).first()
         resetMinutes = prefs.dailyResetTimeMinutes.first()
-        session = prefs.updateCleanFeedSession { ScrollBudget.current(it, rules, day(), now()) }
+        session = prefs.updateCleanFeedSession(network.id) { ScrollBudget.current(it, rules, day(), now()) }
     }
 
     private fun day(now: Long = now()) = ScrollBudget.Day(
         TimeUtils.getEffectiveDate(resetMinutes, now), TimeUtils.nextEffectiveDayStartMs(resetMinutes, now))
 
     private fun now() = System.currentTimeMillis()
+}
+
+@AndroidEntryPoint
+class CleanInstagramActivity : CleanFeedActivity() {
+    override val network = InstagramNetwork
+    override val titleRes = R.string.clean_feed_title
 }

@@ -15,8 +15,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.FragmentBlockingBinding
-import com.example.stayfree.domain.cleanfeed.CleanFeedRules
-import com.example.stayfree.ui.cleanfeed.CleanInstagramActivity
+import com.example.stayfree.domain.cleanfeed.InstagramNetwork
+import com.example.stayfree.ui.cleanfeed.CleanFeedActivity
 import com.example.stayfree.ui.onboarding.OnboardingActivity
 import com.example.stayfree.ui.premium.PaywallActivity
 import com.example.stayfree.ui.premium.requirePremium
@@ -99,7 +99,7 @@ class BlockingFragment : Fragment() {
                     binding.rvApps.isVisible = apps.isNotEmpty()
                     binding.tvAppsEmpty.isVisible = apps.isEmpty()
                     binding.pillCleanFeed.isVisible =
-                        apps.any { it.packageName == CleanFeedRules.INSTAGRAM_PACKAGE }
+                        apps.any { it.packageName == InstagramNetwork.INSTAGRAM_PACKAGE }
                 }
             }
             launch {
@@ -123,7 +123,7 @@ class BlockingFragment : Fragment() {
 
     /** Clean Instagram is premium: free users land on the paywall instead. */
     private fun openCleanFeed() = startActivity(
-        if (premium.isPremium.value) CleanInstagramActivity.newIntent(requireContext())
+        if (premium.isPremium.value) CleanFeedActivity.newIntent(requireContext(), InstagramNetwork)
         else PaywallActivity.newIntent(requireContext())
     )
 

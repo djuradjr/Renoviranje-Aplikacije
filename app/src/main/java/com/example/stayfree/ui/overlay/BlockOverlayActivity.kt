@@ -10,10 +10,10 @@ import androidx.lifecycle.lifecycleScope
 import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityBlockOverlayBinding
-import com.example.stayfree.domain.cleanfeed.CleanFeedRules
+import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.service.StayFreeAccessibilityService
 import com.example.stayfree.ui.cleanfeed.CleanFeedEntry
-import com.example.stayfree.ui.cleanfeed.CleanInstagramActivity
+import com.example.stayfree.ui.cleanfeed.CleanFeedActivity
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.PinGate
 import com.example.stayfree.util.PinPrompt
@@ -111,7 +111,7 @@ class BlockOverlayActivity : AppCompatActivity() {
         binding.tvAppName.text = appName
         // Focus, Sleep and schedules mean "no Instagram at all", so the clean feed is not
         // offered there; every other block of Instagram (strict mode included) offers it.
-        val cleanFeed = packageName_ == CleanFeedRules.INSTAGRAM_PACKAGE &&
+        val cleanFeed = packageName_ == InstagramNetwork.INSTAGRAM_PACKAGE &&
             blockReason !in setOf("FOCUS", "SLEEP", "SCHEDULED")
         binding.cleanFeed.root.isVisible = cleanFeed
         binding.tvCleanCaption.isVisible = cleanFeed
@@ -120,7 +120,7 @@ class BlockOverlayActivity : AppCompatActivity() {
                 // Premium goes straight to the clean feed instead of a closed door; the
                 // short unlock stays on the Blocking tab. Free users still see the PRO button.
                 if (prefs.premiumActive.first()) {
-                    startActivity(CleanInstagramActivity.newIntent(this@BlockOverlayActivity, homeOnClose = true))
+                    startActivity(CleanFeedActivity.newIntent(this@BlockOverlayActivity, InstagramNetwork, homeOnClose = true))
                     finish()
                 } else {
                     CleanFeedEntry.bind(this@BlockOverlayActivity, binding.cleanFeed.root,

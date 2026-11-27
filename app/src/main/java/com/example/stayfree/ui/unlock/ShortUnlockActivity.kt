@@ -19,7 +19,7 @@ import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityShortUnlockBinding
-import com.example.stayfree.domain.cleanfeed.CleanFeedRules
+import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.domain.content.ContentSignatures
 import com.example.stayfree.domain.unlock.CleanFeedNudge
 import com.example.stayfree.domain.unlock.ShortUnlock
@@ -242,7 +242,7 @@ class ShortUnlockActivity : AppCompatActivity() {
             val today = unlockGate.todayDate()
             val eligible = CleanFeedNudge.shouldShow(
                 premium = premium.isPremium.value,
-                isInstagram = pkg == CleanFeedRules.INSTAGRAM_PACKAGE,
+                isInstagram = pkg == InstagramNetwork.INSTAGRAM_PACKAGE,
                 instagramUnlocksToday = unlockGate.instagramUnlocksToday(),
                 lastShownDate = null,
                 today = today
