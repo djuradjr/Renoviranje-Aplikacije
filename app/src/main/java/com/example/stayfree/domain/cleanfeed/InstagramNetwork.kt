@@ -40,6 +40,7 @@ data object InstagramNetwork : CleanNetwork {
     override val storiesUrl = STORIES_URL
     override val inboxUrl = INBOX_URL
     override val activityUrl = ACTIVITY_URL
+    override val keepsSiteHeader = false
 
     // Instagram serves a degraded page to anything marked as an embedded WebView.
     override fun userAgent(webViewDefault: String) = webViewDefault.replace("; wv", "")

@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.stayfree.data.local.preferences.AppPreferences
+import com.example.stayfree.domain.cleanfeed.CleanNetwork
+import com.example.stayfree.domain.cleanfeed.FacebookNetwork
 import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.domain.cleanfeed.ScrollBudget
 import com.example.stayfree.domain.content.ContentSignatures
@@ -36,7 +38,8 @@ data class BlockAppItem(
     val isBlocked: Boolean,
     val limitMinutes: Int,
     val contentTargets: List<ContentTargetRow> = emptyList(),
-    /** Clean-feed settings; non-null only on the Instagram row. */
+    /** The clean feed standing in for this app and its settings; null on other rows. */
+    val cleanNetwork: CleanNetwork? = null,
     val cleanFeedRules: ScrollBudget.Rules? = null
 )
 
@@ -82,9 +85,16 @@ class BlockAppsViewModel @Inject constructor(
     }
 
     /** null = still loading (installed-app query hasn't finished yet). */
-    val items: StateFlow<List<BlockAppItem>?> = combine(allItems, query, prefs.cleanFeedRules(InstagramNetwork.ID)) { list, q, cleanRules ->
+    val items: StateFlow<List<BlockAppItem>?> = combine(
+        allItems, query,
+        prefs.cleanFeedRules(InstagramNetwork.ID), prefs.cleanFeedRules(FacebookNetwork.ID)
+    ) { list, q, instagramRules, facebookRules ->
         val withClean = list.map {
-            if (it.packageName == InstagramNetwork.INSTAGRAM_PACKAGE) it.copy(cleanFeedRules = cleanRules) else it
+            when (val network = CleanNetwork.forPackage(it.packageName)) {
+                InstagramNetwork -> it.copy(cleanNetwork = network, cleanFeedRules = instagramRules)
+                FacebookNetwork -> it.copy(cleanNetwork = network, cleanFeedRules = facebookRules)
+                null -> it
+            }
         }
         if (q.isBlank()) withClean
         else withClean.filter { it.appName.contains(q.trim(), ignoreCase = true) }
@@ -106,16 +116,16 @@ class BlockAppsViewModel @Inject constructor(
         viewModelScope.launch { prefs.setContentBlockEnabled(id, enabled) }
     }
 
-    fun setCleanFeedLimit(posts: Int) {
-        viewModelScope.launch { prefs.setCleanFeedLimit(InstagramNetwork.ID, posts) }
+    fun setCleanFeedLimit(network: CleanNetwork, posts: Int) {
+        viewModelScope.launch { prefs.setCleanFeedLimit(network.id, posts) }
     }
 
-    fun setCleanFeedPause(minutes: Int) {
-        viewModelScope.launch { prefs.setCleanFeedPause(InstagramNetwork.ID, minutes) }
+    fun setCleanFeedPause(network: CleanNetwork, minutes: Int) {
+        viewModelScope.launch { prefs.setCleanFeedPause(network.id, minutes) }
     }
 
-    fun setCleanFeedSessionsPerDay(sessions: Int) {
-        viewModelScope.launch { prefs.setCleanFeedSessionsPerDay(InstagramNetwork.ID, sessions) }
+    fun setCleanFeedSessionsPerDay(network: CleanNetwork, sessions: Int) {
+        viewModelScope.launch { prefs.setCleanFeedSessionsPerDay(network.id, sessions) }
     }
 
     fun setContentLimit(id: String, minutes: Int) {

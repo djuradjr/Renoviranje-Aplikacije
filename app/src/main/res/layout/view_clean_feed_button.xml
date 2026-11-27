@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- "Open clean Instagram" on block screens: teal primary; free users also see PRO. -->
+<!-- "Open clean Instagram / Facebook" on block screens: teal primary; free users also see PRO. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/btn_clean_instagram"
+    android:id="@+id/btn_clean_feed"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_button_focus"
@@ -14,6 +14,7 @@
     android:paddingHorizontal="@dimen/spacing_md">
 
     <TextView
+        android:id="@+id/tv_clean_open"
         style="@style/Skor.Text"
         android:text="@string/clean_feed_open"
         android:textColor="@color/skor_on_focus"

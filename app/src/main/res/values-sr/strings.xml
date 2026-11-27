@@ -425,6 +425,9 @@
     <!-- Čisti Instagram (premium) -->
     <string name="clean_feed_title">Čisti Instagram</string>
     <string name="clean_facebook_title">Čisti Facebook</string>
+    <string name="clean_facebook_subtitle">Prijatelji, stranice i grupe koje pratiš, najnovije prvo. Bez Reels-a i Watch-a, uz limit skrolovanja.</string>
+    <string name="clean_facebook_note">Radi preko facebook.com. Prijaviš se jednom, a prijava ostaje samo na ovom telefonu.</string>
+    <string name="clean_facebook_open">Otvori čisti Facebook</string>
     <string name="clean_feed_subtitle">Samo profili koje pratiš. Bez Reels-a i Explore-a, uz limit skrolovanja.</string>
     <string name="clean_feed_note">Radi preko instagram.com. Prijaviš se jednom, a prijava ostaje samo na ovom telefonu.</string>
     <string name="clean_feed_open">Otvori čisti Instagram</string>

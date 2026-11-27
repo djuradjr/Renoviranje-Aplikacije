@@ -15,7 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityContentBlockBinding
-import com.example.stayfree.domain.cleanfeed.InstagramNetwork
+import com.example.stayfree.domain.cleanfeed.CleanNetwork
 import com.example.stayfree.domain.content.ContentBlockTarget
 import com.example.stayfree.ui.cleanfeed.CleanFeedEntry
 import com.example.stayfree.ui.unlock.ShortUnlockActivity
@@ -123,10 +123,10 @@ class ContentBlockActivity : AppCompatActivity() {
             }
         }
 
-        if (intent.getStringExtra(EXTRA_PACKAGE) == InstagramNetwork.INSTAGRAM_PACKAGE) {
+        CleanNetwork.forPackage(intent.getStringExtra(EXTRA_PACKAGE))?.let { network ->
             binding.cleanFeed.root.visibility = View.VISIBLE
             binding.tvCleanCaption.visibility = View.VISIBLE
-            CleanFeedEntry.bind(this, binding.cleanFeed.root, binding.cleanFeed.chipCleanPro, lifecycleScope, prefs)
+            CleanFeedEntry.bind(this, binding.cleanFeed, network, lifecycleScope, prefs)
         }
 
         binding.btnExit.setOnClickListener { goHome() }

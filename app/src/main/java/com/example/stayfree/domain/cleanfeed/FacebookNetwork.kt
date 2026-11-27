@@ -41,6 +41,7 @@ data object FacebookNetwork : CleanNetwork {
     override val storiesUrl = STORIES_URL
     override val inboxUrl = INBOX_URL
     override val activityUrl = ACTIVITY_URL
+    override val keepsSiteHeader = true
     /**
      * For the stories WebView: the desktop page fitted to the phone, page scrolling
      * off, every fixed or sticky bar hidden, the tray pinned to the top. The tray is

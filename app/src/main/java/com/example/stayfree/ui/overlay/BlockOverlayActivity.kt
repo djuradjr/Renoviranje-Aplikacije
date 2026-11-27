@@ -10,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.stayfree.R
 import com.example.stayfree.data.local.preferences.AppPreferences
 import com.example.stayfree.databinding.ActivityBlockOverlayBinding
-import com.example.stayfree.domain.cleanfeed.InstagramNetwork
+import com.example.stayfree.domain.cleanfeed.CleanNetwork
 import com.example.stayfree.service.StayFreeAccessibilityService
 import com.example.stayfree.ui.cleanfeed.CleanFeedEntry
 import com.example.stayfree.ui.cleanfeed.CleanFeedActivity
@@ -109,22 +109,21 @@ class BlockOverlayActivity : AppCompatActivity() {
         val appIcon = AppInfoUtils.getAppIcon(this, packageName_)
 
         binding.tvAppName.text = appName
-        // Focus, Sleep and schedules mean "no Instagram at all", so the clean feed is not
-        // offered there; every other block of Instagram (strict mode included) offers it.
-        val cleanFeed = packageName_ == InstagramNetwork.INSTAGRAM_PACKAGE &&
-            blockReason !in setOf("FOCUS", "SLEEP", "SCHEDULED")
-        binding.cleanFeed.root.isVisible = cleanFeed
-        binding.tvCleanCaption.isVisible = cleanFeed
-        if (cleanFeed) {
+        // Focus, Sleep and schedules mean "not this app at all", so the clean feed is not
+        // offered there; every other block of an app with one (strict mode included) offers it.
+        val network = CleanNetwork.forPackage(packageName_)
+            ?.takeIf { blockReason !in setOf("FOCUS", "SLEEP", "SCHEDULED") }
+        binding.cleanFeed.root.isVisible = network != null
+        binding.tvCleanCaption.isVisible = network != null
+        if (network != null) {
             lifecycleScope.launch {
                 // Premium goes straight to the clean feed instead of a closed door; the
                 // short unlock stays on the Blocking tab. Free users still see the PRO button.
                 if (prefs.premiumActive.first()) {
-                    startActivity(CleanFeedActivity.newIntent(this@BlockOverlayActivity, InstagramNetwork, homeOnClose = true))
+                    startActivity(CleanFeedActivity.newIntent(this@BlockOverlayActivity, network, homeOnClose = true))
                     finish()
                 } else {
-                    CleanFeedEntry.bind(this@BlockOverlayActivity, binding.cleanFeed.root,
-                        binding.cleanFeed.chipCleanPro, lifecycleScope, prefs)
+                    CleanFeedEntry.bind(this@BlockOverlayActivity, binding.cleanFeed, network, lifecycleScope, prefs)
                 }
             }
         }

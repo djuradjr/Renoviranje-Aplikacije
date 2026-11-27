@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.FragmentBlockingBinding
+import com.example.stayfree.domain.cleanfeed.CleanNetwork
 import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.ui.cleanfeed.CleanFeedActivity
 import com.example.stayfree.ui.onboarding.OnboardingActivity
@@ -38,6 +39,8 @@ class BlockingFragment : Fragment() {
     private var _binding: FragmentBlockingBinding? = null
     private val binding get() = _binding!!
     private val viewModel: BlockingViewModel by viewModels()
+    /** The clean feed of the first blocked app that has one (Instagram before Facebook). */
+    private var blockedCleanNetwork: CleanNetwork? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,8 +101,8 @@ class BlockingFragment : Fragment() {
                     appsAdapter.submitList(apps)
                     binding.rvApps.isVisible = apps.isNotEmpty()
                     binding.tvAppsEmpty.isVisible = apps.isEmpty()
-                    binding.pillCleanFeed.isVisible =
-                        apps.any { it.packageName == InstagramNetwork.INSTAGRAM_PACKAGE }
+                    blockedCleanNetwork = CleanNetwork.ALL.firstOrNull { n -> apps.any { it.packageName in n.packages } }
+                    binding.pillCleanFeed.isVisible = blockedCleanNetwork != null
                 }
             }
             launch {
@@ -121,9 +124,9 @@ class BlockingFragment : Fragment() {
 
     private fun openProtection() = startActivity(OnboardingActivity.protectionIntent(requireContext()))
 
-    /** Clean Instagram is premium: free users land on the paywall instead. */
+    /** The clean feed is premium: free users land on the paywall instead. */
     private fun openCleanFeed() = startActivity(
-        if (premium.isPremium.value) CleanFeedActivity.newIntent(requireContext(), InstagramNetwork)
+        if (premium.isPremium.value) CleanFeedActivity.newIntent(requireContext(), blockedCleanNetwork ?: InstagramNetwork)
         else PaywallActivity.newIntent(requireContext())
     )
 

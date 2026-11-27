@@ -23,7 +23,6 @@ import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -66,7 +65,6 @@ abstract class CleanFeedActivity : AppCompatActivity() {
     @Inject lateinit var prefs: AppPreferences
 
     protected abstract val network: CleanNetwork
-    @get:StringRes protected abstract val titleRes: Int
 
     private lateinit var binding: ActivityCleanFeedBinding
     private var rules = ScrollBudget.Rules()
@@ -117,7 +115,8 @@ abstract class CleanFeedActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityCleanFeedBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.tvTitle.setText(titleRes)
+        binding.tvTitle.setText(CleanFeedTexts.of(network).title)
+        binding.btnActivity.isVisible = !network.keepsSiteHeader
 
         binding.btnClose.setOnClickListener { close() }
         binding.btnActivity.setOnClickListener {
@@ -508,11 +507,9 @@ abstract class CleanFeedActivity : AppCompatActivity() {
 @AndroidEntryPoint
 class CleanInstagramActivity : CleanFeedActivity() {
     override val network = InstagramNetwork
-    override val titleRes = R.string.clean_feed_title
 }
 
 @AndroidEntryPoint
 class CleanFacebookActivity : CleanFeedActivity() {
     override val network = FacebookNetwork
-    override val titleRes = R.string.clean_facebook_title
 }

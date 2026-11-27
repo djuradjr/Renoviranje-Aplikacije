@@ -10,7 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.stayfree.R
 import com.example.stayfree.databinding.ItemBlockAppBinding
 import com.example.stayfree.databinding.ItemContentTargetRowBinding
+import com.example.stayfree.domain.cleanfeed.CleanNetwork
 import com.example.stayfree.domain.cleanfeed.ScrollBudget
+import com.example.stayfree.ui.cleanfeed.CleanFeedTexts
 import com.example.stayfree.util.AppInfoUtils
 
 class BlockAppsAdapter(
@@ -18,10 +20,10 @@ class BlockAppsAdapter(
     private val onLimitChange: (packageName: String, minutes: Int, increase: Boolean) -> Unit,
     private val onContentToggle: (targetId: String, enabled: Boolean) -> Unit,
     private val onContentLimitChange: (targetId: String, minutes: Int, increase: Boolean) -> Unit,
-    private val onCleanFeedOpen: () -> Unit,
-    private val onCleanFeedLimitChange: (posts: Int, increase: Boolean) -> Unit,
-    private val onCleanFeedPauseChange: (minutes: Int, loosen: Boolean) -> Unit,
-    private val onCleanFeedSessionsChange: (sessions: Int, loosen: Boolean) -> Unit
+    private val onCleanFeedOpen: (CleanNetwork) -> Unit,
+    private val onCleanFeedLimitChange: (CleanNetwork, posts: Int, increase: Boolean) -> Unit,
+    private val onCleanFeedPauseChange: (CleanNetwork, minutes: Int, loosen: Boolean) -> Unit,
+    private val onCleanFeedSessionsChange: (CleanNetwork, sessions: Int, loosen: Boolean) -> Unit
 ): ListAdapter<BlockAppItem, BlockAppsAdapter.ViewHolder>(DIFF) {
 
     // Expanded app rows — UI-only state, intentionally not persisted.
@@ -42,7 +44,7 @@ class BlockAppsAdapter(
             val icon = AppInfoUtils.getAppIcon(binding.root.context, item.packageName)
             if (icon != null) binding.ivAppIcon.setImageDrawable(icon)
 
-            val expandable = item.contentTargets.isNotEmpty()
+            val expandable = item.contentTargets.isNotEmpty() || item.cleanNetwork != null
             val expanded = expandable && item.packageName in expandedPkgs
             binding.btnExpand.visibility = if (expandable) View.VISIBLE else View.GONE
             binding.switchActive.visibility = if (expandable) View.GONE else View.VISIBLE
@@ -57,7 +59,7 @@ class BlockAppsAdapter(
             }
 
             // The full-block switch lives in the header for plain apps and inside
-            // the expansion for apps with content targets — same preference key.
+            // the expansion for expandable ones — same preference key.
             val fullBlockSwitch = if (expandable) binding.switchFullBlock else binding.switchActive
             // Detach the recycled listener before setting state so restoring the
             // switch position doesn't fire a spurious toggle.
@@ -73,7 +75,7 @@ class BlockAppsAdapter(
         }
 
         private fun bindLimitStepper(item: BlockAppItem, expanded: Boolean) {
-            val expandable = item.contentTargets.isNotEmpty()
+            val expandable = item.contentTargets.isNotEmpty() || item.cleanNetwork != null
             val visible = item.isBlocked && (!expandable || expanded)
             binding.cardLimit.visibility = if (visible) View.VISIBLE else View.GONE
             if (!visible) return
@@ -93,26 +95,32 @@ class BlockAppsAdapter(
 
         private fun bindCleanFeed(item: BlockAppItem, expanded: Boolean) {
             val rules = item.cleanFeedRules
-            binding.cardCleanFeed.visibility = if (expanded && rules != null) View.VISIBLE else View.GONE
-            if (!expanded || rules == null) return
+            val network = item.cleanNetwork
+            binding.cardCleanFeed.visibility = if (expanded && rules != null && network != null) View.VISIBLE else View.GONE
+            if (!expanded || rules == null || network == null) return
             val ctx = binding.root.context
+            val texts = CleanFeedTexts.of(network)
+            binding.tvCleanTitle.setText(texts.title)
+            binding.tvCleanSubtitle.setText(texts.subtitle)
+            binding.tvCleanNote.setText(texts.note)
+            binding.btnCleanFeedOpen.setText(texts.open)
             binding.tvCleanLimitValue.text = rules.limit.toString()
             val steps = ScrollBudget.LIMIT_STEPS
             val idx = nearestStepIndex(steps, rules.limit)
             bindArrow(binding.btnCleanLimitDown, enabled = idx > 0) {
-                onCleanFeedLimitChange(steps[idx - 1], false)
+                onCleanFeedLimitChange(network, steps[idx - 1], false)
             }
             bindArrow(binding.btnCleanLimitUp, enabled = idx < steps.lastIndex) {
-                onCleanFeedLimitChange(steps[idx + 1], true)
+                onCleanFeedLimitChange(network, steps[idx + 1], true)
             }
 
             // A shorter pause is loosening.
             val pauses = ScrollBudget.PAUSE_STEPS
             val p = nearestStepIndex(pauses, rules.pauseMinutes)
             binding.tvCleanPauseValue.text = ctx.getString(R.string.block_app_limit_minutes, pauses[p])
-            bindArrow(binding.btnCleanPauseDown, enabled = p > 0) { onCleanFeedPauseChange(pauses[p - 1], true) }
+            bindArrow(binding.btnCleanPauseDown, enabled = p > 0) { onCleanFeedPauseChange(network, pauses[p - 1], true) }
             bindArrow(binding.btnCleanPauseUp, enabled = p < pauses.lastIndex) {
-                onCleanFeedPauseChange(pauses[p + 1], false)
+                onCleanFeedPauseChange(network, pauses[p + 1], false)
             }
 
             // The ladder runs from strict to "no limit" (0): every step up is loosening.
@@ -120,11 +128,11 @@ class BlockAppsAdapter(
             val s = sessions.indexOf(rules.sessionsPerDay).takeIf { it >= 0 } ?: sessions.lastIndex
             binding.tvCleanSessionsValue.text = if (sessions[s] == 0) ctx.getString(R.string.clean_feed_sessions_unlimited)
                 else sessions[s].toString()
-            bindArrow(binding.btnCleanSessionsDown, enabled = s > 0) { onCleanFeedSessionsChange(sessions[s - 1], false) }
+            bindArrow(binding.btnCleanSessionsDown, enabled = s > 0) { onCleanFeedSessionsChange(network, sessions[s - 1], false) }
             bindArrow(binding.btnCleanSessionsUp, enabled = s < sessions.lastIndex) {
-                onCleanFeedSessionsChange(sessions[s + 1], true)
+                onCleanFeedSessionsChange(network, sessions[s + 1], true)
             }
-            binding.btnCleanFeedOpen.setOnClickListener { onCleanFeedOpen() }
+            binding.btnCleanFeedOpen.setOnClickListener { onCleanFeedOpen(network) }
         }
 
         private fun bindContentTargets(item: BlockAppItem) {

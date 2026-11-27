@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.stayfree.R
 import com.example.stayfree.data.billing.PremiumRepository
 import com.example.stayfree.databinding.FragmentBlockAppsBinding
-import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.ui.cleanfeed.CleanFeedActivity
 import com.example.stayfree.ui.common.LoosenGate
 import com.example.stayfree.ui.common.bindBackHeader
@@ -78,21 +77,21 @@ class BlockAppsFragment : Fragment() {
                 if (!increase) viewModel.setContentLimit(id, minutes)
                 else loosenGate.run { viewModel.setContentLimit(id, minutes) }
             },
-            onCleanFeedOpen = {
-                if (requirePremium(premium)) startActivity(CleanFeedActivity.newIntent(requireContext(), InstagramNetwork))
+            onCleanFeedOpen = { network ->
+                if (requirePremium(premium)) startActivity(CleanFeedActivity.newIntent(requireContext(), network))
             },
             // More posts per session is loosening, like a higher time limit.
-            onCleanFeedLimitChange = { posts, increase ->
-                if (!increase) viewModel.setCleanFeedLimit(posts)
-                else loosenGate.run { viewModel.setCleanFeedLimit(posts) }
+            onCleanFeedLimitChange = { network, posts, increase ->
+                if (!increase) viewModel.setCleanFeedLimit(network, posts)
+                else loosenGate.run { viewModel.setCleanFeedLimit(network, posts) }
             },
-            onCleanFeedPauseChange = { minutes, loosen ->
-                if (!loosen) viewModel.setCleanFeedPause(minutes)
-                else loosenGate.run { viewModel.setCleanFeedPause(minutes) }
+            onCleanFeedPauseChange = { network, minutes, loosen ->
+                if (!loosen) viewModel.setCleanFeedPause(network, minutes)
+                else loosenGate.run { viewModel.setCleanFeedPause(network, minutes) }
             },
-            onCleanFeedSessionsChange = { sessions, loosen ->
-                if (!loosen) viewModel.setCleanFeedSessionsPerDay(sessions)
-                else loosenGate.run { viewModel.setCleanFeedSessionsPerDay(sessions) }
+            onCleanFeedSessionsChange = { network, sessions, loosen ->
+                if (!loosen) viewModel.setCleanFeedSessionsPerDay(network, sessions)
+                else loosenGate.run { viewModel.setCleanFeedSessionsPerDay(network, sessions) }
             }
         )
         binding.rvBlockApps.apply {
