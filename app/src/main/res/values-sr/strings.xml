@@ -20,7 +20,7 @@
 
     <!-- Prominent disclosure (Play policy) -->
     <string name="disclosure_title">Dozvola za pristupačnost</string>
-    <string name="disclosure_message">Ova aplikacija koristi Androidovu uslugu pristupačnosti da očita koja je aplikacija trenutno na ekranu, i — samo kada blokiraš određene sajtove — adresnu traku pregledača.\n\nZašto: to je jedini način da se ekran blokade prikaže čim otvoriš blokiranu aplikaciju ili sajt, uključujući društvene mreže koje strogi režim drži zatvorenim.\n\nGde idu podaci: nigde. Sve se obrađuje i čuva samo na ovom uređaju. Block Doomscroll nikome ne šalje ono što vidi i nikada to ne prodaje. Jedina veza sa internetom je ekran Čisti Instagram, koji se direktno povezuje na instagram.com.</string>
+    <string name="disclosure_message">Ova aplikacija koristi Androidovu uslugu pristupačnosti da očita koja je aplikacija trenutno na ekranu, i — samo kada blokiraš određene sajtove — adresnu traku pregledača.\n\nZašto: to je jedini način da se ekran blokade prikaže čim otvoriš blokiranu aplikaciju ili sajt, uključujući društvene mreže koje strogi režim drži zatvorenim.\n\nGde idu podaci: nigde. Sve se obrađuje i čuva samo na ovom uređaju. Block Doomscroll nikome ne šalje ono što vidi i nikada to ne prodaje. Jedina veza sa internetom su ekrani Čisti Instagram i Čisti Facebook, koji se direktno povezuju na instagram.com i facebook.com.</string>
     <string name="disclosure_accept">Prihvati i nastavi</string>
     <string name="disclosure_decline">Ne sada</string>
 
@@ -283,7 +283,7 @@
     <string name="category_distraction">Distrakcija</string>
     <string name="category_neutral">Neutralno</string>
     <string name="category_productive">Produktivno</string>
-    <string name="onboarding_privacy_note">Block Doomscroll nikome ne šalje ono što vidi. Jedina veza sa internetom je ekran Čisti Instagram, koji se direktno povezuje na instagram.com.</string>
+    <string name="onboarding_privacy_note">Block Doomscroll nikome ne šalje ono što vidi. Jedina veza sa internetom su ekrani Čisti Instagram i Čisti Facebook, koji se direktno povezuju na instagram.com i facebook.com.</string>
     <string name="onboarding_report_label">Tvojih poslednjih 7 dana</string>
     <string name="onboarding_report_total_label">Ukupno</string>
     <string name="onboarding_report_daily_label">Dnevno u proseku</string>

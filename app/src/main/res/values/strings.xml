@@ -20,7 +20,7 @@
     <string name="duration_minutes" translatable="false">%1$dm</string>
     <string name="stepper_minus" translatable="false">−</string>
     <string name="stepper_plus" translatable="false">+</string>
-    <string name="onboarding_privacy_note">Block Doomscroll never sends what it sees to us or anyone. The only connection is the Clean Instagram screen, which talks to instagram.com directly.</string>
+    <string name="onboarding_privacy_note">Block Doomscroll never sends what it sees to us or anyone. The only connection is the Clean Instagram and Clean Facebook screens, which talk to instagram.com and facebook.com directly.</string>
     <string name="onboarding_report_label">Your last 7 days</string>
     <string name="onboarding_report_total_label">Total</string>
     <string name="onboarding_report_daily_label">Daily average</string>
@@ -45,7 +45,7 @@
 
     <!-- Prominent disclosure (Play policy) -->
     <string name="disclosure_title">Accessibility access</string>
-    <string name="disclosure_message">This app uses Android\'s Accessibility Service to read which app is currently on screen, and — only when you block specific websites — the browser address bar.\n\nWhy: this is the only way to show the block screen the moment you open a blocked app or site, including the social apps strict mode keeps closed.\n\nWhere the data goes: nowhere. Everything is processed and stored only on this device. Block Doomscroll never sends what it sees to us or anyone, and never sells it. The only connection is the Clean Instagram screen, which talks to instagram.com directly.</string>
+    <string name="disclosure_message">This app uses Android\'s Accessibility Service to read which app is currently on screen, and — only when you block specific websites — the browser address bar.\n\nWhy: this is the only way to show the block screen the moment you open a blocked app or site, including the social apps strict mode keeps closed.\n\nWhere the data goes: nowhere. Everything is processed and stored only on this device. Block Doomscroll never sends what it sees to us or anyone, and never sells it. The only connection is the Clean Instagram and Clean Facebook screens, which talk to instagram.com and facebook.com directly.</string>
     <string name="disclosure_accept">Accept and continue</string>
     <string name="disclosure_decline">Not now</string>
 

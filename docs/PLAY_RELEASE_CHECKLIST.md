@@ -9,8 +9,8 @@
       (`versionCode 10` — kandidat za produkciju; 3–9 potrošeni ili napravljeni ranije)
 - [x] `compileSdk` / `targetSdk = 36` (Play requirement as of 31 Aug 2026; needs AGP 8.12.0)
 - [x] `allowBackup = false`, backup/data-extraction rules exclude everything
-- [ ] INTERNET is back since `cisti-instagram` (only the clean-Instagram WebView →
-      instagram.com; nothing to our servers). Every "no INTERNET" claim below must be
+- [ ] INTERNET is back since `cisti-instagram` (only the clean-feed WebViews →
+      instagram.com / facebook.com; nothing to our servers). Every "no INTERNET" claim below must be
       re-checked before release — see "Čisti Instagram / INTERNET" section.
 - [x] Account username/email are LOCAL-ONLY (DataStore, backup-excluded, never
   transmitted) — Data Safety stays "no data collected"; re-answer the form if
@@ -21,16 +21,18 @@
 
 ## Čisti Instagram / INTERNET (pre prvog izdanja sa WebView-om)
 
-- [ ] Data Safety ponovo popunjen: šta WebView šalje instagram.com (prijava, kolačići —
-      to su podaci između korisnika i Instagrama) i da li to Play smatra "collected"
+- [ ] Data Safety ponovo popunjen: šta WebView šalje instagram.com / facebook.com (prijava,
+      kolačići — to su podaci između korisnika i Mete) i da li to Play smatra "collected"
 - [ ] Play Billing datatransport telemetrija: proveriti da li sad zaista ide na mrežu
       (ranije je INTERNET bio uklonjen) i da li mora u Data Safety
 - [ ] Politika privatnosti (`docs/PRIVACY_POLICY.md` + GitHub Pages): opis WebView-a,
-      instagram.com, kolačići na uređaju; ukloniti "no internet access"
+      instagram.com i facebook.com, kolačići na uređaju; ukloniti "no internet access"
 - [x] In-app disclosure (`disclosure_message`), `onboarding_privacy_note` i Accessibility
-      izjava više ne tvrde "no internet access" — pominju samo vezu Čistog Instagrama
+      izjava više ne tvrde "no internet access" — pominju samo vezu Čistog Instagrama i Čistog Facebooka
 - [ ] Store listing i ekran ne smeju sugerisati zvaničnu Instagram aplikaciju ni
-      povezanost sa Meta (naziv "Čisti Instagram", ikonice, screenshotovi)
+      povezanost sa Meta (nazivi "Čisti Instagram" / "Čisti Facebook", ikonice, screenshotovi)
+- [ ] Čisti Facebook koristi desktop user agent na facebook.com: proveriti da opis u
+      Data Safety / politici to ne prećutkuje (sajt vidi "Linux desktop Chrome")
 - [ ] `aapt2 dump permissions` na release APK-u: INTERNET je očekivan, ništa drugo novo
 
 ## Plaćanje (pre svakog izdanja sa billing-om)

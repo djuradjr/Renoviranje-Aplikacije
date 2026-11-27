@@ -39,7 +39,8 @@ active window info).
 > YouTube, Facebook) closed, each openable for 1–15 minutes at a time; the list is
 > shown on the strict mode screen. Nothing is monitored silently. All processing is on-device; what the
 > service reads is never transmitted, shared, or sold. The app's only network use is
-> the Clean Instagram screen, a WebView that talks to instagram.com directly.
+> the Clean Instagram and Clean Facebook screens, WebViews that talk to instagram.com
+> and facebook.com directly.
 >
 > Before the Accessibility settings are ever opened, an in-app disclosure
 > screen shows this same explanation and the user must accept it.
