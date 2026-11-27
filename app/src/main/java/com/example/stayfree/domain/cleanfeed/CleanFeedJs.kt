@@ -107,13 +107,18 @@ object CleanFeedJs {
           return c;
         }
         // The feed stops after the last post the user has seen; everything below
-        // is hidden and the card takes its place.
+        // is hidden and the card takes its place. That post is remembered: a feed
+        // may empty posts far off screen, and an emptied post has no id.
+        var endAt = null;
         function endPass(){
-          var arts = posts(), last = null;
+          var arts = posts(), at = -1, last = null;
           for (var i = 0; i < arts.length; i++) {
-            if (seen[postId(arts[i])]) { if (shown(arts[i])) last = arts[i]; continue; }
-            if (shown(arts[i])) { arts[i].setAttribute('data-bb-end', '1'); off(arts[i]); }
+            if (arts[i] === endAt || (seen[postId(arts[i])] && shown(arts[i]))) at = i;
           }
+          for (var j = at + 1; j < arts.length; j++) {
+            if (shown(arts[j])) { arts[j].setAttribute('data-bb-end', '1'); off(arts[j]); }
+          }
+          if (at >= 0) last = endAt = arts[at];
           var c = card();
           if (last) { if (last.nextSibling !== c) last.after(c); }
           else if (arts.length) { if (arts[0].previousSibling !== c) arts[0].before(c); }
@@ -142,7 +147,7 @@ object CleanFeedJs {
         }
         function end(){ ended = true; if (home()) endPass(); }
         function reopen(){
-          ended = false;
+          ended = false; endAt = null;
           var hidden = document.querySelectorAll('[data-bb-end]');
           for (var i = 0; i < hidden.length; i++) {
             hidden[i].removeAttribute('data-bb-end'); on(hidden[i]);

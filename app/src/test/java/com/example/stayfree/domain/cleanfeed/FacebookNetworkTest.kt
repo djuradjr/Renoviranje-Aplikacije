@@ -65,15 +65,15 @@ class FacebookNetworkTest {
         }
     }
 
-    @Test fun `post, photo and video pages give their id`() {
+    @Test fun `post and video pages give their id, photos do not`() {
         assertEquals("pfbid02abcXYZ", postId("/marko/posts/pfbid02abcXYZ/"))
         assertEquals("987", postId("/groups/123/posts/987/"))
         assertEquals("987", postId("/groups/123/permalink/987/"))
         assertEquals("555", postId("/somepage/videos/555/"))
         assertEquals("111", postId("/permalink.php", "story_fbid" to "111", "id" to "4"))
         assertEquals("111", postId("/story.php", "story_fbid" to "111"))
-        assertEquals("222", postId("/photo/", "fbid" to "222"))
-        assertEquals("222", postId("/photo.php", "fbid" to "222"))
+        assertEquals(null, postId("/photo/", "fbid" to "222"))
+        assertEquals(null, postId("/photo.php", "fbid" to "222"))
         assertEquals("333", postId("/watch/", "v" to "333"))
         assertEquals(null, postId("/marko/"))
         assertEquals(null, postId("/messages/t/123/"))

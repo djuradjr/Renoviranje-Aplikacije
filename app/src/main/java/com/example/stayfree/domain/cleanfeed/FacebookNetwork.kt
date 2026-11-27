@@ -97,15 +97,15 @@ data object FacebookNetwork : CleanNetwork {
     override fun isStoriesTray(url: String?): Boolean = false
 
     /**
-     * The id of a single post, photo or video page, or null for any other page.
-     * Path + query only so it is unit-testable.
+     * The id of a single post or video page, or null for any other page. Photo pages
+     * are left out: the photo viewer changes the URL on every photo of an album, and
+     * one album must not spend the whole limit. Path + query only so it is unit-testable.
      */
     fun postIdOfPath(rawPath: String, param: (String) -> String?): String? {
         POST_PATH.find(rawPath)?.let { return it.groupValues[1] }
         val path = rawPath.lowercase().trimEnd('/')
         return when (path) {
             "/permalink.php", "/story.php" -> param("story_fbid")
-            "/photo", "/photo.php" -> param("fbid")
             "/watch", "/video.php" -> param("v")
             else -> null
         }
@@ -131,25 +131,34 @@ data object FacebookNetwork : CleanNetwork {
     }
 
     /**
-     * Facebook's half of the page script. The desktop layout is fitted to a phone
-     * (`fit()`). Targets roles, link targets and computed sizes, never Facebook's
-     * generated class names. Posts are not told apart yet, so none count toward the
-     * limit.
+     * Visible labels of suggestion blocks in the feed, in the languages we ship (EN +
+     * SR, both scripts). Matched as a whole short text, never as a substring.
      */
-    private val ADAPTER = """
-        var CSS =
-          // Top bar tabs that only lead to endless video, shopping and games feeds.
-          '[role="banner"] a[href*="/watch"],[role="banner"] a[href*="/reel"],' +
-          '[role="banner"] a[href*="/marketplace"],[role="banner"] a[href*="/gaming"]{display:none!important}';
-        var INBOX = '/messages/t/';
-        function home(){ return location.pathname === '/'; }
-        function posts(){ return document.querySelectorAll('[aria-posinset]'); }
-        function cardHost(){ return document.querySelector('[role="main"]'); }
-        function postId(a){ return null; }
-        // The desktop page keeps a 900px minimum width (one container carries it) and
-        // puts side columns next to the content. Only while the page is wider than
-        // the screen: lift the minimum, drop the side columns, let the content fill it.
-        // screen.width, not innerWidth: the viewport itself widens to the wide page.
+    val SUGGESTED_LABELS = listOf(
+        "Suggested for you",
+        "People you may know",
+        "Reels and short videos",
+        "Reels",
+        "Suggested groups",
+        "Suggested pages",
+        "Predloženo za tebe",
+        "Predloženo za vas",
+        "Osobe koje možda znaš",
+        "Предложено за тебе",
+        "Предложено за вас",
+        "Особе које можда знаш"
+    )
+
+    /** Labels on a sponsored post: a second signal beside the "about this ad" link. */
+    val AD_LABELS = listOf("Sponsored", "Sponzorisano", "Спонзорисано")
+
+    /**
+     * The desktop page keeps a 900px minimum width (one container carries it) and puts
+     * side columns next to the content. Only while the page is wider than the screen:
+     * lift the minimum, drop the side columns, let the content fill the width.
+     * screen.width, not innerWidth: the viewport itself widens to the wide page.
+     */
+    private val FIT_JS = """
         function fit(){
           if (document.documentElement.scrollWidth <= screen.width + 1) return;
           var divs = document.getElementsByTagName('div');
@@ -168,8 +177,112 @@ data object FacebookNetwork : CleanNetwork {
           main.style.setProperty('max-width', '100%', 'important');
           main.style.setProperty('flex', '1 1 100%', 'important');
         }
-        function tidy(){ fit(); }
     """.trimIndent()
+
+    /**
+     * Facebook's half of the page script. Targets roles, link targets, visible labels
+     * and computed sizes, never Facebook's generated class names.
+     *
+     * A post is the list item around an `[aria-posinset]` element. Facebook keeps its
+     * id out of the page (the permalink appears only on hover) and scrambles some of
+     * its text, so a post is told apart by its author and the start of its message
+     * (or its photo's file name), hashed. A post with neither does not count.
+     */
+    private val ADAPTER: String by lazy {
+        val labels = SUGGESTED_LABELS.joinToString(",") { "\"" + it.lowercase() + "\"" }
+        val adLabels = AD_LABELS.joinToString(",") { "\"" + it.lowercase() + "\"" }
+        """
+        var CSS =
+          // Top bar tabs that only lead to endless video, shopping and games feeds.
+          '[role="banner"] a[href*="/watch"],[role="banner"] a[href*="/reel"],' +
+          '[role="banner"] a[href*="/marketplace"],[role="banner"] a[href*="/gaming"]{display:none!important}';
+        var INBOX = '/messages/t/';
+        var labels = [$labels];
+        var adLabels = [$adLabels];
+        function home(){ return location.pathname === '/'; }
+        function cardHost(){ return document.querySelector('[role="main"]'); }
+        // Facebook wraps each post in a few single-child divs; the outermost one is the
+        // list item.
+        function unit(p){
+          var n = p;
+          for (var i = 0; i < 8 && n.parentElement && n.parentElement !== document.body &&
+              n.parentElement.children.length === 1; i++) n = n.parentElement;
+          return n;
+        }
+        function posts(){
+          var ps = document.querySelectorAll('[aria-posinset]'), out = [];
+          for (var i = 0; i < ps.length; i++) {
+            // A shared post inside a post is part of it.
+            if (ps[i].parentElement && ps[i].parentElement.closest('[aria-posinset]')) continue;
+            var u = unit(ps[i]);
+            // Facebook keeps 0px copies of some posts: not a post anyone sees.
+            if (!u.offsetHeight || out.indexOf(u) >= 0) continue;
+            out.push(u);
+          }
+          return out;
+        }
+        function hash(s){
+          var h = 5381;
+          for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+          return 'f' + (h >>> 0).toString(36);
+        }
+        function author(u){
+          var links = u.querySelectorAll('a[href^="https://www.facebook.com/"]');
+          for (var i = 0; i < links.length; i++) {
+            var t = (links[i].textContent || '').trim();
+            if (t && t.length < 80 && !/\/(hashtag|stories|watch)\//.test(links[i].href)) return t;
+          }
+          return '';
+        }
+        function postId(u){
+          if (u.hasAttribute('data-bb-ad')) return null;
+          var m = u.querySelector('[data-ad-preview="message"],[data-ad-comet-preview="message"]');
+          // The start only: "See more" expands the text in place.
+          var key = m ? (m.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 60) : '';
+          if (!key) {
+            var imgs = u.querySelectorAll('img');
+            for (var i = 0; i < imgs.length && !key; i++) {
+              var f = (imgs[i].getAttribute('src') || '').match(/\/(\d+_\d+_\d+)_[no]\./);
+              if (f) key = f[1];
+            }
+          }
+          return key ? hash(author(u) + '|' + key) : null;
+        }
+        function hasLabel(el, list){
+          var spans = el.querySelectorAll('span,a,h2,h3,h4');
+          for (var i = 0; i < spans.length; i++) {
+            if (spans[i].childElementCount) continue;
+            var t = (spans[i].textContent || '').trim().toLowerCase();
+            if (t.length <= 40 && list.indexOf(t) >= 0) return true;
+          }
+          return false;
+        }
+        // The chronological feeds carry few ads; this is the net for those that come.
+        function hideAds(us){
+          for (var i = 0; i < us.length; i++) {
+            var u = us[i];
+            if (u.hasAttribute('data-bb-ad')) continue;
+            if (u.querySelector('a[href*="/ads/about"]') || hasLabel(u, adLabels)) {
+              u.setAttribute('data-bb-ad', '1'); off(u);
+            }
+          }
+        }
+        function tidy(){
+          fit();
+          if (!home()) return;
+          var us = posts();
+          if (!us.length) return;
+          hideAds(us);
+          // Suggestion blocks sit between the posts as list items of their own.
+          var list = us[0].parentElement.children;
+          for (var j = 0; j < list.length; j++) {
+            var c = list[j];
+            if (c.id === 'bb-end' || c.querySelector('[aria-posinset]')) continue;
+            if (hasLabel(c, labels)) off(c);
+          }
+        }
+        """.trimIndent() + "\n" + FIT_JS
+    }
 
     override val injectedJs: String by lazy { CleanFeedJs.build(ADAPTER) }
 }
