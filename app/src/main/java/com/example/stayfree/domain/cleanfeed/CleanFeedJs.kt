@@ -5,7 +5,8 @@ package com.example.stayfree.domain.cleanfeed
  * at the limit and cutting the feed off below it. A network plugs in an adapter
  * (plain JavaScript, same scope) that defines:
  * - `CSS` (extra rules) and `INBOX` (path of the messages page),
- * - `home()` (is this the feed page), `posts()` (post elements, page order),
+ * - `home()` (is this the feed page), `counts()` (do posts on this page spend the
+ *   limit and end in the card; the feed always does), `posts()` (post elements, page order),
  * - `postId(post)` (stable id, or null while it cannot be told yet),
  * - `tidy()` (hide what the network must not show), `cardHost()` (where the card
  *   goes when the page has no post at all).
@@ -61,7 +62,7 @@ object CleanFeedJs {
         }
         function shown(a){ return !a.hasAttribute('data-bb-off'); }
         function track(){
-          if (!home() || budget < 0 || ended) return;
+          if (!counts() || budget < 0 || ended) return;
           hide();
           var arts = posts(), line = window.innerHeight * 0.5;
           for (var i = 0; i < arts.length && fresh < budget; i++) {
@@ -145,7 +146,7 @@ object CleanFeedJs {
             marked[i].removeAttribute('data-bb-endlist'); marked[i].removeAttribute('data-bb-endwrap');
           }
         }
-        function end(){ ended = true; if (home()) endPass(); }
+        function end(){ ended = true; if (counts()) endPass(); }
         function reopen(){
           ended = false; endAt = null;
           var hidden = document.querySelectorAll('[data-bb-end]');
@@ -166,7 +167,7 @@ object CleanFeedJs {
         // Polled every second: also the safety net that re-applies the end state and
         // counts posts already on screen without a scroll.
         window.__bbTake = function(){
-          if (ended) { if (home()) endPass(); } else track();
+          if (ended) { if (counts()) endPass(); } else track();
           var n = fresh; fresh = 0;
           if (budget > 0) budget = Math.max(budget - n, 0);
           return n;
@@ -175,13 +176,13 @@ object CleanFeedJs {
           cfg = c; budget = remaining;
           if (remaining <= 0) end();
           else if (ended) reopen();
-          if (ended && home()) card();
+          if (ended && counts()) card();
           track();
         };
 
         var queued = false;
         window.__bbClean = function(){
-          if (ended && home()) endPass();
+          if (ended && counts()) endPass();
           if (queued) return; queued = true;
           setTimeout(function(){ queued = false; hide(); }, 250);
         };

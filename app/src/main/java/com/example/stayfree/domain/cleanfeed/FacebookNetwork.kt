@@ -259,6 +259,12 @@ data object FacebookNetwork : CleanNetwork {
         var labels = [$labels];
         var adLabels = [$adLabels];
         function home(){ return location.pathname === '/'; }
+        // Profiles, pages, groups and search are feeds of full posts too. A single post
+        // page is counted by its URL instead, so it must not count twice here.
+        function counts(){
+          var p = location.pathname;
+          return !/^\/(messages|notifications|stories|photo|watch|reel)(\/|$)|\/(posts|permalink|videos)\/|^\/(story|permalink|photo|video)\.php/.test(p);
+        }
         function cardHost(){ return document.querySelector('[role="main"]'); }
         // Facebook wraps each post in a few single-child divs; the outermost one is the
         // list item.

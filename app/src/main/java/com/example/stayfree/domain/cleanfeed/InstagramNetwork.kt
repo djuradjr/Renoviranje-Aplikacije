@@ -153,6 +153,8 @@ data object InstagramNetwork : CleanNetwork {
         var labels = [$labels];
         var adLabels = [$adLabels];
         function home(){ return location.pathname === '/'; }
+        // A profile shows a grid; a post opened from it is counted by its URL.
+        function counts(){ return home(); }
         function posts(){ return document.querySelectorAll('article'); }
         function cardHost(){ return document.querySelector('main'); }
         function postId(a){
