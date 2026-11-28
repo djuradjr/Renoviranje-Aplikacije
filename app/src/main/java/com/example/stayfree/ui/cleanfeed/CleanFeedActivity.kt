@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -96,6 +97,8 @@ abstract class CleanFeedActivity : AppCompatActivity() {
         private const val LOAD_RETRIES = 2
         private const val TAKE_JS = "window.__bbTake ? window.__bbTake() : 0"
         private const val EXTRA_HOME_ON_CLOSE = "home_on_close"
+        private const val PAUSE_MEDIA_JS =
+            "document.querySelectorAll('video,audio').forEach(function(m){if(!m.paused)m.pause();})"
 
         /**
          * [homeOnClose]: opened in place of the real app. Closing must then go to the
@@ -157,6 +160,7 @@ abstract class CleanFeedActivity : AppCompatActivity() {
                 while (true) {
                     delay(POLL_MS)
                     pollSeenPosts()
+                    updateCountdown()
                 }
             }
         }
@@ -371,7 +375,8 @@ abstract class CleanFeedActivity : AppCompatActivity() {
             return
         }
         if (network.isMessages(previous)) postFromMessages = id
-        if (id == postFromMessages) {
+        // Already counted this session (also the one that spent the limit): free to finish.
+        if (id == postFromMessages || id in session.opened) {
             showPostLimit(false)
             return
         }
@@ -385,15 +390,37 @@ abstract class CleanFeedActivity : AppCompatActivity() {
         view.evaluateJavascript(markJs) { result ->
             if (result != "1") return@evaluateJavascript
             lifecycleScope.launch {
-                session = prefs.updateCleanFeedSession(network.id) { ScrollBudget.addPosts(it, 1, rules, day(), now()) }
+                session = prefs.updateCleanFeedSession(network.id) { ScrollBudget.openPost(it, id, rules, day(), now()) }
                 render()
             }
         }
     }
 
     private fun showPostLimit(show: Boolean) {
-        if (show) binding.tvPostLimitMessage.text = limitMessage()
         binding.postLimit.isVisible = show
+        if (!show) return
+        binding.tvPostLimitTitle.setText(texts.limitTitle)
+        binding.tvPostLimitMessage.text = limitMessage()
+        binding.tvPostLimitSession.text = if (rules.sessionsPerDay > 0)
+            getString(R.string.clean_feed_session_of, session.sessionsToday, rules.sessionsPerDay)
+        else getString(R.string.clean_feed_session_n, session.sessionsToday)
+        binding.tvPostLimitCountdownLabel.setText(R.string.clean_feed_countdown)
+        updateCountdown()
+    }
+
+    /** The pause ticking down on the limit cover; a day lock has no countdown. */
+    private fun updateCountdown() {
+        val left = session.lockedUntil - now()
+        // The page under the cover keeps loading: its player must not play on unseen.
+        if (binding.postLimit.isVisible) binding.webView.evaluateJavascript(PAUSE_MEDIA_JS, null)
+        val show = binding.postLimit.isVisible && !session.dayLocked && left > 0
+        binding.tvPostLimitCountdown.isVisible = show
+        binding.tvPostLimitCountdownLabel.isVisible = show
+        if (!show) return
+        val s = (left + 999) / 1000
+        binding.tvPostLimitCountdown.text =
+            if (s >= 3600) String.format(Locale.ROOT, "%d:%02d:%02d", s / 3600, s / 60 % 60, s % 60)
+            else String.format(Locale.ROOT, "%d:%02d", s / 60, s % 60)
     }
 
     private fun leavePost() {
@@ -406,7 +433,7 @@ abstract class CleanFeedActivity : AppCompatActivity() {
     private fun limitMessage(): String =
         if (session.dayLocked) resources.getQuantityString(
             R.plurals.clean_feed_end_day, session.sessionsToday, session.sessionsToday)
-        else getString(R.string.clean_feed_end_message,
+        else getString(texts.endMessage,
             DateFormat.getTimeFormat(this).format(Date(session.lockedUntil)))
 
     /** The page counts friends' posts as they scroll into view; we persist them. */
@@ -469,7 +496,7 @@ abstract class CleanFeedActivity : AppCompatActivity() {
 
         binding.tvCounter.text = getString(R.string.clean_feed_counter, limit - remaining, limit)
         binding.tvCounter.contentDescription =
-            getString(R.string.clean_feed_counter_cd, limit - remaining, limit)
+            getString(texts.counterCd, limit - remaining, limit)
         binding.tvCounter.setTextColor(
             ContextCompat.getColor(this, if (remaining <= 3) R.color.skor_warn else R.color.skor_text_dim)
         )

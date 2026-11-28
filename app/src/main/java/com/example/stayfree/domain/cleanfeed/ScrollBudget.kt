@@ -16,7 +16,9 @@ data class ScrollSession(
     val lockedUntil: Long = 0L,
     val day: String = "",
     val sessionsToday: Int = 0,
-    val dayLocked: Boolean = false
+    val dayLocked: Boolean = false,
+    /** Single posts/videos already counted this session: reopening one costs nothing. */
+    val opened: List<String> = emptyList()
 ) {
     fun isLocked(now: Long): Boolean = lockedUntil > now
 }
@@ -80,6 +82,18 @@ object ScrollBudget {
         return if (usedUp(spent, rules)) spent.copy(lockedUntil = day.nextStartsAt, dayLocked = true)
         else spent.copy(lockedUntil = now + rules.pauseMs)
     }
+
+    /**
+     * A single post or video opened by id: counted once per session. One already
+     * counted stays open even past the limit, so the video that spent it can be finished.
+     */
+    fun openPost(s: ScrollSession, id: String, rules: Rules, day: Day, now: Long): ScrollSession {
+        val c = current(s, rules, day, now)
+        if (id in c.opened || c.isLocked(now)) return c
+        return addPosts(c, 1, rules, day, now).copy(opened = (c.opened + id).takeLast(MAX_OPENED))
+    }
+
+    private const val MAX_OPENED = 100
 
     /** Remaining posts this session (0 while locked). */
     fun remaining(s: ScrollSession, rules: Rules, day: Day, now: Long): Int {

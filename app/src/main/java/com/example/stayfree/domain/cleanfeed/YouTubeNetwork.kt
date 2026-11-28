@@ -44,6 +44,10 @@ data object YouTubeNetwork : CleanNetwork {
     override val keepsSiteHeader = true
     override val trayJs: String? = null
 
+    /** Videos per session: a video is long, so the ladder is short. */
+    override val limitSteps = listOf(1, 2, 3, 4, 5)
+    override val defaultLimit = 3
+
     override fun userAgent(webViewDefault: String) = webViewDefault
 
     override fun decide(url: String): Nav {
@@ -131,7 +135,7 @@ data object YouTubeNetwork : CleanNetwork {
           '{display:none!important}';
         var INBOX = '/feed/library';
         function home(){ return location.pathname === '/feed/subscriptions'; }
-        // The video limit on the feed comes in a later step; videos opened are counted by URL.
+        // Scrolling subscriptions is free; each video opened is counted by URL.
         function counts(){ return false; }
         function cardHost(){ return document.querySelector('ytm-browse,ytm-section-list-renderer'); }
         var ITEM = 'ytm-rich-item-renderer,ytm-video-with-context-renderer';

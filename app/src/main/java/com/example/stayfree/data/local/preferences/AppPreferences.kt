@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.stayfree.domain.cleanfeed.CleanNetwork
 import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.domain.cleanfeed.ScrollBudget
 import com.example.stayfree.domain.cleanfeed.ScrollSession
@@ -176,9 +177,12 @@ class AppPreferences @Inject constructor(
     /** A network's clean feed: posts per session, the pause after it, sessions per day. */
     fun cleanFeedRules(network: String): Flow<ScrollBudget.Rules> {
         val keys = CleanFeedKeys(network)
+        val net = CleanNetwork.forId(network)
+        val maxLimit = net?.limitSteps?.last() ?: Int.MAX_VALUE
         return dataStore.data.map {
             ScrollBudget.Rules(
-                limit = it[keys.limit] ?: ScrollBudget.DEFAULT_LIMIT,
+                // A value stored before this network's ladder got shorter is cut to its top.
+                limit = (it[keys.limit] ?: net?.defaultLimit ?: ScrollBudget.DEFAULT_LIMIT).coerceAtMost(maxLimit),
                 pauseMinutes = it[keys.pause] ?: ScrollBudget.DEFAULT_PAUSE_MINUTES,
                 sessionsPerDay = it[keys.sessions] ?: ScrollBudget.DEFAULT_SESSIONS_PER_DAY
             )
@@ -383,7 +387,8 @@ class AppPreferences @Inject constructor(
     }
 
     suspend fun setCleanFeedLimit(network: String, posts: Int) {
-        dataStore.edit { it[CleanFeedKeys(network).limit] = posts.coerceAtLeast(1) }
+        val max = CleanNetwork.forId(network)?.limitSteps?.last() ?: Int.MAX_VALUE
+        dataStore.edit { it[CleanFeedKeys(network).limit] = posts.coerceIn(1, max) }
     }
 
     suspend fun setCleanFeedPause(network: String, minutes: Int) {
@@ -410,6 +415,7 @@ class AppPreferences @Inject constructor(
                 .put("day", result.day)
                 .put("n", result.sessionsToday)
                 .put("dayLock", result.dayLocked)
+                .put("opened", result.opened.joinToString(","))
                 .toString()
         }
         return result
@@ -420,7 +426,8 @@ class AppPreferences @Inject constructor(
         return try {
             val o = JSONObject(json)
             ScrollSession(o.optInt("posts"), o.optLong("last"), o.optLong("until"),
-                o.optString("day"), o.optInt("n"), o.optBoolean("dayLock"))
+                o.optString("day"), o.optInt("n"), o.optBoolean("dayLock"),
+                o.optString("opened").split(',').filter { it.isNotEmpty() })
         } catch (e: Exception) {
             ScrollSession()
         }

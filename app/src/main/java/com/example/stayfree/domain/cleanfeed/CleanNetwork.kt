@@ -25,6 +25,10 @@ sealed interface CleanNetwork {
     /** Cuts [storiesUrl] down to the tray; evaluates to its height in dp, 0 until it renders. */
     val trayJs: String?
 
+    /** Limit choices offered in the app (per session) and the starting one. */
+    val limitSteps: List<Int> get() = ScrollBudget.LIMIT_STEPS
+    val defaultLimit: Int get() = ScrollBudget.DEFAULT_LIMIT
+
     fun userAgent(webViewDefault: String): String
     fun decide(url: String): Nav
     /** The tray WebView keeps only this page; anything else opens in the feed. */
@@ -41,6 +45,8 @@ sealed interface CleanNetwork {
 
         /** The clean feed that stands in for [packageName], or null if it has none. */
         fun forPackage(packageName: String?): CleanNetwork? = ALL.firstOrNull { packageName in it.packages }
+
+        fun forId(id: String): CleanNetwork? = ALL.firstOrNull { it.id == id }
     }
 
     sealed interface Nav {

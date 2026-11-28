@@ -104,8 +104,11 @@ class BlockAppsAdapter(
             binding.tvCleanSubtitle.setText(texts.subtitle)
             binding.tvCleanNote.setText(texts.note)
             binding.btnCleanFeedOpen.setText(texts.open)
+            binding.tvCleanLimitLabel.setText(texts.limitLabel)
+            binding.btnCleanLimitDown.contentDescription = ctx.getString(texts.limitDownCd)
+            binding.btnCleanLimitUp.contentDescription = ctx.getString(texts.limitUpCd)
             binding.tvCleanLimitValue.text = rules.limit.toString()
-            val steps = ScrollBudget.LIMIT_STEPS
+            val steps = network.limitSteps
             val idx = nearestStepIndex(steps, rules.limit)
             bindArrow(binding.btnCleanLimitDown, enabled = idx > 0) {
                 onCleanFeedLimitChange(network, steps[idx - 1], false)

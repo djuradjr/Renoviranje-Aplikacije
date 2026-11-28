@@ -12,6 +12,14 @@ class YouTubeNetworkTest {
     private fun postId(path: String, vararg query: Pair<String, String>): String? =
         YouTubeNetwork.postIdOfPath(path) { key -> query.firstOrNull { it.first == key }?.second }
 
+    @Test fun `YouTube counts videos 1 to 5, starting at 3, the others keep their post steps`() {
+        assertEquals(listOf(1, 2, 3, 4, 5), YouTubeNetwork.limitSteps)
+        assertEquals(3, YouTubeNetwork.defaultLimit)
+        assertEquals(ScrollBudget.LIMIT_STEPS, InstagramNetwork.limitSteps)
+        assertEquals(ScrollBudget.LIMIT_STEPS, FacebookNetwork.limitSteps)
+        assertEquals(ScrollBudget.DEFAULT_LIMIT, FacebookNetwork.defaultLimit)
+    }
+
     @Test fun `the algorithmic home and feeds go to subscriptions`() {
         for (path in listOf("", "/", "/index", "/feed/explore", "/feed/trending", "/feed/storefront", "/feed/")) {
             assertEquals(path, home, YouTubeNetwork.decidePath(path))

@@ -111,4 +111,33 @@ class ScrollBudgetTest {
         val s = ScrollBudget.addPosts(session(posts = 19, last = t0, n = 40), 1, rules, today, t0)
         assertFalse(s.dayLocked)
     }
+
+    private val videos = Rules(limit = 3, pauseMinutes = 30)
+
+    @Test fun `each new video counts once and the third spends the session`() {
+        var s = ScrollBudget.openPost(session(), "a", videos, today, t0)
+        s = ScrollBudget.openPost(s, "a", videos, today, t0 + min)
+        assertEquals(1, s.posts)
+        s = ScrollBudget.openPost(s, "b", videos, today, t0 + min)
+        s = ScrollBudget.openPost(s, "c", videos, today, t0 + 2 * min)
+        assertTrue(s.isLocked(t0 + 2 * min))
+        assertEquals(listOf("a", "b", "c"), s.opened)
+    }
+
+    @Test fun `a new video past the limit is not counted or remembered`() {
+        var s = session()
+        for (id in listOf("a", "b", "c")) s = ScrollBudget.openPost(s, id, videos, today, t0)
+        val after = ScrollBudget.openPost(s, "d", videos, today, t0 + min)
+        assertTrue("d" !in after.opened)
+        assertEquals(3, after.posts)
+    }
+
+    @Test fun `opened videos are forgotten when the next session starts`() {
+        var s = session()
+        for (id in listOf("a", "b", "c")) s = ScrollBudget.openPost(s, id, videos, today, t0)
+        val next = ScrollBudget.openPost(s, "a", videos, today, t0 + pause)
+        assertEquals(listOf("a"), next.opened)
+        assertEquals(1, next.posts)
+        assertEquals(2, next.sessionsToday)
+    }
 }
