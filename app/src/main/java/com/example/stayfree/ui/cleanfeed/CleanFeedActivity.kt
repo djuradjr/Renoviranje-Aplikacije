@@ -66,6 +66,7 @@ abstract class CleanFeedActivity : AppCompatActivity() {
     @Inject lateinit var prefs: AppPreferences
 
     protected abstract val network: CleanNetwork
+    private val texts by lazy { CleanFeedTexts.of(network) }
 
     private lateinit var binding: ActivityCleanFeedBinding
     private var rules = ScrollBudget.Rules()
@@ -117,7 +118,8 @@ abstract class CleanFeedActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityCleanFeedBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.tvTitle.setText(CleanFeedTexts.of(network).title)
+        binding.tvTitle.setText(texts.title)
+        binding.btnPostLimitMessages.setText(texts.toLink)
         binding.btnActivity.isVisible = !network.keepsSiteHeader
 
         binding.btnClose.setOnClickListener { close() }
@@ -476,8 +478,8 @@ abstract class CleanFeedActivity : AppCompatActivity() {
         val card = JSONObject()
             .put("title", getString(R.string.clean_feed_end_title))
             .put("message", if (locked) limitMessage() else "")
-            .put("messages", getString(R.string.clean_feed_messages))
-            .put("stories", getString(R.string.clean_feed_stories))
+            .put("messages", getString(texts.cardLink))
+            .put("stories", getString(texts.cardTop))
             .put("accent", String.format("#%06X", 0xFFFFFF and ContextCompat.getColor(this, R.color.skor_focus)))
         binding.webView.evaluateJavascript("window.__bbSet && window.__bbSet($remaining, $card)", null)
         if (locked) scheduleUnlock(session.lockedUntil - now)

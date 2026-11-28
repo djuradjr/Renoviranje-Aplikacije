@@ -432,6 +432,9 @@
     <string name="clean_youtube_subtitle">Kanali koje pratiš, najnovije prvo. Bez Shorts-a i predloga, uz limit videa.</string>
     <string name="clean_youtube_note">Radi preko youtube.com. Prijaviš se jednom, a prijava ostaje samo na ovom telefonu.</string>
     <string name="clean_youtube_open">Otvori čisti YouTube</string>
+    <string name="clean_youtube_library">Biblioteka</string>
+    <string name="clean_youtube_to_library">Idi u biblioteku</string>
+    <string name="clean_feed_to_top">Na vrh</string>
     <string name="clean_feed_subtitle">Samo profili koje pratiš. Bez Reels-a i Explore-a, uz limit skrolovanja.</string>
     <string name="clean_feed_note">Radi preko instagram.com. Prijaviš se jednom, a prijava ostaje samo na ovom telefonu.</string>
     <string name="clean_feed_open">Otvori čisti Instagram</string>
