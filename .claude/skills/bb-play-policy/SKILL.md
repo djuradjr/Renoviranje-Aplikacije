@@ -34,10 +34,14 @@ bug. Check every item before submit.
   whenever the declaration text changes.
 
 ## 4. Data Safety consistency
-- Form says **"no data collected"** — true while the manifest has no `INTERNET`
-  permission. Any egress (analytics, crash reporting, anything) requires
-  updating the form in the SAME release. Play Billing itself needs no Data
-  Safety change (Google processes that data).
+- Since the clean feeds, `INTERNET` exists only for their WebViews (instagram.com,
+  facebook.com, youtube.com and their CDNs); the form follows
+  `docs/PLAY_CONSOLE_DECLARATIONS.md` §4. Any other egress (analytics, crash
+  reporting, anything) requires updating the form in the SAME release. Play
+  Billing itself needs no Data Safety change (Google processes that data).
+- Clean YouTube changes youtube.com's page (hides Shorts/recommendations) but never
+  ads, never downloads or background-plays, and keeps WebView's own user agent:
+  anything beyond that risks Device and Network Abuse (violating YouTube's terms).
 
 ## 5. Device and Network Abuse boundary
 - Allowed: reading node info + the single documented Back press before showing

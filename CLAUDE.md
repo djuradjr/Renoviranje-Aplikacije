@@ -91,7 +91,7 @@ Flow: **`ContentSignatures.kt` → `StayFreeAccessibilityService.handleContentBl
 Until `cisti-instagram` the app had no `INTERNET` (Data Safety = "no data collected").
 Now `INTERNET` exists ONLY for the clean feeds' WebViews (`ui/cleanfeed/CleanFeedActivity`,
 one subclass per network; rules per network in `domain/cleanfeed/*Network.kt`), which talk
-to instagram.com / facebook.com directly — nothing goes to our servers. Clean Facebook runs
+to instagram.com / facebook.com / youtube.com directly — nothing goes to our servers. Clean Facebook runs
 the desktop site (the mobile one has no chronological feed and no messages). That also lets Play Billing's
 datatransport telemetry through (it used to be stripped). Before release, Data Safety,
 the privacy policy and every "no internet" claim (disclosure, a11y declaration) must be

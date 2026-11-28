@@ -10,7 +10,7 @@
 - [x] `compileSdk` / `targetSdk = 36` (Play requirement as of 31 Aug 2026; needs AGP 8.12.0)
 - [x] `allowBackup = false`, backup/data-extraction rules exclude everything
 - [ ] INTERNET is back since `cisti-instagram` (only the clean-feed WebViews →
-      instagram.com / facebook.com; nothing to our servers). Every "no INTERNET" claim below must be
+      instagram.com / facebook.com / youtube.com; nothing to our servers). Every "no INTERNET" claim below must be
       re-checked before release — see "Čisti Instagram / INTERNET" section.
 - [x] Account username/email are LOCAL-ONLY (DataStore, backup-excluded, never
   transmitted) — Data Safety stays "no data collected"; re-answer the form if
@@ -19,18 +19,30 @@
 - [x] Accessibility prominent disclosure dialog before enabling the service
 - [x] Release minify + shrinkResources, signing config wired to `keystore.properties`
 
-## Čisti Instagram / INTERNET (pre prvog izdanja sa WebView-om)
+## Čisti feedovi / INTERNET (pre prvog izdanja sa WebView-om)
 
-- [ ] Data Safety ponovo popunjen: šta WebView šalje instagram.com / facebook.com (prijava,
-      kolačići — to su podaci između korisnika i Mete) i da li to Play smatra "collected"
+Mrežni saobraćaj ide SAMO iz WebView-a čistih feedova, direktno ka: instagram.com,
+cdninstagram.com, facebook.com, fbcdn.net, youtube.com, googlevideo.com (video),
+ytimg.com / ggpht.com (sličice, avatari), accounts.google.com (YouTube prijava).
+
+- [ ] Data Safety ponovo popunjen po `PLAY_CONSOLE_DECLARATIONS.md` §4 (WebView
+      prijava, poruke, otvorene objave/videa na Meta i Google sajtovima)
 - [ ] Play Billing datatransport telemetrija: proveriti da li sad zaista ide na mrežu
       (ranije je INTERNET bio uklonjen) i da li mora u Data Safety
-- [ ] Politika privatnosti (`docs/PRIVACY_POLICY.md` + GitHub Pages): opis WebView-a,
-      instagram.com i facebook.com, kolačići na uređaju; ukloniti "no internet access"
+- [x] Politika privatnosti lokalno (`docs/PRIVACY_POLICY.md`, 2026-11-28): WebView-i,
+      instagram.com / facebook.com / youtube.com, kolačići na uređaju, uklonjeno
+      "no internet access"
+- [ ] Ista politika OBJAVLJENA na GitHub Pages (repo `Milioni-Kamioni`, `privacy.html`):
+      Djuki prenosi sadržaj `docs/PRIVACY_POLICY.md` — dok se to ne uradi, javna
+      politika i dalje tvrdi "no internet access" i ne sme ići izdanje
 - [x] In-app disclosure (`disclosure_message`), `onboarding_privacy_note` i Accessibility
-      izjava više ne tvrde "no internet access" — pominju samo vezu Čistog Instagrama i Čistog Facebooka
-- [ ] Store listing i ekran ne smeju sugerisati zvaničnu Instagram aplikaciju ni
-      povezanost sa Meta (nazivi "Čisti Instagram" / "Čisti Facebook", ikonice, screenshotovi)
+      izjava više ne tvrde "no internet access" — pominju vezu Čistog Instagrama,
+      Čistog Facebooka i Čistog YouTube-a
+- [ ] Store listing i ekran ne smeju sugerisati zvaničnu Instagram/YouTube aplikaciju ni
+      povezanost sa Metom ili Google-om (nazivi "Čisti Instagram" / "Čisti Facebook" /
+      "Čisti YouTube", ikonice, screenshotovi)
+- [ ] Čisti YouTube: reklame se ne diraju i user agent je WebView-ov podrazumevani
+      (Google ToS) — ne menjati bez nove provere politike
 - [ ] Čisti Facebook koristi desktop user agent na facebook.com: proveriti da opis u
       Data Safety / politici to ne prećutkuje (sajt vidi "Linux desktop Chrome")
 - [ ] `aapt2 dump permissions` na release APK-u: INTERNET je očekivan, ništa drugo novo
@@ -87,8 +99,8 @@
 - [ ] **New personal accounts: closed testing with at least 12 testers for 14
       continuous days is mandatory before production access**
 - [ ] App content → Privacy policy URL
-- [ ] App content → **Data safety form**: declare "no data collected, no data
-      shared" (the app has no INTERNET permission); device-or-other-IDs: none
+- [ ] App content → **Data safety form**: answer per `PLAY_CONSOLE_DECLARATIONS.md` §4
+      (clean-feed WebViews); nothing goes to our servers; device-or-other-IDs: none
 - [ ] App content → Content rating questionnaire (utility, no objectionable content)
 - [ ] App content → **Accessibility API declaration**: explain the core
       functionality (app/website blocking chosen by the user), attach a
@@ -113,6 +125,6 @@
 Verify before upload:
 
 - merged manifest contains `com.djuki.blockbrainrot`, `allowBackup="false"`; `INTERNET`
-  only for the clean-Instagram WebView
+  only for the clean-feed WebViews (Instagram, Facebook, YouTube)
 - install the minified APK (`assembleRelease`) on a device and re-run the core
   flow from `docs/MANUAL_TEST_SCRIPT.md` — R8 issues only appear in minified builds

@@ -39,8 +39,8 @@ active window info).
 > YouTube, Facebook) closed, each openable for 1–15 minutes at a time; the list is
 > shown on the strict mode screen. Nothing is monitored silently. All processing is on-device; what the
 > service reads is never transmitted, shared, or sold. The app's only network use is
-> the Clean Instagram and Clean Facebook screens, WebViews that talk to instagram.com
-> and facebook.com directly.
+> the Clean Instagram, Clean Facebook and Clean YouTube screens, WebViews that talk to
+> instagram.com, facebook.com and youtube.com directly.
 >
 > Before the Accessibility settings are ever opened, an in-app disclosure
 > screen shows this same explanation and the user must accept it.
@@ -105,17 +105,37 @@ recenzenti probe ne koriste (piše na samoj stranici App access).
 
 ## 4. Data safety
 
-- Data collected: **None.** Data shared: **None.**
-- No INTERNET permission → nothing can leave the device.
+- Naš kod ništa ne šalje — nema servera, analitike ni JS interfejsa u WebView-ima.
+  Ali Play podatke iz WebView-a koji aplikacija otvara na fiksnom sajtu (nije
+  „otvoren web“) može da računa kao prikupljene, zato odgovor više nije „None“.
+- INTERNET postoji od `cisti-instagram`, SAMO za WebView-e čistih feedova
+  (instagram.com, facebook.com, youtube.com + njihovi CDN-ovi, npr. googlevideo.com,
+  ytimg.com, fbcdn.net, cdninstagram.com). Korisnik tamo direktno koristi sajt
+  Mete / Google-a; prijava ostaje kao kolačić tog sajta na uređaju.
+- Kako popuniti formular (Djuki, u Play Console → App content → Data safety):
+  1. „Does your app collect or share any of the required user data types?“ → **Yes**.
+  2. Tipovi (sve *collected*, *not shared*, svrha **App functionality**, obavezno
+     = **No** jer su čisti feedovi opcioni, „processed ephemerally“ = **No**):
+     - Personal info → **Email address**, **User IDs** (prijava na sajt)
+     - Messages → **Other in-app messages** (poruke na Instagramu/Facebooku)
+     - Photos and videos → **Photos** (slika poslata u poruci/objavi)
+     - App activity → **App interactions**, **Other user-generated content**
+       (otvorene objave i videa, komentari)
+  3. Šifrovanje u prenosu: **Yes** (samo HTTPS, `MIXED_CONTENT_NEVER_ALLOW`).
+     Brisanje: korisnik briše podatke aplikacije / nalog na tom sajtu.
+  4. Pre slanja pročitaj Play pomoć „Data safety“ → deo o WebView-u; ako Google
+     izričito kaže da sadržaj sajta otvorenog u WebView-u ne treba prijaviti,
+     odgovor može da ostane „No“.
+  5. Play Billing `datatransport` telemetrija (Google): od kad INTERNET postoji,
+     može da ide na mrežu. Google je navodi kao podatke koje Billing obrađuje —
+     ne menja naš odgovor, ali to proveri u Billing „Data safety“ smernicama pre
+     slanja.
 - Account username/email (if set) is local-only (DataStore, backup-excluded).
 - Play Billing ne menja ovaj odgovor — Google procesira te podatke. Provereno
   2026-09-23 na pravoj kupovini: u aplikaciji se čuva samo `premium_active`
   (boolean), bez tokena, broja porudžbine i mejla; u logovima nema ničega od toga.
-- Billing biblioteka nosi Google-ov `datatransport` (telemetrija o korišćenju
-  API-ja) koji bi inače tražio INTERNET. Dozvola je uklonjena iz manifesta
-  (`tools:node="remove"`), pa aplikacija fizički ne može ništa da pošalje —
-  provereno: nula egressa iz našeg procesa. Posle svake nadogradnje Billing-a
-  proveri `aapt2 dump permissions` na release APK-u.
+- Posle svake nadogradnje Billing-a ili WebView-a proveri `aapt2 dump permissions`
+  na release APK-u: INTERNET je očekivan, ništa drugo novo.
 
 ---
 
