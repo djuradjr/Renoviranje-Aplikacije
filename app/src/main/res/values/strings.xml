@@ -464,6 +464,7 @@
     <string name="clean_youtube_open">Open clean YouTube</string>
     <string name="clean_youtube_library">Library</string>
     <string name="clean_youtube_to_library">Go to library</string>
+    <string name="clean_youtube_caption">Just channels you subscribe to, no Shorts</string>
     <string name="clean_youtube_limit_label">Videos per session</string>
     <string name="cd_clean_youtube_limit_decrease">Fewer videos per session</string>
     <string name="cd_clean_youtube_limit_increase">More videos per session</string>

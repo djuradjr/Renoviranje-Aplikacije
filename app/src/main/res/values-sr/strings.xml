@@ -434,6 +434,7 @@
     <string name="clean_youtube_open">Otvori čisti YouTube</string>
     <string name="clean_youtube_library">Biblioteka</string>
     <string name="clean_youtube_to_library">Idi u biblioteku</string>
+    <string name="clean_youtube_caption">Samo kanali koje pratiš, bez Shorts-a</string>
     <string name="clean_youtube_limit_label">Videa po sesiji</string>
     <string name="cd_clean_youtube_limit_decrease">Manje videa po sesiji</string>
     <string name="cd_clean_youtube_limit_increase">Više videa po sesiji</string>

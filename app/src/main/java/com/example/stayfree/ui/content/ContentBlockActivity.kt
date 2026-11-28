@@ -18,6 +18,7 @@ import com.example.stayfree.databinding.ActivityContentBlockBinding
 import com.example.stayfree.domain.cleanfeed.CleanNetwork
 import com.example.stayfree.domain.content.ContentBlockTarget
 import com.example.stayfree.ui.cleanfeed.CleanFeedEntry
+import com.example.stayfree.ui.cleanfeed.CleanFeedTexts
 import com.example.stayfree.ui.unlock.ShortUnlockActivity
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.StrictGate
@@ -126,6 +127,7 @@ class ContentBlockActivity : AppCompatActivity() {
         CleanNetwork.forPackage(intent.getStringExtra(EXTRA_PACKAGE))?.let { network ->
             binding.cleanFeed.root.visibility = View.VISIBLE
             binding.tvCleanCaption.visibility = View.VISIBLE
+            binding.tvCleanCaption.setText(CleanFeedTexts.of(network).caption)
             CleanFeedEntry.bind(this, binding.cleanFeed, network, lifecycleScope, prefs)
         }
 

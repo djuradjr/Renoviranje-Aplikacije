@@ -13,6 +13,7 @@ import com.example.stayfree.databinding.ActivityBlockOverlayBinding
 import com.example.stayfree.domain.cleanfeed.CleanNetwork
 import com.example.stayfree.service.StayFreeAccessibilityService
 import com.example.stayfree.ui.cleanfeed.CleanFeedEntry
+import com.example.stayfree.ui.cleanfeed.CleanFeedTexts
 import com.example.stayfree.ui.cleanfeed.CleanFeedActivity
 import com.example.stayfree.util.AppInfoUtils
 import com.example.stayfree.util.PinGate
@@ -116,6 +117,7 @@ class BlockOverlayActivity : AppCompatActivity() {
         binding.cleanFeed.root.isVisible = network != null
         binding.tvCleanCaption.isVisible = network != null
         if (network != null) {
+            binding.tvCleanCaption.setText(CleanFeedTexts.of(network).caption)
             lifecycleScope.launch {
                 // Premium goes straight to the clean feed instead of a closed door; the
                 // short unlock stays on the Blocking tab. Free users still see the PRO button.

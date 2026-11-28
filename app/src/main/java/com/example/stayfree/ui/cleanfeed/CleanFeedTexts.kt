@@ -18,6 +18,8 @@ data class CleanFeedTexts(
     @StringRes val cardTop: Int = R.string.clean_feed_stories,
     /** Post-limit cover: the button that opens [CleanNetwork.inboxUrl]. */
     @StringRes val toLink: Int = R.string.clean_feed_to_messages,
+    /** Under the "Open clean …" button on a block screen. */
+    @StringRes val caption: Int = R.string.block_clean_caption,
     /** What the limit counts: posts, or videos on YouTube. */
     @StringRes val limitLabel: Int = R.string.clean_feed_limit_label,
     @StringRes val limitDownCd: Int = R.string.cd_clean_limit_decrease,
@@ -38,7 +40,7 @@ data class CleanFeedTexts(
                 R.string.clean_youtube_title, R.string.clean_youtube_subtitle,
                 R.string.clean_youtube_note, R.string.clean_youtube_open,
                 cardLink = R.string.clean_youtube_library, cardTop = R.string.clean_feed_to_top,
-                toLink = R.string.clean_youtube_to_library,
+                toLink = R.string.clean_youtube_to_library, caption = R.string.clean_youtube_caption,
                 limitLabel = R.string.clean_youtube_limit_label,
                 limitDownCd = R.string.cd_clean_youtube_limit_decrease,
                 limitUpCd = R.string.cd_clean_youtube_limit_increase, counterCd = R.string.clean_youtube_counter_cd,
