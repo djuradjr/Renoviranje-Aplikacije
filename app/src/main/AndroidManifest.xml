@@ -90,7 +90,7 @@
             android:taskAffinity=""
             android:theme="@style/Theme.StayFree" />
 
-        <!-- Clean Instagram / Facebook (premium): the site on a feed of followed
+        <!-- Clean Instagram / Facebook / YouTube (premium): the site on a feed of followed
              accounts, with a scroll limit. One activity per network, singleTask: the
              block screen and Block Apps reopen the same page instead of stacking
              copies. configChanges: a rotation must not reload the feed. -->
@@ -104,6 +104,14 @@
 
         <activity
             android:name=".ui.cleanfeed.CleanFacebookActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:theme="@style/Theme.StayFree"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.cleanfeed.CleanYouTubeActivity"
             android:exported="false"
             android:launchMode="singleTask"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"

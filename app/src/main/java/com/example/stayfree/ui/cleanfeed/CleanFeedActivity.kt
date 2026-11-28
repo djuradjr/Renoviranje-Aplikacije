@@ -39,6 +39,7 @@ import com.example.stayfree.domain.cleanfeed.FacebookNetwork
 import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.domain.cleanfeed.ScrollBudget
 import com.example.stayfree.domain.cleanfeed.ScrollSession
+import com.example.stayfree.domain.cleanfeed.YouTubeNetwork
 import com.example.stayfree.ui.premium.PaywallActivity
 import com.example.stayfree.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -104,6 +105,7 @@ abstract class CleanFeedActivity : AppCompatActivity() {
             val screen = when (network) {
                 InstagramNetwork -> CleanInstagramActivity::class.java
                 FacebookNetwork -> CleanFacebookActivity::class.java
+                YouTubeNetwork -> CleanYouTubeActivity::class.java
             }
             return Intent(context, screen)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -512,4 +514,9 @@ class CleanInstagramActivity : CleanFeedActivity() {
 @AndroidEntryPoint
 class CleanFacebookActivity : CleanFeedActivity() {
     override val network = FacebookNetwork
+}
+
+@AndroidEntryPoint
+class CleanYouTubeActivity : CleanFeedActivity() {
+    override val network = YouTubeNetwork
 }

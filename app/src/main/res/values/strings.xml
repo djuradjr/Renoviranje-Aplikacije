@@ -458,6 +458,10 @@
     <string name="clean_facebook_subtitle">Friends, pages and groups you follow, newest first. No Reels, no Watch, a limit on scrolling.</string>
     <string name="clean_facebook_note">Runs on facebook.com. You sign in once; the login stays on this phone only.</string>
     <string name="clean_facebook_open">Open clean Facebook</string>
+    <string name="clean_youtube_title">Clean YouTube</string>
+    <string name="clean_youtube_subtitle">Channels you subscribe to, newest first. No Shorts, no recommendations, a limit on videos.</string>
+    <string name="clean_youtube_note">Runs on youtube.com. You sign in once; the login stays on this phone only.</string>
+    <string name="clean_youtube_open">Open clean YouTube</string>
     <string name="clean_feed_subtitle">Only people you follow. No Reels, no Explore, a limit on scrolling.</string>
     <string name="clean_feed_note">Runs on instagram.com. You sign in once; the login stays on this phone only.</string>
     <string name="clean_feed_open">Open clean Instagram</string>

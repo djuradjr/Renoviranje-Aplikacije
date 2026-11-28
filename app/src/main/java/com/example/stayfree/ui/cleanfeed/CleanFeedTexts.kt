@@ -5,6 +5,7 @@ import com.example.stayfree.R
 import com.example.stayfree.domain.cleanfeed.CleanNetwork
 import com.example.stayfree.domain.cleanfeed.FacebookNetwork
 import com.example.stayfree.domain.cleanfeed.InstagramNetwork
+import com.example.stayfree.domain.cleanfeed.YouTubeNetwork
 
 /** The words each network's clean feed goes by in the app. */
 data class CleanFeedTexts(
@@ -21,6 +22,9 @@ data class CleanFeedTexts(
             FacebookNetwork -> CleanFeedTexts(
                 R.string.clean_facebook_title, R.string.clean_facebook_subtitle,
                 R.string.clean_facebook_note, R.string.clean_facebook_open)
+            YouTubeNetwork -> CleanFeedTexts(
+                R.string.clean_youtube_title, R.string.clean_youtube_subtitle,
+                R.string.clean_youtube_note, R.string.clean_youtube_open)
         }
     }
 }

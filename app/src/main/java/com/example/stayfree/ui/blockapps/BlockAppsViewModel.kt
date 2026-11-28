@@ -8,6 +8,7 @@ import com.example.stayfree.domain.cleanfeed.CleanNetwork
 import com.example.stayfree.domain.cleanfeed.FacebookNetwork
 import com.example.stayfree.domain.cleanfeed.InstagramNetwork
 import com.example.stayfree.domain.cleanfeed.ScrollBudget
+import com.example.stayfree.domain.cleanfeed.YouTubeNetwork
 import com.example.stayfree.domain.content.ContentSignatures
 import com.example.stayfree.util.AppInfoUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -87,12 +88,14 @@ class BlockAppsViewModel @Inject constructor(
     /** null = still loading (installed-app query hasn't finished yet). */
     val items: StateFlow<List<BlockAppItem>?> = combine(
         allItems, query,
-        prefs.cleanFeedRules(InstagramNetwork.ID), prefs.cleanFeedRules(FacebookNetwork.ID)
-    ) { list, q, instagramRules, facebookRules ->
+        prefs.cleanFeedRules(InstagramNetwork.ID), prefs.cleanFeedRules(FacebookNetwork.ID),
+        prefs.cleanFeedRules(YouTubeNetwork.ID)
+    ) { list, q, instagramRules, facebookRules, youtubeRules ->
         val withClean = list.map {
             when (val network = CleanNetwork.forPackage(it.packageName)) {
                 InstagramNetwork -> it.copy(cleanNetwork = network, cleanFeedRules = instagramRules)
                 FacebookNetwork -> it.copy(cleanNetwork = network, cleanFeedRules = facebookRules)
+                YouTubeNetwork -> it.copy(cleanNetwork = network, cleanFeedRules = youtubeRules)
                 null -> it
             }
         }

@@ -37,7 +37,7 @@ sealed interface CleanNetwork {
     fun isFeed(url: String?): Boolean
 
     companion object {
-        val ALL: List<CleanNetwork> get() = listOf(InstagramNetwork, FacebookNetwork)
+        val ALL: List<CleanNetwork> get() = listOf(InstagramNetwork, FacebookNetwork, YouTubeNetwork)
 
         /** The clean feed that stands in for [packageName], or null if it has none. */
         fun forPackage(packageName: String?): CleanNetwork? = ALL.firstOrNull { packageName in it.packages }
