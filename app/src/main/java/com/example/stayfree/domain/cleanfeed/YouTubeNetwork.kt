@@ -30,7 +30,9 @@ data object YouTubeNetwork : CleanNetwork {
     private val YOUTUBE_HOSTS = setOf("youtube.com", "www.youtube.com", "m.youtube.com")
     private val LOGIN_HOSTS = setOf(
         "accounts.google.com", "accounts.youtube.com", "consent.youtube.com",
-        "consent.google.com", "myaccount.google.com"
+        "consent.google.com", "myaccount.google.com",
+        // Google's interstitials inside sign-in (account prompts); sent out, they break the chain.
+        "gds.google.com"
     )
 
     override val id = ID
