@@ -125,6 +125,15 @@
                     android:text="@string/paywall_feature_strict"
                     app:drawableStartCompat="@drawable/ic_check"
                     app:drawableTint="@color/skor_focus" />
+
+                <TextView
+                    style="@style/Skor.Body"
+                    android:layout_marginTop="12dp"
+                    android:drawablePadding="12dp"
+                    android:gravity="center_vertical"
+                    android:text="@string/paywall_feature_clean"
+                    app:drawableStartCompat="@drawable/ic_check"
+                    app:drawableTint="@color/skor_focus" />
             </LinearLayout>
 
             <LinearLayout

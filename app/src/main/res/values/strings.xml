@@ -20,7 +20,7 @@
     <string name="duration_minutes" translatable="false">%1$dm</string>
     <string name="stepper_minus" translatable="false">−</string>
     <string name="stepper_plus" translatable="false">+</string>
-    <string name="onboarding_privacy_note">Block Doomscroll never sends what it sees to us or anyone. The only connection is the Clean Instagram and Clean Facebook screens, which talk to instagram.com and facebook.com directly.</string>
+    <string name="onboarding_privacy_note">Block Doomscroll never sends what it sees to us or anyone. The only connection is the Clean Instagram, Clean Facebook and Clean YouTube screens, which talk to instagram.com, facebook.com and youtube.com directly.</string>
     <string name="onboarding_report_label">Your last 7 days</string>
     <string name="onboarding_report_total_label">Total</string>
     <string name="onboarding_report_daily_label">Daily average</string>
@@ -45,7 +45,7 @@
 
     <!-- Prominent disclosure (Play policy) -->
     <string name="disclosure_title">Accessibility access</string>
-    <string name="disclosure_message">This app uses Android\'s Accessibility Service to read which app is currently on screen, and — only when you block specific websites — the browser address bar.\n\nWhy: this is the only way to show the block screen the moment you open a blocked app or site, including the social apps strict mode keeps closed.\n\nWhere the data goes: nowhere. Everything is processed and stored only on this device. Block Doomscroll never sends what it sees to us or anyone, and never sells it. The only connection is the Clean Instagram and Clean Facebook screens, which talk to instagram.com and facebook.com directly.</string>
+    <string name="disclosure_message">This app uses Android\'s Accessibility Service to read which app is currently on screen, and — only when you block specific websites — the browser address bar.\n\nWhy: this is the only way to show the block screen the moment you open a blocked app or site, including the social apps strict mode keeps closed.\n\nWhere the data goes: nowhere. Everything is processed and stored only on this device. Block Doomscroll never sends what it sees to us or anyone, and never sells it. The only connection is the Clean Instagram, Clean Facebook and Clean YouTube screens, which talk to instagram.com, facebook.com and youtube.com directly.</string>
     <string name="disclosure_accept">Accept and continue</string>
     <string name="disclosure_decline">Not now</string>
 
@@ -341,6 +341,7 @@
     <string name="paywall_feature_sites">Block websites in your browser</string>
     <string name="paywall_feature_modes">Focus and Sleep mode, PIN lock</string>
     <string name="paywall_feature_strict">Strict mode: lock your own rules</string>
+    <string name="paywall_feature_clean">Clean Instagram, Facebook and YouTube: no Reels, no Shorts, no endless feed</string>
 
     <!-- Strict mode -->
     <string name="strict_title">Strict Mode</string>
@@ -540,8 +541,8 @@
     <string name="dashboard_period_total_caption">Total</string>
 
     <!-- D4 protection tab -->
-    <string name="blocking_pro_card_title">Clean Instagram &amp; Facebook</string>
-    <string name="blocking_pro_card_desc">Friends and messages, no Reels</string>
+    <string name="blocking_pro_card_title">Clean feeds</string>
+    <string name="blocking_pro_card_desc">Instagram, Facebook and YouTube without Reels or Shorts</string>
 
     <!-- D4 block + unlock screens -->
     <string name="overlay_strict_social_app">Strict mode keeps %1$s closed</string>

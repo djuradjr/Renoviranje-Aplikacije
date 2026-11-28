@@ -20,7 +20,7 @@
 
     <!-- Prominent disclosure (Play policy) -->
     <string name="disclosure_title">Dozvola za pristupačnost</string>
-    <string name="disclosure_message">Ova aplikacija koristi Androidovu uslugu pristupačnosti da očita koja je aplikacija trenutno na ekranu, i — samo kada blokiraš određene sajtove — adresnu traku pregledača.\n\nZašto: to je jedini način da se ekran blokade prikaže čim otvoriš blokiranu aplikaciju ili sajt, uključujući društvene mreže koje strogi režim drži zatvorenim.\n\nGde idu podaci: nigde. Sve se obrađuje i čuva samo na ovom uređaju. Block Doomscroll nikome ne šalje ono što vidi i nikada to ne prodaje. Jedina veza sa internetom su ekrani Čisti Instagram i Čisti Facebook, koji se direktno povezuju na instagram.com i facebook.com.</string>
+    <string name="disclosure_message">Ova aplikacija koristi Androidovu uslugu pristupačnosti da očita koja je aplikacija trenutno na ekranu, i — samo kada blokiraš određene sajtove — adresnu traku pregledača.\n\nZašto: to je jedini način da se ekran blokade prikaže čim otvoriš blokiranu aplikaciju ili sajt, uključujući društvene mreže koje strogi režim drži zatvorenim.\n\nGde idu podaci: nigde. Sve se obrađuje i čuva samo na ovom uređaju. Block Doomscroll nikome ne šalje ono što vidi i nikada to ne prodaje. Jedina veza sa internetom su ekrani Čisti Instagram, Čisti Facebook i Čisti YouTube, koji se direktno povezuju na instagram.com, facebook.com i youtube.com.</string>
     <string name="disclosure_accept">Prihvati i nastavi</string>
     <string name="disclosure_decline">Ne sada</string>
 
@@ -283,7 +283,7 @@
     <string name="category_distraction">Distrakcija</string>
     <string name="category_neutral">Neutralno</string>
     <string name="category_productive">Produktivno</string>
-    <string name="onboarding_privacy_note">Block Doomscroll nikome ne šalje ono što vidi. Jedina veza sa internetom su ekrani Čisti Instagram i Čisti Facebook, koji se direktno povezuju na instagram.com i facebook.com.</string>
+    <string name="onboarding_privacy_note">Block Doomscroll nikome ne šalje ono što vidi. Jedina veza sa internetom su ekrani Čisti Instagram, Čisti Facebook i Čisti YouTube, koji se direktno povezuju na instagram.com, facebook.com i youtube.com.</string>
     <string name="onboarding_report_label">Tvojih poslednjih 7 dana</string>
     <string name="onboarding_report_total_label">Ukupno</string>
     <string name="onboarding_report_daily_label">Dnevno u proseku</string>
@@ -310,6 +310,7 @@
     <string name="paywall_feature_sites">Blokiranje sajtova u browseru</string>
     <string name="paywall_feature_modes">Focus i Sleep mode, PIN zaštita</string>
     <string name="paywall_feature_strict">Strogi režim: zaključaj svoja pravila</string>
+    <string name="paywall_feature_clean">Čisti Instagram, Facebook i YouTube: bez Reels-a, Shorts-a i beskonačnog feeda</string>
 
     <!-- Strict mode -->
     <string name="strict_title">Strogi režim</string>
@@ -504,8 +505,8 @@
     <string name="dashboard_period_total_caption">Ukupno</string>
 
     <!-- D4 protection tab -->
-    <string name="blocking_pro_card_title">Čist Instagram i Facebook</string>
-    <string name="blocking_pro_card_desc">Prijatelji i poruke, bez Reels-a</string>
+    <string name="blocking_pro_card_title">Čisti feedovi</string>
+    <string name="blocking_pro_card_desc">Instagram, Facebook i YouTube bez Reels-a i Shorts-a</string>
 
     <!-- D4 block + unlock screens -->
     <string name="overlay_strict_social_app">Strogi režim drži %1$s zatvorenim</string>
